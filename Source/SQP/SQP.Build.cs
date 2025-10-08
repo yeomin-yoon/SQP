@@ -1,5 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+using System.IO;
 using UnrealBuildTool;
 
 public class SQP : ModuleRules
@@ -29,7 +30,8 @@ public class SQP : ModuleRules
 			"SQP/Variant_Combat/AI",
 			"SQP/Variant_SideScrolling",
 			"SQP/Variant_SideScrolling/Gameplay",
-			"SQP/Variant_SideScrolling/AI"
+			"SQP/Variant_SideScrolling/AI",
+			Path.Combine(ModuleDirectory, "Yeomin", "Public"),
 		});
 
 		// Uncomment if you are using Slate UI
