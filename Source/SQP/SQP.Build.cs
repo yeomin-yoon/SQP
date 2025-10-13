@@ -21,6 +21,7 @@ public class SQP : ModuleRules
 			"UMG",
 			"GentleKit",
 			"Niagara",
+			"NetCore",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
