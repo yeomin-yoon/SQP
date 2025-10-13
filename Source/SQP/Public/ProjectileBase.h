@@ -18,6 +18,7 @@ class SQP_API AProjectileBase : public AActor
 public:
 	AProjectileBase();
 
+	//서버-클라이언트에 맞춰 초기화
 	virtual void BeginPlay() override;
 
 	//활성화
@@ -28,14 +29,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InactivateProjectile();
 
+	//프로피티 리플리케이션 설정
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	//리플리케이션 여부 설정
 	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
 
 protected:
 	//활성화 여부
 	UPROPERTY(ReplicatedUsing = OnRep_IsActive)
 	bool bIsActive;
+
+	//풀링 여부
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsPoolable;
 
 	UFUNCTION()
 	void OnRep_IsActive();

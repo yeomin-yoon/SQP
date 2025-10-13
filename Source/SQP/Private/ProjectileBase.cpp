@@ -30,6 +30,17 @@ AProjectileBase::AProjectileBase()
 	AActor::SetReplicateMovement(true);
 }
 
+void AProjectileBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (HasAuthority() == false)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("Client Projectile Deactivate"));
+		ProjectileMoveComp->Deactivate();
+	}
+}
+
 void AProjectileBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -61,17 +72,6 @@ void AProjectileBase::OnRep_IsActive()
 	}
 }
 
-void AProjectileBase::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (HasAuthority())
-	{
-		//풀링 델리게이트 바인드
-		PoolingDelegate.BindUFunction(this, FName("InactivateProjectile"));		
-	}
-}
-
 void AProjectileBase::ActiveProjectile(const FTransform& FireTransform, const float InitSpeed)
 {
 	if (HasAuthority())
@@ -83,16 +83,29 @@ void AProjectileBase::ActiveProjectile(const FTransform& FireTransform, const fl
 		ProjectileMoveComp->Velocity = InitSpeed * GetActorForwardVector();
 		ProjectileMoveComp->Activate();
 		
+		
 		//활성화
 		bIsActive = true;
 		SetActorHiddenInGame(false);
 		SetActorEnableCollision(true);
 
-		//5초 후에 풀에 반환
-		if (const UWorld* World = GetWorld())
+		//풀링 여부에 따라
+		if (bIsPoolable)
 		{
-			World->GetTimerManager().SetTimer(PoolingTimerHandle, PoolingDelegate, 5, false);
-		}	
+			//풀링 델리게이트 바인드
+			PoolingDelegate.BindUFunction(this, FName("InactivateProjectile"));
+
+			//5초 후에 풀에 반환
+			if (const UWorld* World = GetWorld())
+			{
+				World->GetTimerManager().SetTimer(PoolingTimerHandle, PoolingDelegate, 5, false);
+			}	
+		}
+		else
+		{
+			//5초 후에 액터 파괴
+			SetLifeSpan(5);	
+		}
 	}
 }
 
@@ -100,29 +113,38 @@ void AProjectileBase::InactivateProjectile()
 {
 	if (HasAuthority())
 	{
-		//풀링 타이머 핸들 비활성
-		if (PoolingTimerHandle.IsValid())
+		//풀링이 활성화 되어 있다면
+		if (bIsPoolable)
 		{
-			GetWorldTimerManager().ClearTimer(PoolingTimerHandle);
-		}
-
-		//발사체 컴포넌트 비활성화
-		ProjectileMoveComp->StopMovementImmediately();
-		ProjectileMoveComp->Velocity = FVector::ZeroVector;
-		ProjectileMoveComp->Deactivate();
-
-		//비활성화
-		bIsActive = false;
-		SetActorHiddenInGame(true);
-		SetActorEnableCollision(false);
-
-		//풀에 반환한다
-		if (const UWorld* World = GetWorld())
-		{
-			if (const auto Subsystem = World->GetSubsystem<UProjectilePoolWorldSubsystem>())
+			//풀링 타이머 핸들 비활성
+			if (PoolingTimerHandle.IsValid())
 			{
-				Subsystem->PushProjectile(this);
+				GetWorldTimerManager().ClearTimer(PoolingTimerHandle);
 			}
+
+			//발사체 컴포넌트 비활성화
+			ProjectileMoveComp->StopMovementImmediately();
+			ProjectileMoveComp->Velocity = FVector::ZeroVector;
+			ProjectileMoveComp->Deactivate();
+
+			//비활성화
+			bIsActive = false;
+			SetActorHiddenInGame(true);
+			SetActorEnableCollision(false);
+
+			//풀에 반환한다
+			if (const UWorld* World = GetWorld())
+			{
+				if (const auto Subsystem = World->GetSubsystem<UProjectilePoolWorldSubsystem>())
+				{
+					Subsystem->PushProjectile(this);
+				}
+			}	
+		}
+		else
+		{
+			//클라이언트에 파괴 명령
+			TearOff();
 		}
 	}
 }

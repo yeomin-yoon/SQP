@@ -37,7 +37,7 @@ USQPPaintWorldSubsystem::USQPPaintWorldSubsystem()
 		ColorBrushMaterialBase = Finder.Object;
 	}
 
-	//노말 브러시의 머터링러 베이스 로드
+	//노말 브러시의 머터리얼 베이스 로드
 	if (static ConstructorHelpers::FObjectFinder<UMaterial>
 		Finder(TEXT("/Game/Splatoon/Material/M_SplatoonNormalBrush.M_SplatoonNormalBrush"));
 		Finder.Succeeded())

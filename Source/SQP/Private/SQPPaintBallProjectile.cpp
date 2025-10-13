@@ -1,9 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SQPPaintBallProjectile.h"
-
-#include <ThirdParty/ShaderConductor/ShaderConductor/External/SPIRV-Headers/include/spirv/unified1/spirv.h>
-
 #include "SQPPaintWorldSubsystem.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -18,24 +15,29 @@ void ASQPPaintBallProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//바인드
-	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASQPPaintBallProjectile::OnOverlapBeginCallback);
+	//서버 혹은 클라이언트에 따라 실제 작동 여부 결정
+	if (bIsReal)
+	{
+		//바인드
+		SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASQPPaintBallProjectile::OnOverlapBeginCallback);	
+	}
 }
 
 void ASQPPaintBallProjectile::OnOverlapBeginCallback(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("PaintBall BeginOverlap!"));
-
-	Try();
 	
 	if (HasAuthority())
 	{
+		//채색 시도 명령
+		Multicast_TryPaint();
+		
 		//비활성화
 		InactivateProjectile();
 	}
 }
 
-void ASQPPaintBallProjectile::Try_Implementation()
+void ASQPPaintBallProjectile::Multicast_TryPaint_Implementation()
 {
 	const FVector Offset = GetActorForwardVector() * 100;
 	const FVector Start = GetActorLocation() - Offset;

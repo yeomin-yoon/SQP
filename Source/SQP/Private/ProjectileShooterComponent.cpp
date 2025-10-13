@@ -1,6 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ProjectileShooterComponent.h"
+
+#include "ProjectileBase.h"
 #include "ProjectilePoolWorldSubsystem.h"
 #include "GameFramework/Character.h"
 
@@ -52,8 +54,11 @@ void UProjectileShooterComponent::TickComponent(float DeltaTime, ELevelTick Tick
 					if (const auto Subsystem = GetWorld()->GetSubsystem<UProjectilePoolWorldSubsystem>())
 					{
 						Subsystem->PopProjectile(ProjectileClass, GetComponentTransform(), 2000);
+
+						// const auto Temp = GetWorld()->SpawnActor<AProjectileBase>(ProjectileClass, GetComponentTransform());
+						// Temp->ActiveProjectile(GetComponentTransform(), 2000);
 					}
-				}	
+				}
 			}
 		}	
 	}

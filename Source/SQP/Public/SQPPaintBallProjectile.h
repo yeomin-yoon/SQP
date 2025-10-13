@@ -20,5 +20,9 @@ public:
 	void OnOverlapBeginCallback (UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Try();
+	void Multicast_TryPaint();
+
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsReal;
 };
