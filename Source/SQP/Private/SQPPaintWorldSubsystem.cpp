@@ -99,7 +99,7 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(const FHitResult& Hit, UTex
 	}
 
 	//캔버스 머터리얼과 충돌했다면
-	if (const auto BaseMaterialFromCollision = MaterialInterface->GetBaseMaterial(); BaseMaterialFromCollision == CanvasMaterialBase)
+	if (const auto BaseMaterialFromCollision = MaterialInterface->GetBaseMaterial())
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("Detect Paint Material!"));
 
@@ -121,7 +121,7 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(const FHitResult& Hit, UTex
 		GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("CreateDynamicMaterialInstance of Canvas!"));
 
 		//머터리얼 다이나믹 인스턴스로의 형변환에 실패했다면 새로운 인스턴스를 할당받은 후에 반환한다
-		const auto CreatedMaterialInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(GetWorld(), CanvasMaterialBase);
+		const auto CreatedMaterialInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(GetWorld(), MaterialInterface);
 
 		//컬러 값을 가지는 렌더 타겟
 		constexpr ETextureRenderTargetFormat ColorFormat = RTF_RGBA8;

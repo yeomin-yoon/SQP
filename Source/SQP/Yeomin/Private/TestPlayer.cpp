@@ -85,7 +85,7 @@ void ATestPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 bool ATestPlayer::IsOnPaint()
 {
 	FVector Start = GetActorLocation();
-	FVector End = GetActorLocation() + FVector(0.f, 0.f, -100.f);
+	FVector End = GetActorLocation() + FVector(0.f, 0.f, -120.f);
 
 	FHitResult GroundHitRes;
 	FCollisionQueryParams GroundHitParams;
