@@ -3,7 +3,7 @@
 #include "HostSideLobbyMenuWidget.h"
 
 #include "HostSideLobbyPlayerInfoWidget.h"
-#include "SQPLobbyGameMode.h"
+#include "SQP_GM_Lobby.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
 
@@ -21,29 +21,29 @@ void UHostSideLobbyMenuWidget::OnOtherPlayerEnter(FPlayerInfo& NewPlayerInfo)
 {
 	Super::OnOtherPlayerEnter(NewPlayerInfo);
 
-	//플레이어 정보 위젯 추가
-	const auto Temp = CreateWidget<ULobbyPlayerInfoWidgetBase>(this, PlayerInfoWidgetClass);
-	Temp->NameTextBlock->SetText(FText::FromString(NewPlayerInfo.PlayerName));
-	Temp->BindingPlayerUniqueId = NewPlayerInfo.PlayerUniqueId;
-	PlayerInfoBox->AddChildToVerticalBox(Temp);
-
-	//맵에 추가
-	UniqueIdToWidgetMap.Add(NewPlayerInfo.PlayerUniqueId, Temp);
+	// //플레이어 정보 위젯 추가
+	// const auto Temp = CreateWidget<ULobbyPlayerInfoWidgetBase>(this, PlayerInfoWidgetClass);
+	// Temp->NameTextBlock->SetText(FText::FromString(NewPlayerInfo.PlayerName));
+	// Temp->BindingPlayerUniqueId = NewPlayerInfo.PlayerUniqueId;
+	// PlayerInfoBox->AddChildToVerticalBox(Temp);
+	//
+	// //맵에 추가
+	// UniqueIdToWidgetMap.Add(NewPlayerInfo.PlayerUniqueId, Temp);
 }
 
 void UHostSideLobbyMenuWidget::OnOtherPlayerExit(FPlayerInfo& OldPlayerInfo)
 {
 	Super::OnOtherPlayerExit(OldPlayerInfo);
 
-	//플레이어 정보 위젯 삭제
-	if (UUserWidget** Find = UniqueIdToWidgetMap.Find(OldPlayerInfo.PlayerUniqueId))
-	{
-		if (UWidget* Widget = *Find)
-		{
-			Widget->RemoveFromParent();
-		}
-	}
-
-	//맵에서 제거
-	UniqueIdToWidgetMap.Remove(OldPlayerInfo.PlayerUniqueId);
+	// //플레이어 정보 위젯 삭제
+	// if (UUserWidget** Find = UniqueIdToWidgetMap.Find(OldPlayerInfo.PlayerUniqueId))
+	// {
+	// 	if (UWidget* Widget = *Find)
+	// 	{
+	// 		Widget->RemoveFromParent();
+	// 	}
+	// }
+	//
+	// //맵에서 제거
+	// UniqueIdToWidgetMap.Remove(OldPlayerInfo.PlayerUniqueId);
 }

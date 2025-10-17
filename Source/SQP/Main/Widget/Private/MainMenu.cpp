@@ -26,15 +26,14 @@ void UMainMenu::NativeOnInitialized()
 
 void UMainMenu::CreateHost()
 {
+	//URL을 얻는 단계
 	bool bCanBindAll;
-	TSharedPtr<FInternetAddr> LocalAddr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetLocalHostAddr(*GLog, bCanBindAll);
-    
+	const TSharedPtr<FInternetAddr> LocalAddr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetLocalHostAddr(*GLog, bCanBindAll);
 	url = LocalAddr.IsValid() ? LocalAddr->ToString(false) : "127.0.0.1";
 	
 	PRINTLOG(TEXT("%s"), *url);
 	
-	// Get Level Name from GameInstance or GameMode later.
-	//FWorldContext context;
+	//로비 레벨을 리슨 서버 옵션으로 시작
 	UGameplayStatics::OpenLevel(this, FName("Lobby"), true, "listen");
 }
 

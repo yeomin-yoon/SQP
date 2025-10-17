@@ -2,17 +2,22 @@
 
 #include "HostSideLobbyPlayerInfoWidget.h"
 
-#include "SQPLobbyGameMode.h"
+#include "SQP_GM_Lobby.h"
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
 
 void UHostSideLobbyPlayerInfoWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	//방출 버튼 바인딩
 	KickButton->OnClicked.AddDynamic(this, &UHostSideLobbyPlayerInfoWidget::OnClickKickButton);
+
+	//플레이어 이름 색상 설정
+	NameTextBlock->SetColorAndOpacity(FColor::Red);
 }
 
 void UHostSideLobbyPlayerInfoWidget::OnClickKickButton()
 {
-	Cast<ASQPLobbyGameMode>(GetWorld()->GetAuthGameMode())->KickPlayerByUniqueId(BindingPlayerUniqueId);
+	Cast<ASQP_GM_Lobby>(GetWorld()->GetAuthGameMode())->KickPlayerByUniqueId(BindingPlayerUniqueId);
 }

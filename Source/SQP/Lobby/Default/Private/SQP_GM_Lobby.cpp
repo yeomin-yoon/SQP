@@ -1,51 +1,53 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "SQPLobbyGameMode.h"
+#include "SQP_GM_Lobby.h"
 #include "SQP.h"
 #include "SQPGameState.h"
 #include "SQPPlayerController.h"
-#include "SQPPlayerState.h"
+#include "SQP_GS_Lobby.h"
+#include "SQP_PC_Lobby.h"
+#include "SQP_PS_Lobby.h"
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/GameSession.h"
 #include "GameFramework/GameStateBase.h"
 
-ASQPLobbyGameMode::ASQPLobbyGameMode()
+ASQP_GM_Lobby::ASQP_GM_Lobby()
 {
 	if (static ConstructorHelpers::FClassFinder<ASQPPlayerController>
-		Finder(TEXT("/Game/Splatoon/Blueprint/Lobby/BP_SQPPlayerController.BP_SQPPlayerController_C"));
+		Finder(TEXT("/Game/Splatoon/Blueprint/LobbyLevel/BP_SQP_PC_Lobby.BP_SQP_PC_Lobby_C"));
 		Finder.Succeeded())
 	{
 		PlayerControllerClass = Finder.Class;
 	}
 
-	if (static ConstructorHelpers::FClassFinder<ASQPPlayerState>
-		Finder(TEXT("/Game/Splatoon/Blueprint/Lobby/BP_SQPPlayerState.BP_SQPPlayerState_C"));
+	if (static ConstructorHelpers::FClassFinder<ASQP_PS_Lobby>
+		Finder(TEXT("/Game/Splatoon/Blueprint/LobbyLevel/BP_SQP_PS_Lobby.BP_SQP_PS_Lobby_C"));
 		Finder.Succeeded())
 	{
 		PlayerStateClass = Finder.Class;
 	}
 
 	if (static ConstructorHelpers::FClassFinder<ASQPGameState>
-		Finder(TEXT("/Game/Splatoon/Blueprint/LobbyLevel/BP_SQPGameState.BP_SQPGameState_C"));
+		Finder(TEXT("/Game/Splatoon/Blueprint/LobbyLevel/BP_SQP_GS_Lobby.BP_SQP_GS_Lobby_C"));
 		Finder.Succeeded())
 	{
 		GameStateClass = Finder.Class;
 	}
 }
 
-void ASQPLobbyGameMode::BeginPlay()
+void ASQP_GM_Lobby::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void ASQPLobbyGameMode::PostLogin(APlayerController* NewPlayer)
+void ASQP_GM_Lobby::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
 	PRINTLOGNET(TEXT("Lobby PostLogin Start!"));
 
 	//정상 상황이라면 이 캐스팅은 성공해야 한다
-	ASQPPlayerController* NewPC = Cast<ASQPPlayerController>(NewPlayer);
+	const auto NewPC = Cast<ASQP_PC_Lobby>(NewPlayer);
 	if (NewPC == nullptr)
 	{
 		return;
@@ -76,7 +78,7 @@ void ASQPLobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 	
 	//게임 스테이트에 새로운 플레이어의 정보 추가
-	if (const auto GS = Cast<ASQPGameState>(GetWorld()->GetGameState()))
+	if (const auto GS = Cast<ASQP_GS_Lobby>(GetWorld()->GetGameState()))
 	{
 		GS->OnNewPlayerLogin(NewPC);
 	}
@@ -84,26 +86,26 @@ void ASQPLobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	PRINTLOGNET(TEXT("Lobby PostLogin End!"));
 }
 
-void ASQPLobbyGameMode::Logout(AController* Exiting)
+void ASQP_GM_Lobby::Logout(AController* Exiting)
 {
 	Super::Logout(Exiting);
 
 	//게임 스테이트에 나가는 플레이어의 정보 제거
-	if (const auto GS = Cast<ASQPGameState>(GetWorld()->GetGameState()))
+	if (const auto GS = Cast<ASQP_GS_Lobby>(GetWorld()->GetGameState()))
 	{
-		//GS->OnNewPlayerLogin(NewPC);
+		GS->OnOldPlayerLogout(Exiting);
 	}
 }
 
 
 
 
-void ASQPLobbyGameMode::OnPlayerReadyStateChanged()
+void ASQP_GM_Lobby::OnPlayerReadyStateChanged()
 {
 	CheckAllPlayersReady();
 }
 
-void ASQPLobbyGameMode::CheckAllPlayersReady()
+void ASQP_GM_Lobby::CheckAllPlayersReady()
 {
 	//최소 시작 인원
 	constexpr int32 MinPlayersToStart = 2;
@@ -121,8 +123,7 @@ void ASQPLobbyGameMode::CheckAllPlayersReady()
 	for (APlayerState* PS : GetWorld()->GetGameState()->PlayerArray)
 	{
 		//한 명이라도 준비가 안됐거나 캐스팅 실패 시 false
-		ASQPPlayerState* MyPS = Cast<ASQPPlayerState>(PS);
-		if (!MyPS || !MyPS->GetIsReady())
+		if (ASQP_PS_Lobby* MyPS = Cast<ASQP_PS_Lobby>(PS); !MyPS || !MyPS->READY_STATE)
 		{
 			bAllPlayersReady = false;
 			break;
@@ -140,25 +141,23 @@ void ASQPLobbyGameMode::CheckAllPlayersReady()
 	}
 }
 
-void ASQPLobbyGameMode::KickPlayerByUniqueId(const FString& PlayerUniqueId)
+void ASQP_GM_Lobby::KickPlayerByUniqueId(const FString& PlayerUniqueId)
 {
 	const FText KickReason = FText::FromString(TEXT("호스트에 의해 로비에서 추방되었습니다."));
-
-	// 모든 플레이어 컨트롤러를 순회하여 ID가 일치하는 플레이어를 찾습니다.
+	
+	//모든 플레이어 컨트롤러를 순회하여 ID가 일치하는 플레이어 검색
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
-		if (APlayerController* PC = It->Get(); PC && PC->PlayerState)
+		if (const APlayerController* TargetPC = It->Get(); TargetPC && TargetPC->PlayerState)
 		{
-			// PlayerState에서 고유 ID를 가져와 비교합니다.
-			if (PC->PlayerState->GetUniqueId()->ToString() == PlayerUniqueId)
+			//PlayerState에서 고유 ID를 가져와 비교
+			if (TargetPC->PlayerState->GetUniqueId()->ToString() == PlayerUniqueId)
 			{
-				//게임 세션을 통해서 방출한다
-				if (GameSession)
+				if (UNetConnection* Connection = Cast<UNetConnection>(TargetPC->Player))
 				{
-					GameSession->KickPlayer(PC, KickReason);
+					GameSession->KickPlayer(Connection->PlayerController, KickReason);
 				}
                 
-				// 찾았으므로 루프를 종료합니다.
 				return; 
 			}
 		}

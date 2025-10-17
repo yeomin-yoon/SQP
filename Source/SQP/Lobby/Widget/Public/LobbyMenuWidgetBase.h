@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "LobbyMenuWidgetBase.generated.h"
 
+class UButton;
 struct FPlayerInfo;
 class UVerticalBox;
 class UTextBlock;
@@ -17,12 +18,19 @@ class SQP_API ULobbyMenuWidgetBase : public UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
+
+	virtual void NativeDestruct() override;
+
+	FTimerHandle UpdateNumOfPlayerTimerHandle;
 	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> NumOfPlayers;
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UVerticalBox> PlayerInfoBox;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UButton> LeaveLobbyButton;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> PlayerInfoWidgetClass;
@@ -36,6 +44,12 @@ public:
 	UFUNCTION()
 	virtual void OnPostLogin(const TArray<FPlayerInfo>& ExistingPlayerInfoArray);
 
+	UFUNCTION()
+	virtual void OnLeaveButtonClicked();
+
+	UFUNCTION()
+	virtual void UpdatePlayerInfoReady(const FString& PlayerUniqueId, const bool& Value);
+	
 	UPROPERTY()
 	TMap<FString, UUserWidget*> UniqueIdToWidgetMap;
 };

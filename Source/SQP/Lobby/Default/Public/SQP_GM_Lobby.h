@@ -4,36 +4,39 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "SQPLobbyGameMode.generated.h"
+#include "SQP_GM_Lobby.generated.h"
 
 USTRUCT(BlueprintType)
 struct FPlayerInfo
 {
 	GENERATED_BODY()
 	
-	// **플레이어를 식별하는 고유 ID**
-	// APlayerState::GetUniqueId()->ToString() 값을 저장합니다.
-	// 이 ID는 플레이어가 서버에 접속하는 동안 절대로 변하지 않습니다.
+	//플레이어의 고유 식별 아이디 : 플레이어 스테이트 유니크 아이디
 	UPROPERTY(BlueprintReadOnly)
 	FString PlayerUniqueId;
 
-	// 표시될 플레이어 이름 (닉네임)
-	// APlayerState::GetPlayerName() 값을 저장합니다.
+	//로비 메뉴 위젯에 디스플레이되는 플레이어 이름 : 플레이어 스테이트 네임
 	UPROPERTY(BlueprintReadOnly)
 	FString PlayerName;
+
+	//플레이어의 준비 상태
+	UPROPERTY(BlueprintReadOnly)
+	bool ReadyState;
     
 	//생성자
-	FPlayerInfo() {}
-	FPlayerInfo(const FString& InPlayerUniqueId, const FString& InPlayerName) : PlayerUniqueId(InPlayerUniqueId), PlayerName(InPlayerName) {}
+	FPlayerInfo() : ReadyState(false) {}
+	FPlayerInfo(const FString& InPlayerUniqueId, const FString& InPlayerName) : PlayerUniqueId(InPlayerUniqueId), PlayerName(InPlayerName), ReadyState(false) {}
 
 	//직렬화
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
 	{
-		bOutSuccess = true; // 일단 성공했다고 가정하고 시작!
+		//일단 성공했다고 가정하고 시작
+		bOutSuccess = true;
 
-		// 변수들을 택배 상자(Ar)에 넣거나 빼는 작업
+		//아카이빙
 		Ar << PlayerUniqueId;
 		Ar << PlayerName;
+		Ar << ReadyState;
         
 		return true;
 	}
@@ -55,12 +58,12 @@ struct TStructOpsTypeTraits<FPlayerInfo> : public TStructOpsTypeTraitsBase2<FPla
 };
 
 UCLASS()
-class SQP_API ASQPLobbyGameMode : public AGameModeBase
+class SQP_API ASQP_GM_Lobby : public AGameModeBase
 {
 	GENERATED_BODY()
 
 public:
-	ASQPLobbyGameMode();
+	ASQP_GM_Lobby();
 
 	virtual void BeginPlay() override;
 	
