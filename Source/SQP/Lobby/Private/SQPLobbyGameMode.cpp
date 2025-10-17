@@ -2,9 +2,11 @@
 
 #include "SQPLobbyGameMode.h"
 #include "SQP.h"
+#include "SQPGameState.h"
 #include "SQPPlayerController.h"
 #include "SQPPlayerState.h"
 #include "Blueprint/UserWidget.h"
+#include "GameFramework/GameSession.h"
 #include "GameFramework/GameStateBase.h"
 
 ASQPLobbyGameMode::ASQPLobbyGameMode()
@@ -22,6 +24,13 @@ ASQPLobbyGameMode::ASQPLobbyGameMode()
 	{
 		PlayerStateClass = Finder.Class;
 	}
+
+	if (static ConstructorHelpers::FClassFinder<ASQPGameState>
+		Finder(TEXT("/Game/Splatoon/Blueprint/LobbyLevel/BP_SQPGameState.BP_SQPGameState_C"));
+		Finder.Succeeded())
+	{
+		GameStateClass = Finder.Class;
+	}
 }
 
 void ASQPLobbyGameMode::BeginPlay()
@@ -36,18 +45,18 @@ void ASQPLobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	PRINTLOGNET(TEXT("Lobby PostLogin Start!"));
 
 	//정상 상황이라면 이 캐스팅은 성공해야 한다
-	ASQPPlayerController* PC = Cast<ASQPPlayerController>(NewPlayer);
-	if (PC == nullptr)
+	ASQPPlayerController* NewPC = Cast<ASQPPlayerController>(NewPlayer);
+	if (NewPC == nullptr)
 	{
 		return;
 	}
 
 	//전송할 위젯 선택
-	TSubclassOf<UUserWidget> WidgetToShow = nullptr;
+	TSubclassOf<UUserWidget> WidgetToShow;
 	
-	if (GetNetMode() != NM_DedicatedServer && PC->IsLocalController())
+	if (GetNetMode() != NM_DedicatedServer && NewPC->IsLocalController())
 	{
-		//리슨 서버 측 클라이언트
+		//리슨 서버 호스트
 		WidgetToShow = ServerSideLobbyMenuWidgetClass;
 	}
 	else
@@ -57,10 +66,37 @@ void ASQPLobbyGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 
 	//클라이언트에 지정한 위젯을 생성해서 보여주도록 명령
-	PC->Client_CreateClientSideLobbyWidget(WidgetToShow);
+	NewPC->Client_CreateLobbyWidget(WidgetToShow);
+
+	//새로 들어온 플레이어에 이름을 할당
+	if (const auto PlayerState = NewPlayer->PlayerState)
+	{
+		const FString RandomPlayerName = FString::Printf(TEXT("Player_%d"), GameState->PlayerArray.Num());
+		PlayerState->SetPlayerName(RandomPlayerName);
+	}
+	
+	//게임 스테이트에 새로운 플레이어의 정보 추가
+	if (const auto GS = Cast<ASQPGameState>(GetWorld()->GetGameState()))
+	{
+		GS->OnNewPlayerLogin(NewPC);
+	}
 
 	PRINTLOGNET(TEXT("Lobby PostLogin End!"));
 }
+
+void ASQPLobbyGameMode::Logout(AController* Exiting)
+{
+	Super::Logout(Exiting);
+
+	//게임 스테이트에 나가는 플레이어의 정보 제거
+	if (const auto GS = Cast<ASQPGameState>(GetWorld()->GetGameState()))
+	{
+		//GS->OnNewPlayerLogin(NewPC);
+	}
+}
+
+
+
 
 void ASQPLobbyGameMode::OnPlayerReadyStateChanged()
 {
@@ -86,7 +122,7 @@ void ASQPLobbyGameMode::CheckAllPlayersReady()
 	{
 		//한 명이라도 준비가 안됐거나 캐스팅 실패 시 false
 		ASQPPlayerState* MyPS = Cast<ASQPPlayerState>(PS);
-		if (!MyPS || !MyPS->IsReady())
+		if (!MyPS || !MyPS->GetIsReady())
 		{
 			bAllPlayersReady = false;
 			break;
@@ -100,6 +136,31 @@ void ASQPLobbyGameMode::CheckAllPlayersReady()
 		{
 			// bAbsolute 옵션을 false로 하여 ?listen 같은 옵션을 유지하지 않도록 함
 			World->ServerTravel("/Game/Maps/MainGameMap", false);
+		}
+	}
+}
+
+void ASQPLobbyGameMode::KickPlayerByUniqueId(const FString& PlayerUniqueId)
+{
+	const FText KickReason = FText::FromString(TEXT("호스트에 의해 로비에서 추방되었습니다."));
+
+	// 모든 플레이어 컨트롤러를 순회하여 ID가 일치하는 플레이어를 찾습니다.
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (APlayerController* PC = It->Get(); PC && PC->PlayerState)
+		{
+			// PlayerState에서 고유 ID를 가져와 비교합니다.
+			if (PC->PlayerState->GetUniqueId()->ToString() == PlayerUniqueId)
+			{
+				//게임 세션을 통해서 방출한다
+				if (GameSession)
+				{
+					GameSession->KickPlayer(PC, KickReason);
+				}
+                
+				// 찾았으므로 루프를 종료합니다.
+				return; 
+			}
 		}
 	}
 }

@@ -29,10 +29,10 @@ void UMainMenu::CreateHost()
 	bool bCanBindAll;
 	TSharedPtr<FInternetAddr> LocalAddr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetLocalHostAddr(*GLog, bCanBindAll);
     
-	url = LocalAddr.IsValid() ?
-		 LocalAddr->ToString(false) : "127.0.0.1";
+	url = LocalAddr.IsValid() ? LocalAddr->ToString(false) : "127.0.0.1";
 	
-	UE_LOG(LogTemp, Display, TEXT("Host URL : %s"), *url);
+	PRINTLOG(TEXT("%s"), *url);
+	
 	// Get Level Name from GameInstance or GameMode later.
 	//FWorldContext context;
 	UGameplayStatics::OpenLevel(this, FName("Lobby"), true, "listen");
