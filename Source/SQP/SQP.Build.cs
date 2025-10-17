@@ -26,7 +26,8 @@ public class SQP : ModuleRules
 			"NetCore",
 			"OnlineSubsystem", 
 			"OnlineSubsystemUtils",
-			"Sockets"
+			"Sockets",
+			"Synthesis",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
@@ -39,6 +40,7 @@ public class SQP : ModuleRules
 			"SQP/Variant_SideScrolling",
 			"SQP/Variant_SideScrolling/Gameplay",
 			"SQP/Variant_SideScrolling/AI",
+			Path.Combine(ModuleDirectory, "UI", "Public"),
 			Path.Combine(ModuleDirectory, "Lobby", "Public"),
 			Path.Combine(ModuleDirectory, "Yeomin", "Public"),
 			Path.Combine(ModuleDirectory, "DataAssets", "Public"),

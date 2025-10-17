@@ -2,6 +2,7 @@
 #include "EnhancedInputComponent.h"
 #include "SkyViewComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Net/UnrealNetwork.h"
 
 
 ASkyViewPawn::ASkyViewPawn()
@@ -14,14 +15,16 @@ ASkyViewPawn::ASkyViewPawn()
 	{
 		SkyViewAction = SkyViewActionObj.Object;
 	}
+
+	bReplicates = true;
 }
 
 void ASkyViewPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	OwnerSkyViewComp = GetOwner()->GetComponentByClass<USkyViewComponent>();
 }
+
 
 
 void ASkyViewPawn::Tick(float DeltaTime)
@@ -36,7 +39,8 @@ void ASkyViewPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(SkyViewAction, ETriggerEvent::Started, this, &ASkyViewPawn::QuitSkyView);
+		EnhancedInputComponent->BindAction(SkyViewAction, ETriggerEvent::Started, this,
+		                                   &ASkyViewPawn::TriggerSkyView);
 	}
 	else
 	{
@@ -47,7 +51,12 @@ void ASkyViewPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	}
 }
 
-void ASkyViewPawn::QuitSkyView()
+void ASkyViewPawn::TriggerSkyView()
 {
-	OwnerSkyViewComp->IsSkyView();
+	Server_QuitSkyView(GetWorld()->GetFirstPlayerController());
+}
+
+void ASkyViewPawn::Server_QuitSkyView_Implementation(APlayerController* PC)
+{
+	GetOwner()->GetComponentByClass<USkyViewComponent>()->Server_IsSkyView(PC);
 }

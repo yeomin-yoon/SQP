@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "InputActionValue.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "SkyViewPawn.generated.h"
 
@@ -15,13 +14,12 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	
-	UPROPERTY()
-	TObjectPtr<class USkyViewComponent> OwnerSkyViewComp;
 
 	UPROPERTY()
 	TObjectPtr<class UInputAction> SkyViewAction;
-	void QuitSkyView();
+	void TriggerSkyView();
+	UFUNCTION(Server, Reliable)
+	void Server_QuitSkyView(APlayerController* PC);
 
 public:
 	virtual void Tick(float DeltaTime) override;

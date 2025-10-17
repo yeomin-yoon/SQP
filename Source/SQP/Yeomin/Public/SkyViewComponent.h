@@ -19,20 +19,27 @@ protected:
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
-	
+
 public:
-	UFUNCTION(BlueprintCallable)
-	void IsSkyView();
-	UFUNCTION(BlueprintCallable)
-	void ChangeView(bool isSkyView);
-	
+	UFUNCTION(Server, Reliable)
+	void Server_SpawnSkyViewPawn();
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void Server_IsSkyView(APlayerController* PC);
+	UFUNCTION(Server, Reliable)
+	void Server_ResetSkyViewLocation(bool isSkyView);
+	UFUNCTION(Server, Reliable)
+	void Server_PossessSkyView(bool isSkyView, APlayerController* PC);
+
 protected:
-	UPROPERTY()
-	TObjectPtr<APlayerController> PlayerController;
 	UPROPERTY()
 	TObjectPtr<APawn> OwnerPawn;
 	UPROPERTY()
 	TObjectPtr<class ASkyViewPawn> SkyViewPawn;
-	
-	bool bIsSkyView = false;
+
+	bool bIsSkyView = true;
+
+	UPROPERTY(EditDefaultsOnly, Category="Sky View")
+	FVector InitialLocationOffset = FVector(0.f, 0.f, 100);
+	UPROPERTY(EditDefaultsOnly, Category="Sky View")
+	float InitialPitchOffset = -15.f;
 };
