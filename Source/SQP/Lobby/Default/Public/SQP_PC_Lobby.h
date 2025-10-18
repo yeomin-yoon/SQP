@@ -35,13 +35,13 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_UpdateReadyState(APlayerController* ReadyPlayer, bool Value);
 
-	//로비
+	//로비에서 자발적으로 나간다
 	UFUNCTION()
 	void LeaveLobby();
 
 	//포스트 로그인에 성공한 클라이언트에 전용 로비 위젯을 띄우도록 명령하는 Client RPC
 	UFUNCTION(Client, Reliable)
-	void Client_CreateLobbyWidget(TSubclassOf<UUserWidget> WidgetToShow);
+	void Client_CreateLobbyWidget(TSubclassOf<UUserWidget> TargetWidgetClass);
 
 	//서버의 명령을 받아서 생성한 전용 로비 위젯을 가리키는 포인터 
 	UPROPERTY()

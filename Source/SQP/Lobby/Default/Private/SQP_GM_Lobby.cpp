@@ -53,22 +53,22 @@ void ASQP_GM_Lobby::PostLogin(APlayerController* NewPlayer)
 		return;
 	}
 
-	//전송할 위젯 선택
-	TSubclassOf<UUserWidget> WidgetToShow;
+	//클라이언트가 생성하도록 명령할 위젯 클래스 선택
+	TSubclassOf<UUserWidget> TargetWidgetClassToShow;
 	
 	if (GetNetMode() != NM_DedicatedServer && NewPC->IsLocalController())
 	{
 		//리슨 서버 호스트
-		WidgetToShow = ServerSideLobbyMenuWidgetClass;
+		TargetWidgetClassToShow = ServerSideLobbyMenuWidgetClass;
 	}
 	else
 	{
 		//외부 클라이언트
-		WidgetToShow = ClientSideLobbyMenuWidgetClass;
+		TargetWidgetClassToShow = ClientSideLobbyMenuWidgetClass;
 	}
 
 	//클라이언트에 지정한 위젯을 생성해서 보여주도록 명령
-	NewPC->Client_CreateLobbyWidget(WidgetToShow);
+	NewPC->Client_CreateLobbyWidget(TargetWidgetClassToShow);
 
 	//새로 들어온 플레이어에 이름을 할당
 	if (const auto PlayerState = NewPlayer->PlayerState)

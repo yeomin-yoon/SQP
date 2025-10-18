@@ -8,7 +8,6 @@
 #include "LobbyMenuWidgetBase.h"
 #include "Kismet/GameplayStatics.h"
 
-
 void ASQP_PC_Lobby::LeaveLobby()
 {
 	//로비 메뉴 위젯을 제거
@@ -21,7 +20,7 @@ void ASQP_PC_Lobby::LeaveLobby()
 		if (UWorld* World = GetWorld())
 		{
 			//메인 레벨에서는 리슨 서버가 아니므로
-			World->ServerTravel(TEXT("Main")); 
+			UGameplayStatics::OpenLevel(this, FName("Main"));
 		}
 	}
 	else 
@@ -58,15 +57,12 @@ void ASQP_PC_Lobby::Client_ReceiveExitPlayerInfo_Implementation(FPlayerInfo OldP
 	LobbyMenuWidget->OnOtherPlayerExit(OldPlayerInfo);
 }
 
-
-
-
-void ASQP_PC_Lobby::Client_CreateLobbyWidget_Implementation(const TSubclassOf<UUserWidget> WidgetToShow)
+void ASQP_PC_Lobby::Client_CreateLobbyWidget_Implementation(const TSubclassOf<UUserWidget> TargetWidgetClass)
 {
 	PRINTLOGNET(TEXT("Client RPC CreateLobbyWidget Start!"));
 	
 	//뷰포트에 전달받은 위젯 클래스의 인스턴스를 생성하여 추가
-	LobbyMenuWidget = Cast<ULobbyMenuWidgetBase>(CreateWidget(GetWorld(), WidgetToShow));
+	LobbyMenuWidget = Cast<ULobbyMenuWidgetBase>(CreateWidget(GetWorld(), TargetWidgetClass));
 	LobbyMenuWidget->AddToViewport();
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 	

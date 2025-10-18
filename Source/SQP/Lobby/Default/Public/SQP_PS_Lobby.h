@@ -8,6 +8,14 @@
 
 struct FPlayerInfo;
 
+UENUM(Blueprintable)
+enum class ELobbyState : uint8
+{
+	Host = 0,
+	UnreadyClient = 1,
+	ReadyClient = 2,
+};
+
 UCLASS()
 class SQP_API ASQP_PS_Lobby : public APlayerState
 {
@@ -35,4 +43,12 @@ protected:
 	//준비 상태 리플리케이션 콜백
 	UFUNCTION()
 	void OnRep_bReadyState();
+	
+	//로비 상태 필드
+	UPROPERTY(ReplicatedUsing = OnRep_LobbyState)
+	ELobbyState LobbyState;
+
+	//로비 상태 필드
+	UFUNCTION()
+	void OnRep_LobbyState();
 };

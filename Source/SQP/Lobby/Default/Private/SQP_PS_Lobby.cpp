@@ -43,3 +43,8 @@ void ASQP_PS_Lobby::OnRep_bReadyState()
 	const FString PlayerUniqueId = this->GetUniqueId()->ToString();
 	Cast<ASQP_PC_Lobby>(GetWorld()->GetFirstPlayerController())->LobbyMenuWidget->UpdatePlayerInfoReady(PlayerUniqueId, bReadyState);
 }
+
+void ASQP_PS_Lobby::OnRep_LobbyState()
+{
+	
+}
