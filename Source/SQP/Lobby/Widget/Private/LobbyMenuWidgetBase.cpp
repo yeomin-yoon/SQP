@@ -3,9 +3,7 @@
 #include "LobbyMenuWidgetBase.h"
 
 #include "LobbyPlayerInfoWidgetBase.h"
-#include "SQPGameState.h"
 #include "SQP_GM_Lobby.h"
-#include "SQPPlayerController.h"
 #include "SQP_PC_Lobby.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
@@ -38,14 +36,7 @@ void ULobbyMenuWidgetBase::NativeDestruct()
 
 void ULobbyMenuWidgetBase::OnOtherPlayerEnter(FPlayerInfo& NewPlayerInfo)
 {
-	//플레이어 정보 위젯 추가
-	const auto Temp = CreateWidget<ULobbyPlayerInfoWidgetBase>(this, PlayerInfoWidgetClass);
-	Temp->NameTextBlock->SetText(FText::FromString(NewPlayerInfo.PlayerName));
-	Temp->BindingPlayerUniqueId = NewPlayerInfo.PlayerUniqueId;
-	PlayerInfoBox->AddChildToVerticalBox(Temp);
-
-	//맵에 추가
-	UniqueIdToWidgetMap.Add(NewPlayerInfo.PlayerUniqueId, Temp);
+	
 }
 
 void ULobbyMenuWidgetBase::OnOtherPlayerExit(FPlayerInfo& OldPlayerInfo)
@@ -69,11 +60,23 @@ void ULobbyMenuWidgetBase::OnPostLogin(const TArray<FPlayerInfo>& ExistingPlayer
 	{
 		//플레이어 정보 위젯 추가
 		const auto Temp = CreateWidget<ULobbyPlayerInfoWidgetBase>(this, PlayerInfoWidgetClass);
+
+		//플레이어 유니크 아이디 바인딩
+		Temp->BindingPlayerUniqueId = PlayerInfo.PlayerUniqueId;
+
+		//기타 디스플레이 설정
+		const FString PlayerRole = PlayerInfo.LobbyState == ELobbyState::Host ? TEXT("호스트 :") : TEXT("참가자 :");
+		const FSlateColor PlayerColor = PlayerInfo.LobbyState == ELobbyState::Host ? FColor::Purple : (PlayerInfo.LobbyState == ELobbyState::ReadyClient ? FColor::Green : FColor::Red);
+		Temp->RoleTextBlock->SetColorAndOpacity(PlayerColor);
+		Temp->RoleTextBlock->SetText(FText::FromString(PlayerRole));
+		Temp->NameTextBlock->SetColorAndOpacity(PlayerColor);
 		Temp->NameTextBlock->SetText(FText::FromString(PlayerInfo.PlayerName));
+
+		//플레이어 정보 버티컬 박스에 추가
 		PlayerInfoBox->AddChildToVerticalBox(Temp);
 
 		//맵에 추가
-		UniqueIdToWidgetMap.Add(PlayerInfo.PlayerUniqueId, Temp);	
+		UniqueIdToWidgetMap.Add(PlayerInfo.PlayerUniqueId, Temp);
 	}
 }
 
@@ -86,13 +89,15 @@ void ULobbyMenuWidgetBase::OnLeaveButtonClicked()
 	}
 }
 
-void ULobbyMenuWidgetBase::UpdatePlayerInfoReady(const FString& PlayerUniqueId, const bool& Value)
+void ULobbyMenuWidgetBase::UpdatePlayerLobbyState(const FString& PlayerUniqueId, const ELobbyState& Value)
 {
 	for (const auto Temp : PlayerInfoBox->GetAllChildren())
 	{
 		if (const auto Target = Cast<ULobbyPlayerInfoWidgetBase>(Temp); Target->BindingPlayerUniqueId == PlayerUniqueId)
 		{
-			Target->NameTextBlock->SetColorAndOpacity(Value ? FColor::Green: FColor::Red);
+			const FColor StateColor = Value == ELobbyState::Host ? FColor::Purple : (Value == ELobbyState::ReadyClient ? FColor::Green : FColor::Red);
+			Target->NameTextBlock->SetColorAndOpacity(StateColor);
+			Target->RoleTextBlock->SetColorAndOpacity(StateColor);
 		}
 	}
 }

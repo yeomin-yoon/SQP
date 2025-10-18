@@ -6,7 +6,7 @@
 #include "LobbyMenuWidgetBase.h"
 #include "HostSideLobbyMenuWidget.generated.h"
 
-class UButton;
+class UActiveButton;
 class UTextBlock;
 
 UCLASS()
@@ -16,11 +16,14 @@ class SQP_API UHostSideLobbyMenuWidget : public ULobbyMenuWidgetBase
 
 public:
 	UHostSideLobbyMenuWidget();
+
+	virtual void NativeConstruct() override;
 	
 	UPROPERTY(meta=(BindWidget))
-	TObjectPtr<UButton> StartButton;
+	TObjectPtr<UActiveButton> StartButton;
 	
 	virtual void OnOtherPlayerEnter(FPlayerInfo& NewPlayerInfo) override;
 
-	virtual void OnOtherPlayerExit(FPlayerInfo& OldPlayerInfo) override;
+	UFUNCTION()
+	void OnStartButtonClicked();
 };

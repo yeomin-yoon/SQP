@@ -15,7 +15,16 @@ class SQP_API ULobbyPlayerInfoWidgetBase : public UUserWidget
 
 public:
 	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> PrefixTextBlock;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> RoleTextBlock;
+	
+	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> NameTextBlock;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> SuffixTextBlock;
 
 	UPROPERTY()
 	FString BindingPlayerUniqueId;

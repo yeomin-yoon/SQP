@@ -10,4 +10,12 @@ UCLASS()
 class SQP_API ASQP_GM_Main : public ASQPGameMode
 {
 	GENERATED_BODY()
+
+public:
+	ASQP_GM_Main();
+	
+	virtual void BeginPlay() override;
+
+	UPROPERTY()
+	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 };

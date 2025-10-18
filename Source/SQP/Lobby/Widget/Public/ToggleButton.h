@@ -7,6 +7,7 @@
 #include "ToggleButton.generated.h"
 
 class UTextBlock;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnToggleStateChanged, bool, Value);
 
 UCLASS()
@@ -17,19 +18,19 @@ class SQP_API UToggleButton : public UButton
 public:
 	UToggleButton();
 	
-	UPROPERTY(BlueprintAssignable, Category = "Button|Event")
+	UPROPERTY(BlueprintAssignable, Category = "ToggleButton")
 	FOnToggleStateChanged OnToggleStateChanged;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance")
-	FLinearColor ToggledOnColor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ToggleButton")
+	FLinearColor ToggleOnColor;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance")
-	FLinearColor ToggledOffColor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ToggleButton")
+	FLinearColor ToggleOffColor;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ToggleButton")
 	FText ToggleOnText;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ToggleButton")
 	FText ToggleOffText;
 
 	UFUNCTION(BlueprintCallable, Category = "ToggleButton")
@@ -45,7 +46,7 @@ protected:
 	
 	virtual void PostLoad() override;
 
-	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category = "Content", meta = (DisplayName = "Text Block"))
+	UPROPERTY(EditAnywhere, Instanced, BlueprintReadOnly, Category = "ToggleButton", meta = (DisplayName = "Text Block"))
 	TObjectPtr<UTextBlock> ButtonTextBlock;
     
 private:

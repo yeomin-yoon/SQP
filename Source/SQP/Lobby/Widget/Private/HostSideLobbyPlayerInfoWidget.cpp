@@ -12,9 +12,6 @@ void UHostSideLobbyPlayerInfoWidget::NativeConstruct()
 
 	//방출 버튼 바인딩
 	KickButton->OnClicked.AddDynamic(this, &UHostSideLobbyPlayerInfoWidget::OnClickKickButton);
-
-	//플레이어 이름 색상 설정
-	NameTextBlock->SetColorAndOpacity(FColor::Red);
 }
 
 void UHostSideLobbyPlayerInfoWidget::OnClickKickButton()

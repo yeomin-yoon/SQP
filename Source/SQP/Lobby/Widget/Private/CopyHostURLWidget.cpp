@@ -26,7 +26,7 @@ void UCopyHostURLWidget::NativeConstruct()
 	CopyHostURLButton->OnClicked.AddDynamic(this, &UCopyHostURLWidget::OnCopyHostURLButtonClicked);
 
 	//알림 텍스트 비가시화
-	CopyNotificationTextBlock->SetVisibility(ESlateVisibility::Collapsed);
+	CopyNotificationTextBlock->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UCopyHostURLWidget::OnCopyHostURLButtonClicked()
@@ -35,7 +35,6 @@ void UCopyHostURLWidget::OnCopyHostURLButtonClicked()
 	FPlatformApplicationMisc::ClipboardCopy(*CopiedHostURL);
 
 	//알림 메시지 가시화
-	CopyNotificationTextBlock->SetText(FText::FromString(TEXT("호스트 URL을 클립보드에 복사했습니다!")));
 	CopyNotificationTextBlock->SetVisibility(ESlateVisibility::Visible);
 
 	//딜레이 후에 알림 텍스트 비가시화

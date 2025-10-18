@@ -6,6 +6,17 @@
 #include "GameFramework/GameModeBase.h"
 #include "SQP_GM_Lobby.generated.h"
 
+class ASQP_PC_Lobby;
+
+UENUM(Blueprintable)
+enum class ELobbyState : uint8
+{
+	None = 0,
+	Host = 1,
+	ReadyClient = 2,
+	UnreadyClient = 3,
+};
+
 USTRUCT(BlueprintType)
 struct FPlayerInfo
 {
@@ -21,11 +32,11 @@ struct FPlayerInfo
 
 	//플레이어의 준비 상태
 	UPROPERTY(BlueprintReadOnly)
-	bool ReadyState;
+	ELobbyState LobbyState;
     
 	//생성자
-	FPlayerInfo() : ReadyState(false) {}
-	FPlayerInfo(const FString& InPlayerUniqueId, const FString& InPlayerName) : PlayerUniqueId(InPlayerUniqueId), PlayerName(InPlayerName), ReadyState(false) {}
+	FPlayerInfo() : PlayerUniqueId(""), PlayerName(""), LobbyState(ELobbyState::None) {}
+	FPlayerInfo(const FString& InPlayerUniqueId, const FString& InPlayerName, const ELobbyState& InLobbyState) : PlayerUniqueId(InPlayerUniqueId), PlayerName(InPlayerName), LobbyState(InLobbyState) {}
 
 	//직렬화
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
@@ -36,7 +47,7 @@ struct FPlayerInfo
 		//아카이빙
 		Ar << PlayerUniqueId;
 		Ar << PlayerName;
-		Ar << ReadyState;
+		Ar << LobbyState;
         
 		return true;
 	}
@@ -72,11 +83,13 @@ public:
 	virtual void Logout(AController* Exiting) override;
 
 	UFUNCTION()
-	void OnPlayerReadyStateChanged();
+	ASQP_PC_Lobby* GetHostPlayerController() const;
 
 	UFUNCTION()
-	void CheckAllPlayersReady();
+	bool CheckAllPlayersReady() const;
 
+	UFUNCTION()
+	void MoveToGameMap();
 
 	UFUNCTION()
 	void KickPlayerByUniqueId(const FString& PlayerUniqueId);

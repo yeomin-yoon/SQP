@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SQP_PS_Lobby.h"
 #include "Blueprint/UserWidget.h"
 #include "LobbyMenuWidgetBase.generated.h"
 
@@ -48,7 +49,7 @@ public:
 	virtual void OnLeaveButtonClicked();
 
 	UFUNCTION()
-	virtual void UpdatePlayerInfoReady(const FString& PlayerUniqueId, const bool& Value);
+	virtual void UpdatePlayerLobbyState(const FString& PlayerUniqueId, const ELobbyState& Value);
 	
 	UPROPERTY()
 	TMap<FString, UUserWidget*> UniqueIdToWidgetMap;

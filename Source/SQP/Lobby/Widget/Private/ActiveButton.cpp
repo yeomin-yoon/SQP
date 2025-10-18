@@ -1,27 +1,27 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "ToggleButton.h"
+#include "ActiveButton.h"
 
 #include "Components/TextBlock.h"
 
-UToggleButton::UToggleButton()
+UActiveButton::UActiveButton()
 {
 	//기본값 설정
-	bToggle = false;
+	bActive = false;
 
 	//토글 색상
-	ToggleOnColor = FLinearColor(0.2f, 0.8f, 0.2f, 1.0f);  
-	ToggleOffColor = FLinearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	ActiveOnColor = FLinearColor(0.2f, 0.8f, 0.2f, 1.0f);  
+	ActiveOffColor = FLinearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
 	//토글 텍스트
-	ToggleOnText = FText::FromString(FString(TEXT("Cancel...")));
-	ToggleOffText = FText::FromString(FString(TEXT("Ready!")));
+	ActiveOnText = FText::FromString(FString(TEXT("Not Ready...")));
+	ActiveOffText = FText::FromString(FString(TEXT("Start!")));
 
-	//델리게이트 바인딩
-	OnClicked.AddDynamic(this, &UToggleButton::HandleClick);
+	//활성화 버튼 바인딩
+	OnClicked.AddDynamic(this, &UActiveButton::HandleClick);
 }
 
-void UToggleButton::OnWidgetRebuilt()
+void UActiveButton::OnWidgetRebuilt()
 {
 	Super::OnWidgetRebuilt();
 
@@ -44,26 +44,26 @@ void UToggleButton::OnWidgetRebuilt()
 	ButtonTextBlock->SetJustification(ETextJustify::Center);
 }
 
-void UToggleButton::SetToggle(const bool Value)
+void UActiveButton::SetActive(const bool Value)
 {
 	//새로운 상태
-	bToggle = Value;
+	bActive = Value;
 
 	//색상 변경
 	UpdateButtonAppearance();
 		
 	//델리게이트 브로드캐스트
-	OnToggleStateChanged.Broadcast(bToggle);
+	OnActiveStateChanged.Broadcast(bActive);
 }
 
-void UToggleButton::SynchronizeProperties()
+void UActiveButton::SynchronizeProperties()
 {
 	Super::SynchronizeProperties();
 
 	UpdateButtonAppearance();
 }
 
-void UToggleButton::PostLoad()
+void UActiveButton::PostLoad()
 {
 	Super::PostLoad();
 	
@@ -71,25 +71,28 @@ void UToggleButton::PostLoad()
 	UpdateButtonAppearance();
 }
 
-void UToggleButton::HandleClick()
+void UActiveButton::HandleClick()
 {
-	//클릭될 때마다 활성화 상태를 반전
-	SetToggle(!bToggle);
+	//활성화되어 있을 때만 델리게이트 실행
+	if (bActive)
+	{
+		OnActiveButtonClicked.Broadcast();
+	}
 }
 
-void UToggleButton::UpdateButtonAppearance()
+void UActiveButton::UpdateButtonAppearance()
 {
 	//버튼 스타일을 변경
 	FButtonStyle NewStyle = GetStyle();
-	const FSlateColor NewColor = bToggle ? ToggleOnColor : ToggleOffColor;
-	const FSlateColor NewHalfColor = bToggle ? ToggleOnColor / 2 : ToggleOffColor / 2; 
+	const FSlateColor NewColor = bActive ? ActiveOnColor : ActiveOffColor;
+	const FSlateColor NewHalfColor = bActive ? ActiveOnColor / 2 : ActiveOffColor / 2; 
 	NewStyle.Normal.TintColor = NewHalfColor;
 	NewStyle.Hovered.TintColor = NewColor;
 	NewStyle.Pressed.TintColor = NewHalfColor;
 	SetStyle(NewStyle);
 
 	//텍스트 변경
-	const FText NewText = bToggle ? ToggleOnText : ToggleOffText;
+	const FText NewText = bActive ? ActiveOnText : ActiveOffText;
 	if (ButtonTextBlock)
 	{
 		ButtonTextBlock->SetText(NewText);	

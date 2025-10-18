@@ -3,43 +3,46 @@
 #include "SQP_PS_Lobby.h"
 
 #include "LobbyMenuWidgetBase.h"
+#include "SQP.h"
 #include "SQP_GM_Lobby.h"
 #include "SQP_PC_Lobby.h"
 #include "Net/UnrealNetwork.h"
 
 ASQP_PS_Lobby::ASQP_PS_Lobby()
 {
-	bReadyState = false;
+	LobbyState = ELobbyState::None;
+}
+
+void ASQP_PS_Lobby::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	//월드 퍼스트 플레이어 컨트롤러와 이 플레이어 스테이트를 소유한 플레이어 컨트롤러가 일치하면 
+	LobbyState = GetLobbyPC() == GetPlayerController() ? ELobbyState::Host : ELobbyState::UnreadyClient;
 }
 
 void ASQP_PS_Lobby::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ASQP_PS_Lobby, bReadyState);
-}
-
-void ASQP_PS_Lobby::SetReadyState(const bool Value)
-{
-	//플레이어 스테이트를 업데이트 하는 작업은 서버만 할 수 있다
-	if (HasAuthority())
-	{
-		//값 할당
-		bReadyState = Value;
-		
-		//수동 호출
-		OnRep_bReadyState();
-	}	
+	DOREPLIFETIME(ASQP_PS_Lobby, LobbyState);
 }
 
 FPlayerInfo ASQP_PS_Lobby::GetPlayerInfo()
 {
-	return FPlayerInfo(GetUniqueId()->ToString(), GetPlayerName());
+	return FPlayerInfo(GetUniqueId()->ToString(), GetPlayerName(), LobbyState);
 }
 
-void ASQP_PS_Lobby::OnRep_bReadyState()
+ASQP_PC_Lobby* ASQP_PS_Lobby::GetLobbyPC() const
 {
-	//리플리케이션된 플레이어 컨트롤러의 정보를 바탕으로 업데이트
+	return Cast<ASQP_PC_Lobby>(GetWorld()->GetFirstPlayerController());
+}
+
+void ASQP_PS_Lobby::OnRep_LobbyState()
+{
+	PRINTLOGNET(TEXT("OnRep_LobbyState"));
+	
+	//리플리케이션된 타 플레이어 컨트롤러의 정보를 바탕으로, 현 시스템의 로비 위젯을 업데이트
 	const FString PlayerUniqueId = this->GetUniqueId()->ToString();
-	Cast<ASQP_PC_Lobby>(GetWorld()->GetFirstPlayerController())->LobbyMenuWidget->UpdatePlayerInfoReady(PlayerUniqueId, bReadyState);
+	GetLobbyPC()->LobbyMenuWidget->UpdatePlayerLobbyState(PlayerUniqueId, LobbyState);	
 }

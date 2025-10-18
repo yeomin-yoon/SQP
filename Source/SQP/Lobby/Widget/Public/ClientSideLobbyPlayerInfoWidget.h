@@ -7,14 +7,20 @@
 #include "Blueprint/UserWidget.h"
 #include "ClientSideLobbyPlayerInfoWidget.generated.h"
 
+class UButton;
 class UTextBlock;
 
 UCLASS()
 class SQP_API UClientSideLobbyPlayerInfoWidget : public ULobbyPlayerInfoWidgetBase
-
 {
 	GENERATED_BODY()
 
 public:
 	virtual void NativeConstruct() override;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UButton> ProfileButton;
+
+	UFUNCTION()
+	void OnProfileButtonClicked();
 };

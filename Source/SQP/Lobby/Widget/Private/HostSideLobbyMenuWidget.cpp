@@ -2,6 +2,7 @@
 
 #include "HostSideLobbyMenuWidget.h"
 
+#include "ActiveButton.h"
 #include "HostSideLobbyPlayerInfoWidget.h"
 #include "SQP_GM_Lobby.h"
 #include "Components/TextBlock.h"
@@ -17,33 +18,33 @@ UHostSideLobbyMenuWidget::UHostSideLobbyMenuWidget()
 	}
 }
 
-void UHostSideLobbyMenuWidget::OnOtherPlayerEnter(FPlayerInfo& NewPlayerInfo)
+void UHostSideLobbyMenuWidget::NativeConstruct()
 {
-	Super::OnOtherPlayerEnter(NewPlayerInfo);
+	Super::NativeConstruct();
 
-	// //플레이어 정보 위젯 추가
-	// const auto Temp = CreateWidget<ULobbyPlayerInfoWidgetBase>(this, PlayerInfoWidgetClass);
-	// Temp->NameTextBlock->SetText(FText::FromString(NewPlayerInfo.PlayerName));
-	// Temp->BindingPlayerUniqueId = NewPlayerInfo.PlayerUniqueId;
-	// PlayerInfoBox->AddChildToVerticalBox(Temp);
-	//
-	// //맵에 추가
-	// UniqueIdToWidgetMap.Add(NewPlayerInfo.PlayerUniqueId, Temp);
+	//시작 버튼 바인딩
+	StartButton->OnClicked.AddDynamic(this, &UHostSideLobbyMenuWidget::OnStartButtonClicked);
 }
 
-void UHostSideLobbyMenuWidget::OnOtherPlayerExit(FPlayerInfo& OldPlayerInfo)
+void UHostSideLobbyMenuWidget::OnOtherPlayerEnter(FPlayerInfo& NewPlayerInfo)
 {
-	Super::OnOtherPlayerExit(OldPlayerInfo);
+	//플레이어 정보 위젯 추가
+	const auto Temp = CreateWidget<ULobbyPlayerInfoWidgetBase>(this, PlayerInfoWidgetClass);
 
-	// //플레이어 정보 위젯 삭제
-	// if (UUserWidget** Find = UniqueIdToWidgetMap.Find(OldPlayerInfo.PlayerUniqueId))
-	// {
-	// 	if (UWidget* Widget = *Find)
-	// 	{
-	// 		Widget->RemoveFromParent();
-	// 	}
-	// }
-	//
-	// //맵에서 제거
-	// UniqueIdToWidgetMap.Remove(OldPlayerInfo.PlayerUniqueId);
+	//플레이어의 유니크 아이디 바인딩
+	Temp->BindingPlayerUniqueId = NewPlayerInfo.PlayerUniqueId;
+
+	//기타 디스플레이 설정
+	Temp->NameTextBlock->SetText(FText::FromString(NewPlayerInfo.PlayerName));
+
+	//플레이어 정보 버티컬 박스에 추가
+	PlayerInfoBox->AddChildToVerticalBox(Temp);
+
+	//맵에 추가
+	UniqueIdToWidgetMap.Add(NewPlayerInfo.PlayerUniqueId, Temp);
+}
+
+void UHostSideLobbyMenuWidget::OnStartButtonClicked()
+{
+	Cast<ASQP_GM_Lobby>(GetWorld()->GetAuthGameMode())->MoveToGameMap();
 }
