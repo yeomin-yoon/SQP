@@ -12,45 +12,53 @@
 void UMainMenu::NativeConstruct()
 {
 	Super::NativeConstruct();
-	urlInput->SetVisibility(ESlateVisibility::Hidden);
-	joinButton->OnClicked.AddDynamic(this, &UMainMenu::ClickJoinButton);
-	urlInput->OnTextCommitted.AddDynamic(this, &UMainMenu::JoinToUrl);
-	hostButton->OnClicked.AddDynamic(this, &UMainMenu::CreateHost);
+
+	URLInputCanvasPanel->SetVisibility(ESlateVisibility::Hidden);
+	URLEditableTextBox->SetVisibility(ESlateVisibility::Hidden);
+	
+	JoinButton->OnClicked.AddDynamic(this, &UMainMenu::OnJoinButtonClicked);
+	URLEditableTextBox->OnTextCommitted.AddDynamic(this, &UMainMenu::OnURLTextCommitted);
+	HostButton->OnClicked.AddDynamic(this, &UMainMenu::OnHostButtonClicked);
+	BackButton->OnClicked.AddDynamic(this, &UMainMenu::OnBackButtonClicked);
 }
 
 void UMainMenu::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
-	
 }
 
-void UMainMenu::CreateHost()
+void UMainMenu::OnHostButtonClicked()
 {
 	//URL을 얻는 단계
 	bool bCanBindAll;
 	const TSharedPtr<FInternetAddr> LocalAddr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetLocalHostAddr(*GLog, bCanBindAll);
-	url = LocalAddr.IsValid() ? LocalAddr->ToString(false) : "127.0.0.1";
+	URL = LocalAddr.IsValid() ? LocalAddr->ToString(false) : "127.0.0.1";
 	
-	PRINTLOG(TEXT("%s"), *url);
+	PRINTLOG(TEXT("%s"), *URL);
 	
 	//로비 레벨을 리슨 서버 옵션으로 시작
 	UGameplayStatics::OpenLevel(this, FName("Lobby"), true, "listen");
 }
 
-void UMainMenu::ClickJoinButton()
+void UMainMenu::OnJoinButtonClicked()
 {
-	urlInput->SetVisibility(ESlateVisibility::Visible);
+	URLInputCanvasPanel->SetVisibility(ESlateVisibility::Visible);
+	URLEditableTextBox->SetVisibility(ESlateVisibility::Visible);
 }
 
-void UMainMenu::JoinToUrl(const FText& inText, ETextCommit::Type inCommitMethod)
+void UMainMenu::OnURLTextCommitted(const FText& InText, ETextCommit::Type InCommitMethod)
 {
-	if (inCommitMethod != ETextCommit::OnEnter)
+	if (InCommitMethod != ETextCommit::OnEnter)
 	{
 		return;
 	}
 	
 	//inText 에 해당하는 url 검증 과정 필요
-	UGameplayStatics::OpenLevel(this, *inText.ToString(), true);
+	UGameplayStatics::OpenLevel(this, *InText.ToString(), true);
+}
 
-	PRINTLOG(TEXT("Hello Join to Url"));
+void UMainMenu::OnBackButtonClicked()
+{
+	URLInputCanvasPanel->SetVisibility(ESlateVisibility::Hidden);
+	URLEditableTextBox->SetVisibility(ESlateVisibility::Hidden);
 }

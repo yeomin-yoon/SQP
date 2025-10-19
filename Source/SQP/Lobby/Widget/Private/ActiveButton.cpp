@@ -10,12 +10,12 @@ UActiveButton::UActiveButton()
 	bActive = false;
 
 	//토글 색상
-	ActiveOnColor = FLinearColor(0.2f, 0.8f, 0.2f, 1.0f);  
-	ActiveOffColor = FLinearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	ActiveOnColor = FLinearColor(0.05, 1, 0.05, 1.0);  
+	ActiveOffColor = FLinearColor(1, 0.05, 0.05, 1.0);
 
 	//토글 텍스트
-	ActiveOnText = FText::FromString(FString(TEXT("Not Ready...")));
-	ActiveOffText = FText::FromString(FString(TEXT("Start!")));
+	ActiveOnText = FText::FromString(FString(TEXT("Let's Start!")));
+	ActiveOffText = FText::FromString(FString(TEXT("Not Ready...")));
 
 	//활성화 버튼 바인딩
 	OnClicked.AddDynamic(this, &UActiveButton::HandleClick);
@@ -44,18 +44,6 @@ void UActiveButton::OnWidgetRebuilt()
 	ButtonTextBlock->SetJustification(ETextJustify::Center);
 }
 
-void UActiveButton::SetActive(const bool Value)
-{
-	//새로운 상태
-	bActive = Value;
-
-	//색상 변경
-	UpdateButtonAppearance();
-		
-	//델리게이트 브로드캐스트
-	OnActiveStateChanged.Broadcast(bActive);
-}
-
 void UActiveButton::SynchronizeProperties()
 {
 	Super::SynchronizeProperties();
@@ -67,8 +55,19 @@ void UActiveButton::PostLoad()
 {
 	Super::PostLoad();
 	
-	//로드 시에도 색상이 제대로 적용되도록
 	UpdateButtonAppearance();
+}
+
+void UActiveButton::SetActive(const bool Value)
+{
+	//새로운 상태
+	bActive = Value;
+
+	//색상 변경
+	UpdateButtonAppearance();
+		
+	//델리게이트 브로드캐스트
+	OnActiveStateChanged.Broadcast(bActive);
 }
 
 void UActiveButton::HandleClick()

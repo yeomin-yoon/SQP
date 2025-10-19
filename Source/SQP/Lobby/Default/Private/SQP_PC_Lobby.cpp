@@ -3,6 +3,7 @@
 #include "SQP_PC_Lobby.h"
 
 #include "ActiveButton.h"
+#include "ActiveButtonBox.h"
 #include "HostSideLobbyMenuWidget.h"
 #include "SQP.h"
 #include "SQP_GM_Lobby.h"
@@ -52,17 +53,26 @@ void ASQP_PC_Lobby::ClientWasKicked_Implementation(const FText& KickReason)
 
 void ASQP_PC_Lobby::Client_OnPostLogin_Implementation(const TArray<FPlayerInfo>& ExistingPlayerInfoArray)
 {
-	LobbyMenuWidget->OnPostLogin(ExistingPlayerInfoArray);
+	if (LobbyMenuWidget)
+	{
+		LobbyMenuWidget->OnPostLogin(ExistingPlayerInfoArray);
+	}
 }
 
 void ASQP_PC_Lobby::Client_ReceiveEnterPlayerInfo_Implementation(FPlayerInfo NewPlayerInfo)
 {
-	LobbyMenuWidget->OnOtherPlayerEnter(NewPlayerInfo);		
+	if (LobbyMenuWidget)
+	{
+		LobbyMenuWidget->OnOtherPlayerEnter(NewPlayerInfo);			
+	}
 }
 
 void ASQP_PC_Lobby::Client_ReceiveExitPlayerInfo_Implementation(FPlayerInfo OldPlayerInfo)
 {
-	LobbyMenuWidget->OnOtherPlayerExit(OldPlayerInfo);
+	if (LobbyMenuWidget)
+	{
+		LobbyMenuWidget->OnOtherPlayerExit(OldPlayerInfo);	
+	}
 }
 
 void ASQP_PC_Lobby::Client_CreateLobbyWidget_Implementation(const TSubclassOf<UUserWidget> TargetWidgetClass)

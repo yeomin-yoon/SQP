@@ -23,32 +23,39 @@ protected:
 
 private:
 	UFUNCTION()
-	void CreateHost();
+	void OnHostButtonClicked();
 	
 	UFUNCTION()
-	void ClickJoinButton();
+	void OnJoinButtonClicked();
+	
 	UFUNCTION()
-	void JoinToUrl(const FText& inText, ETextCommit::Type inCommitMethod);
+	void OnURLTextCommitted(const FText& InText, ETextCommit::Type InCommitMethod);
+
+	UFUNCTION()
+	void OnBackButtonClicked();
 
 protected:
 	UPROPERTY(meta=(BindWidget))
-	UCanvasPanel* canvas;
-
-	UPROPERTY(meta=(BindWidget))
-	UVerticalBox* buttonContainer;
+	UVerticalBox* ButtonContainer;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(BindWidget))
-	UButton* hostButton;
+	UButton* HostButton;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(BindWidget))
-	UButton* joinButton;
+	UButton* JoinButton;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(BindWidget))
-	UButton* exitButton;
+	UButton* ExitButton;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(BindWidget))
-	UEditableTextBox* urlInput;
+	UEditableTextBox* URLEditableTextBox;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(BindWidget))
+	TObjectPtr<UCanvasPanel> URLInputCanvasPanel;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(BindWidget))
+	TObjectPtr<UButton> BackButton;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	FString url;
+	FString URL;
 };

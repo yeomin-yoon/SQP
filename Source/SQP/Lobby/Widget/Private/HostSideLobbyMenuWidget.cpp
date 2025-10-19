@@ -3,6 +3,7 @@
 #include "HostSideLobbyMenuWidget.h"
 
 #include "ActiveButton.h"
+#include "ActiveButtonBox.h"
 #include "HostSideLobbyPlayerInfoWidget.h"
 #include "SQP_GM_Lobby.h"
 #include "Components/TextBlock.h"
