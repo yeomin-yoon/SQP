@@ -54,7 +54,6 @@ public class SQP : ModuleRules
 			Path.Combine(ModuleDirectory, "Main/Widget", "Public"),
 			
 			Path.Combine(ModuleDirectory, "UI", "Public"),
-			Path.Combine(ModuleDirectory, "Lobby", "Public"),
 			Path.Combine(ModuleDirectory, "Yeomin", "Public"),
 			Path.Combine(ModuleDirectory, "DataAssets", "Public"),
 		});

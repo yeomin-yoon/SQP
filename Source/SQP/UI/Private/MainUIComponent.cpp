@@ -23,7 +23,6 @@ UMainUIComponent::UMainUIComponent()
 	}
 	LikeUIComp->SetupAttachment(this);
 	LikeUIComp->SetWidgetSpace(EWidgetSpace::World);
-	LikeUIComp->SetDrawSize(FVector2D(150.f, 50.f));
 
 	ConstructorHelpers::FObjectFinder<UInputAction> ToggleMouseAsset(
 		TEXT("'/Game/Splatoon/Input/IA_ToggleMouse.IA_ToggleMouse'")
@@ -110,7 +109,6 @@ void UMainUIComponent::OnToggleMouse(const FInputActionValue& InputActionValue)
 		PC->bShowMouseCursor = bCursorEnabled;
 
 		FInputModeGameAndUI InputMode;
-		InputMode.SetHideCursorDuringCapture(false);
 		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 		InputMode.SetWidgetToFocus(nullptr);
 		PC->SetInputMode(InputMode);
