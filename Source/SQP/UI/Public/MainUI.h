@@ -36,6 +36,8 @@ protected:
 	TObjectPtr<class UButton> SetColorGreenBtn;
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UButton> SetColorBlueBtn;
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<class UButton> SetColorWhiteBtn;
 
 	float GetAngle();
 	bool IsInRadius();
@@ -47,6 +49,8 @@ protected:
 	void OnClickGreenBtn();
 	UFUNCTION()
 	void OnClickBlueBtn();
+	UFUNCTION()
+	void OnClickWhiteBtn();
 	void SetColor(FLinearColor Color);
 	FLinearColor GetColor();
 

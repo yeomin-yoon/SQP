@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "InputActionValue.h"
 #include "Components/ActorComponent.h"
 #include "MainUIComponent.generated.h"
 
@@ -29,4 +30,13 @@ protected:
 	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UWidgetComponent> LikeUIComp;
+
+	bool bCursorEnabled = true;
+	UPROPERTY()
+	TObjectPtr<APlayerController> PC;
+	UPROPERTY()
+	TObjectPtr<class UInputMappingContext> IMC;
+	UPROPERTY()
+	TObjectPtr<class UInputAction> ToggleMouseAction;
+	void OnToggleMouse(const FInputActionValue& InputActionValue);
 };

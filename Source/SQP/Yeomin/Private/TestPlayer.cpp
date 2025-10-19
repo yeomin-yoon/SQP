@@ -65,86 +65,12 @@ void ATestPlayer::BeginPlay()
 void ATestPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (IsOnPaint())
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 1000;
-	}
-	else
-	{
-		GetCharacterMovement()->MaxWalkSpeed = 500;
-	}
+	
 }
 
 void ATestPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
-
-
-bool ATestPlayer::IsOnPaint()
-{
-	FVector Start = GetActorLocation();
-	FVector End = GetActorLocation() + FVector(0.f, 0.f, -120.f);
-
-	FHitResult GroundHitRes;
-	FCollisionQueryParams GroundHitParams;
-	GroundHitParams.bTraceComplex = true;
-	GroundHitParams.bReturnFaceIndex = true;
-	GroundHitParams.bReturnPhysicalMaterial = false;
-	GroundHitParams.AddIgnoredActor(this);
-
-	bool bHit = GetWorld()->LineTraceSingleByChannel(
-		GroundHitRes,
-		Start,
-		End,
-		ECC_Visibility,
-		GroundHitParams
-	);
-
-	if (!bHit)
-		return false;
-
-	FVector2D UV;
-	if (!UGameplayStatics::FindCollisionUV(GroundHitRes, 0, UV))
-		return false;
-	
-	float U = FMath::Clamp(UV.X, 0.f, 1.f);
-	float V = FMath::Clamp(UV.Y, 0.f, 1.f);
-
-	UPrimitiveComponent* HitComp = GroundHitRes.GetComponent();
-	if (!HitComp)
-		return false;
-
-	UMaterialInterface* BaseMat = HitComp->GetMaterial(0);
-	if (!BaseMat)
-		return false;
-
-	UMaterialInstanceDynamic* DynMat = Cast<UMaterialInstanceDynamic>(BaseMat);
-	if (!DynMat)
-		return false;
-
-	TArray<FMaterialParameterInfo> TextureParams;
-	TArray<FGuid> TextureGuids;
-	DynMat->GetAllTextureParameterInfo(TextureParams, TextureGuids);
-
-	if (TextureParams.Num() == 0)
-		return false;
-
-	UTexture* Tex = nullptr;
-	if (!DynMat->GetTextureParameterValue(TextureParams[0].Name, Tex))
-		return false;
-
-	UTextureRenderTarget2D* RT = Cast<UTextureRenderTarget2D>(Tex);
-	if (!RT)
-		return false;
-
-	FColor Color = UKismetRenderingLibrary::ReadRenderTargetUV(this, RT, U, V);
-
-	if (Color.R == 0 && Color.G == 0 && Color.B == 0)
-		return true;
-	
-	return false;
 }
 
 

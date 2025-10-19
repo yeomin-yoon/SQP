@@ -22,11 +22,6 @@ public:
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	
-	UFUNCTION(BlueprintCallable, Category="PaintTrace")
-	bool IsOnPaint();
-
-
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Splatoon)
 	TArray<UTexture2D*> ColorTextureArray;

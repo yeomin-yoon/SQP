@@ -22,14 +22,20 @@ void UUIManager::Initialize(FSubsystemCollectionBase& Collection)
 	
 }
 
+
 void UUIManager::CreateMainUI()
 {
 	MainUI = CreateWidget<UMainUI>(GetWorld(), MainUIClass);
 	MainUI->AddToViewport();
-	UE_LOG(LogTemp, Log, TEXT("Added MainUI"));
+	MainUI->SetIsFocusable(false);
 }
 
 FLinearColor UUIManager::GetCurrentColor()
 {
+	if (!MainUI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MainUI is nullptr"));
+		return FLinearColor::White;
+	}
 	return MainUI->GetBorderColor();
 }

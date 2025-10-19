@@ -14,6 +14,7 @@ void UMainUI::NativeConstruct()
 	SetColorRedBtn->OnClicked.AddDynamic(this, &UMainUI::OnClickRedBtn);
 	SetColorGreenBtn->OnClicked.AddDynamic(this, &UMainUI::OnClickGreenBtn);
 	SetColorBlueBtn->OnClicked.AddDynamic(this, &UMainUI::OnClickBlueBtn);
+	SetColorWhiteBtn->OnClicked.AddDynamic(this, &UMainUI::OnClickWhiteBtn);
 }
 
 void UMainUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -68,6 +69,11 @@ void UMainUI::OnClickGreenBtn()
 void UMainUI::OnClickBlueBtn()
 {
 	SetColor(SetColorBlueBtn->GetBackgroundColor());
+}
+
+void UMainUI::OnClickWhiteBtn()
+{
+	SetColor(SetColorWhiteBtn->GetBackgroundColor());
 }
 
 void UMainUI::SetColor(FLinearColor Color)
