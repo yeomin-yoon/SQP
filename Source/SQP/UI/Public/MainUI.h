@@ -56,4 +56,7 @@ protected:
 
 	UFUNCTION()
 	void OnSliderXChanged(float Value);
+
+	UFUNCTION()
+	void UpdatePlayerState();
 };

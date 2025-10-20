@@ -2,6 +2,9 @@
 
 
 #include "MainUI.h"
+
+#include "SQP_PC_PaintRoom.h"
+#include "SQP_PS_PaintRoom.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -59,21 +62,28 @@ void UMainUI::OnClickRedBtn()
 {
 	SetColor(SetColorRedBtn->GetBackgroundColor());
 
+	UpdatePlayerState();
 }
 
 void UMainUI::OnClickGreenBtn()
 {
 	SetColor(SetColorGreenBtn->GetBackgroundColor());
+
+	UpdatePlayerState();
 }
 
 void UMainUI::OnClickBlueBtn()
 {
 	SetColor(SetColorBlueBtn->GetBackgroundColor());
+
+	UpdatePlayerState();
 }
 
 void UMainUI::OnClickWhiteBtn()
 {
 	SetColor(SetColorWhiteBtn->GetBackgroundColor());
+
+	UpdatePlayerState();
 }
 
 void UMainUI::SetColor(FLinearColor Color)
@@ -99,4 +109,11 @@ void UMainUI::OnSliderXChanged(float Value)
 {
 	CurrentColor->SetBrushColor(UpdateColorWheel()); 
 	ColorWheelSlider->SetSliderHandleColor(UpdateColorWheel());
+
+	UpdatePlayerState();
+}
+
+void UMainUI::UpdatePlayerState()
+{
+	Cast<ASQP_PC_PaintRoom>(GetWorld()->GetFirstPlayerController())->Server_PaintColorChange(GetBorderColor());
 }

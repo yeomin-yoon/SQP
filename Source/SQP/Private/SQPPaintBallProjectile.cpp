@@ -52,7 +52,7 @@ void ASQPPaintBallProjectile::Multicast_TryPaint_Implementation(const FLinearCol
 	
 	if (const auto Subsystem = GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>())
 	{
-		constexpr float BrushSize = 500;
+		constexpr float BrushSize = 250;
 		Subsystem->TryPaintColor(Start, End, ActorsToIgnore, BrushIndex, BrushSize, BrushColor);
 	}
 }
