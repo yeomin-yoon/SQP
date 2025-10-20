@@ -24,15 +24,15 @@ void ULikeUI::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLif
 	DOREPLIFETIME(ULikeUI, LikeNum);
 }
 
-void ULikeUI::OnClick()
-{
-	Server_OnLike_Implementation(ClickingActor);
-}
-
-void ULikeUI::UpdateLikes(int32 Num)
+void ULikeUI::OnRep_UpdateLikes(int32 Num)
 {
 	FString RichText = FString::Printf(TEXT("<Impact>%d</>"), Num);
 	LikeNumberText->SetText(FText::FromString(RichText));
+}
+
+void ULikeUI::OnClick()
+{
+	Server_OnLike_Implementation(ClickingActor);
 }
 
 
@@ -40,6 +40,6 @@ void ULikeUI::Server_OnLike_Implementation(AActor* Actor)
 {
 	LikePlayers.Add(Actor);
 	LikeNum = LikePlayers.Num();
-	UpdateLikes(LikeNum);
+	OnRep_UpdateLikes(LikeNum);
 }
 

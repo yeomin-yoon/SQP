@@ -27,11 +27,11 @@ protected:
 	
 	UPROPERTY()
 	TSet<TWeakObjectPtr<AActor>> LikePlayers;
-	UPROPERTY(ReplicatedUsing = UpdateLikes)
+	UPROPERTY(ReplicatedUsing = OnRep_UpdateLikes)
 	int32 LikeNum = 0;
 
 	UFUNCTION()
-	void UpdateLikes(int32 Num);
+	void OnRep_UpdateLikes(int32 Num);
 	UFUNCTION()
 	void OnClick();
 	UFUNCTION(Server, Reliable)
