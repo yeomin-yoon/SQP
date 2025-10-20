@@ -38,5 +38,6 @@ protected:
 	TObjectPtr<class UInputMappingContext> IMC;
 	UPROPERTY()
 	TObjectPtr<class UInputAction> ToggleMouseAction;
+	UFUNCTION()
 	void OnToggleMouse(const FInputActionValue& InputActionValue);
 };

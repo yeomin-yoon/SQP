@@ -5,24 +5,41 @@
 
 #include "Components/Button.h"
 #include "Components/RichTextBlock.h"
+#include "Net/UnrealNetwork.h"
 
 
 void ULikeUI::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	LikeBtn->OnPressed.AddDynamic(this, &ULikeUI::OnLike);
+	LikePlayers.Empty();
+	
+	LikeBtn->OnPressed.AddDynamic(this, &ULikeUI::OnClick);
 }
 
-void ULikeUI::CountLikes()
+void ULikeUI::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
-	LikeNum++;
-	FString RichText = FString::Printf(TEXT("<Impact>%d</>"), LikeNum);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ULikeUI, LikeNum);
+}
+
+void ULikeUI::OnClick()
+{
+	Server_OnLike_Implementation(ClickingActor);
+}
+
+void ULikeUI::UpdateLikes(int32 Num)
+{
+	FString RichText = FString::Printf(TEXT("<Impact>%d</>"), Num);
 	LikeNumberText->SetText(FText::FromString(RichText));
 }
 
-void ULikeUI::OnLike()
+
+void ULikeUI::Server_OnLike_Implementation(AActor* Actor)
 {
-	CountLikes();
+	LikePlayers.Add(Actor);
+	LikeNum = LikePlayers.Num();
+	UpdateLikes(LikeNum);
 }
 

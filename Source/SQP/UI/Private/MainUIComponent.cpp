@@ -47,7 +47,7 @@ void UMainUIComponent::BeginPlay()
 	Super::BeginPlay();
 
 	LikeUIComp->SetupAttachment(GetOwner()->GetRootComponent());
-	LikeUIComp->SetRelativeLocation(FVector(0, 0, 130));
+	LikeUIComp->SetRelativeLocation(FVector(0, 0, 200));
 
 	UIManager = GetWorld()->GetGameInstance()->GetSubsystem<UUIManager>();
 
@@ -58,6 +58,7 @@ void UMainUIComponent::BeginPlay()
 	if (OwnerPawn->IsLocallyControlled())
 	{
 		LikeUIComp->SetVisibility(false);
+		LikeUIComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		// Enhanced Input Subsystem 등록
 		PC = Cast<APlayerController>(OwnerPawn->GetController());

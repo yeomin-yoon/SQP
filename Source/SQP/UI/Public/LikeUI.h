@@ -16,16 +16,28 @@ class SQP_API ULikeUI : public UUserWidget
 
 protected:
 	virtual void NativeConstruct() override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class URichTextBlock> LikeText;
-	UPROPERTY(meta=(BindWidget))
+	UPROPERTY(meta=(BindWidget), Replicated)
 	TObjectPtr<class URichTextBlock> LikeNumberText;
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UButton> LikeBtn;
-
+	
+	UPROPERTY()
+	TSet<TWeakObjectPtr<AActor>> LikePlayers;
+	UPROPERTY(ReplicatedUsing = UpdateLikes)
 	int32 LikeNum = 0;
-	void CountLikes();
+
 	UFUNCTION()
-	void OnLike();
+	void UpdateLikes(int32 Num);
+	UFUNCTION()
+	void OnClick();
+	UFUNCTION(Server, Reliable)
+	void Server_OnLike(AActor* Actor);
+	
+public:
+	UPROPERTY()
+	TObjectPtr<AActor> ClickingActor;
 };
