@@ -1,6 +1,9 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SQP_GM_Lobby.h"
+
+#include "ActiveButton.h"
+#include "HostSideLobbyMenuWidget.h"
 #include "SQP.h"
 #include "SQPGameState.h"
 #include "SQPPlayerController.h"
@@ -88,6 +91,13 @@ void ASQP_GM_Lobby::PostLogin(APlayerController* NewPlayer)
 		GS->OnNewPlayerLogin(NewPC);
 	}
 
+	//전체 플레이어의 준비 상태에 따라서 시작 버튼을 활성화
+	if (const auto HostLobbyMenuWidget = Cast<UHostSideLobbyMenuWidget>(GetHostPlayerController()->LobbyMenuWidget))
+	{
+		const bool bIsAllReady = CheckAllPlayersReady();
+		HostLobbyMenuWidget->StartButton->SetActive(bIsAllReady);
+	}
+
 	PRINTLOGNET(TEXT("Lobby PostLogin End!"));
 }
 
@@ -142,7 +152,7 @@ void ASQP_GM_Lobby::MoveToGameMap()
 	if (CheckAllPlayersReady())
 	{
 		//클라이언트와 함께 게임 맵으로 이동
-		GetWorld()->ServerTravel("Lvl_ThirdPerson");
+		GetWorld()->ServerTravel("PlayerTestMap");
 	}
 }
 

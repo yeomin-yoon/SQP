@@ -2,8 +2,13 @@
 
 #include "SQPPaintBallProjectile.h"
 #include "SQPPaintWorldSubsystem.h"
+#include "SQPPlayer.h"
+#include "SQP_PS_PaintRoom.h"
+#include "UIManager.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+
+class UUIManager;
 
 ASQPPaintBallProjectile::ASQPPaintBallProjectile()
 {
@@ -19,7 +24,7 @@ void ASQPPaintBallProjectile::BeginPlay()
 	if (bIsReal)
 	{
 		//바인드
-		SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASQPPaintBallProjectile::OnOverlapBeginCallback);	
+		SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASQPPaintBallProjectile::OnOverlapBeginCallback);
 	}
 }
 
@@ -30,35 +35,24 @@ void ASQPPaintBallProjectile::OnOverlapBeginCallback(UPrimitiveComponent* Overla
 	if (HasAuthority())
 	{
 		//모든 클라이언트에 채색 시도 명령
-		Multicast_TryPaint();
+		Multicast_TryPaint(PaintColor);
 		
 		//비활성화
 		InactivateProjectile();
 	}
 }
 
-void ASQPPaintBallProjectile::Multicast_TryPaint_Implementation()
+void ASQPPaintBallProjectile::Multicast_TryPaint_Implementation(const FLinearColor BrushColor)
 {
 	const FVector Offset = GetActorForwardVector() * 100;
 	const FVector Start = GetActorLocation() - Offset;
 	const FVector End = GetActorLocation() + Offset;
-	const uint8 BrushIndex = FMath::RandRange(0, 8);
-
 	const TArray<AActor*> ActorsToIgnore { this };
-	if (FHitResult OutHitResult; UKismetSystemLibrary::LineTraceSingle(GetWorld(), Start, End, TraceTypeQuery1, true, ActorsToIgnore, EDrawDebugTrace::ForDuration, OutHitResult, true))
+	const uint8 BrushIndex = FMath::RandRange(0, 8);
+	
+	if (const auto Subsystem = GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>())
 	{
-		if (const auto Subsystem = GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>())
-		{
-			constexpr float BrushSize = 500;
-			
-			UTextureRenderTarget2D* ColorRenderTarget = nullptr;
-			UTextureRenderTarget2D* NormalRenderTarget = nullptr;
-			Subsystem->GetRenderTargetFromHit(OutHitResult, ColorRenderTarget, NormalRenderTarget);
-		
-			FVector2D DrawLocation;
-			UGameplayStatics::FindCollisionUV(OutHitResult, 0, DrawLocation);
-				
-			Subsystem->PaintRenderTarget(BrushIndex, BrushSize, DrawLocation, ColorRenderTarget, NormalRenderTarget);		
-		}
+		constexpr float BrushSize = 500;
+		Subsystem->TryPaintColor(Start, End, ActorsToIgnore, BrushIndex, BrushSize, BrushColor);
 	}
 }

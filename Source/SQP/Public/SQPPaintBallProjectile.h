@@ -19,10 +19,16 @@ public:
 	UFUNCTION()
 	void OnOverlapBeginCallback (UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_TryPaint();
+	UFUNCTION()
+	FORCEINLINE void SetPaintColor(const FLinearColor& Value) { PaintColor = Value; } 
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsReal;
+
+	UPROPERTY()
+	FLinearColor PaintColor;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_TryPaint(FLinearColor BrushColor);
 };

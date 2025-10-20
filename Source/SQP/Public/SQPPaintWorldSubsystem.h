@@ -15,23 +15,52 @@ public:
 	USQPPaintWorldSubsystem();
 
 	UFUNCTION()
-	void TryPaint(const FVector& Start, const FVector& End, uint8 BrushIndex, float BrushSize);
+	void TryPaint(
+		const FVector& Start,
+		const FVector& End,
+		const uint8& BrushIndex,
+		const float& BrushSize);
+
+	UFUNCTION()
+	void TryPaintColor(
+		const FVector& Start,
+		const FVector& End,
+		const TArray<AActor*>& ActorsToIgnore,
+		const uint8& BrushIndex,
+		const float& BrushSize, const FLinearColor& BrushColor);
 	
 	//충돌 구조체에서 컬러 렌더 타겟 텍스처과 노말 렌더 타겟 텍스처를 획득한다
 	UFUNCTION(BlueprintCallable)
-	void GetRenderTargetFromHit(const FHitResult& Hit, UTextureRenderTarget2D*& OutColorRenderTarget, UTextureRenderTarget2D*& OutNormalRenderTarget) const;
+	void GetRenderTargetFromHit(
+		const FHitResult& Hit,
+		UTextureRenderTarget2D*& OutColorRenderTarget,
+		UTextureRenderTarget2D*& OutNormalRenderTarget) const;
 
 	//컬러 렌더 타겟 텍스처와 노말 렌더 타겟 텍스처를 대상으로 드로잉을 시도한다
 	UFUNCTION(BlueprintCallable)
-	void PaintRenderTarget(uint8 BrushIndex, const float BrushSize, const FVector2D& DrawLocation, UTextureRenderTarget2D* ColorRenderTarget, UTextureRenderTarget2D* NormalRenderTarget);
+	void PaintRenderTarget(
+		uint8 BrushIndex,
+		const float BrushSize,
+		const FLinearColor& BrushColor,
+		const FVector2D& DrawLocation,
+		UTextureRenderTarget2D* ColorRenderTarget, UTextureRenderTarget2D* NormalRenderTarget);
 	
 	//지정 텍스처로 컬러 렌더 타겟 텍스처에 드로잉을 시도한다
 	UFUNCTION(BlueprintCallable)
-	void PaintColorRenderTarget(UTexture2D* BrushTexture, const float BrushSize, const FVector2D& DrawLocation, UTextureRenderTarget2D* ColorRenderTarget);
+	void PaintColorRenderTarget(
+		UTexture2D* BrushTexture,
+		const float BrushSize,
+		const FLinearColor& BrushColor,
+		const FVector2D& DrawLocation, UTextureRenderTarget2D* ColorRenderTarget);
 
 	//지정 텍스처로 노말 렌더 타겟 텍스처에 드로잉을 시도한다
 	UFUNCTION(BlueprintCallable)
-	void PaintNormalRenderTarget(UTexture2D* BrushTexture, UTexture2D* BrushAlphaTexture, const float BrushSize, const FVector2D& DrawLocation, UTextureRenderTarget2D* NormalRenderTarget);
+	void PaintNormalRenderTarget(
+		UTexture2D* BrushTexture,
+		UTexture2D* BrushAlphaTexture,
+		const float BrushSize,
+		const FVector2D& DrawLocation,
+		UTextureRenderTarget2D* NormalRenderTarget);
 
 protected:
 	//컬러 페인트 텍스처 배열

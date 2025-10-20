@@ -1,8 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SQPPaintWorldSubsystem.h"
-
-#include "UIManager.h"
 #include "Engine/Canvas.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/GameplayStatics.h"
@@ -21,7 +19,7 @@ USQPPaintWorldSubsystem::USQPPaintWorldSubsystem()
 		{
 			ColorTextureArray.Emplace(Finder.Object);
 		}
-
+		
 		Path = FString::Printf(TEXT("/Game/Splatoon/Texture/T_Ink_0%d_Normal.T_Ink_0%d_Normal"), i, i);
 		if (ConstructorHelpers::FObjectFinder<UTexture2D>
 			Finder(*Path);
@@ -55,8 +53,11 @@ USQPPaintWorldSubsystem::USQPPaintWorldSubsystem()
 	}
 }
 
-void USQPPaintWorldSubsystem::TryPaint(const FVector& Start, const FVector& End, const uint8 BrushIndex,
-                                       const float BrushSize)
+void USQPPaintWorldSubsystem::TryPaint(
+	const FVector& Start,
+	const FVector& End,
+	const uint8& BrushIndex,
+	const float& BrushSize)
 {
 	TArray<FHitResult> OutHitResult;
 	const FCollisionQueryParams Params = FCollisionQueryParams(FName(TEXT("SplatoonPaint")), true);
@@ -69,22 +70,69 @@ void USQPPaintWorldSubsystem::TryPaint(const FVector& Start, const FVector& End,
 				UTextureRenderTarget2D* ColorRenderTarget = nullptr;
 				UTextureRenderTarget2D* NormalRenderTarget = nullptr;
 				GetRenderTargetFromHit(Hit, ColorRenderTarget, NormalRenderTarget);
-
+		
 				FVector2D DrawLocation;
 				UGameplayStatics::FindCollisionUV(Hit, 0, DrawLocation);
 
-				GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red,
-				                                 FString::Printf(TEXT("%d %f"), BrushIndex, BrushSize));
+				GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red,FString::Printf(TEXT("%d %f"), BrushIndex, BrushSize));
 
-				PaintRenderTarget(BrushIndex, BrushSize, DrawLocation, ColorRenderTarget, NormalRenderTarget);
+				//PaintRenderTarget(BrushIndex, BrushSize, , DrawLocation, ColorRenderTarget, NormalRenderTarget);
+				
+				GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red,TEXT("This Function has been deprecated! Check Again!"));
 			}
 		}
 	}
 }
 
-void USQPPaintWorldSubsystem::GetRenderTargetFromHit(const FHitResult& Hit,
-                                                     UTextureRenderTarget2D*& OutColorRenderTarget,
-                                                     UTextureRenderTarget2D*& OutNormalRenderTarget) const
+void USQPPaintWorldSubsystem::TryPaintColor(
+	const FVector& Start,
+	const FVector& End,
+	const TArray<AActor*>& ActorsToIgnore,
+	const uint8& BrushIndex,
+	const float& BrushSize,
+	const FLinearColor& BrushColor)
+{
+	// TArray<FHitResult> OutHitResult;
+	// const FCollisionQueryParams Params = FCollisionQueryParams(FName(TEXT("SplatoonPaint")), true);
+	// if (GetWorld()->LineTraceMultiByChannel(OutHitResult, Start, End, ECC_Visibility, Params))
+	// {
+	// 	for (auto Hit : OutHitResult)
+	// 	{
+	// 		if (Hit.GetActor())
+	// 		{
+	// 			UTextureRenderTarget2D* ColorRenderTarget = nullptr;
+	// 			UTextureRenderTarget2D* NormalRenderTarget = nullptr;
+	// 			GetRenderTargetFromHit(Hit, ColorRenderTarget, NormalRenderTarget);
+	//
+	// 			FVector2D DrawLocation;
+	// 			UGameplayStatics::FindCollisionUV(Hit, 0, DrawLocation);
+	//
+	// 			GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red,FString::Printf(TEXT("%d %f"), BrushIndex, BrushSize));
+	//
+	// 			PaintRenderTarget(BrushIndex, BrushSize, BrushColor, DrawLocation, ColorRenderTarget, NormalRenderTarget);
+	// 		}
+	// 	}
+	// }
+
+	if (FHitResult OutHitResult; UKismetSystemLibrary::LineTraceSingle(GetWorld(), Start, End, TraceTypeQuery1, true, ActorsToIgnore, EDrawDebugTrace::ForDuration, OutHitResult, true))
+	{
+		UTextureRenderTarget2D* ColorRenderTarget = nullptr;
+		UTextureRenderTarget2D* NormalRenderTarget = nullptr;
+		GetRenderTargetFromHit(OutHitResult, ColorRenderTarget, NormalRenderTarget);
+
+		//드로잉에 필요한 UV좌표를 획득
+		FVector2D DrawLocation;
+		UGameplayStatics::FindCollisionUV(OutHitResult, 0, DrawLocation);
+
+		//페인트 월드 서브 시스템에 페인트 요청
+		PaintRenderTarget(BrushIndex, BrushSize, BrushColor, DrawLocation, ColorRenderTarget, NormalRenderTarget);	
+	}
+}
+
+void USQPPaintWorldSubsystem::GetRenderTargetFromHit(
+	const FHitResult& Hit,
+	UTextureRenderTarget2D*& OutColorRenderTarget,
+	UTextureRenderTarget2D*& OutNormalRenderTarget) const
 {
 	//충돌한 면에 있는 머터리얼 획득
 	int32 SectionIndex;
@@ -94,7 +142,7 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(const FHitResult& Hit,
 	{
 		return;
 	}
-
+	
 	//충돌 컴포넌트에서 머터리얼 인터페이스 획득
 	const auto MaterialInterface = Hit.Component->GetMaterialFromCollisionFaceIndex(Hit.FaceIndex, SectionIndex);
 
@@ -105,7 +153,7 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(const FHitResult& Hit,
 	}
 
 	//캔버스 머터리얼과 충돌했다면
-	if (const auto BaseMaterialFromCollision = MaterialInterface->GetBaseMaterial())
+	if (const auto BaseMaterialFromCollision = MaterialInterface->GetBaseMaterial(); BaseMaterialFromCollision == CanvasMaterialBase)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("Detect Paint Material!"));
 
@@ -127,18 +175,15 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(const FHitResult& Hit,
 		GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("CreateDynamicMaterialInstance of Canvas!"));
 
 		//머터리얼 다이나믹 인스턴스로의 형변환에 실패했다면 새로운 인스턴스를 할당받은 후에 반환한다
-		const auto CreatedMaterialInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(
-			GetWorld(), MaterialInterface);
+		const auto CreatedMaterialInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(GetWorld(), CanvasMaterialBase);
 
 		//컬러 값을 가지는 렌더 타겟
 		constexpr ETextureRenderTargetFormat ColorFormat = RTF_RGBA8;
-		const auto CreatedColorRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(
-			GetWorld(), 1024, 1024, ColorFormat, FLinearColor::White, false);
+		const auto CreatedColorRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(GetWorld(), 1024, 1024, ColorFormat, FLinearColor::White, false);
 
 		//노말 값을 가지는 렌더 타겟
 		constexpr ETextureRenderTargetFormat NormalFormat = RTF_RGBA16f;
-		const auto CreatedNormalRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(
-			GetWorld(), 1024, 1024, NormalFormat, FLinearColor(0, 0, 1.0, 1.0), false);
+		const auto CreatedNormalRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(GetWorld(), 1024, 1024, NormalFormat, FLinearColor(0, 0, 1.0, 1.0), false);
 		if (CreatedNormalRenderTarget)
 		{
 			CreatedNormalRenderTarget->CompressionSettings = TC_VectorDisplacementmap;
@@ -151,7 +196,6 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(const FHitResult& Hit,
 		CreatedMaterialInstance->SetTextureParameterValue(FName("ColorRenderTarget"), CreatedColorRenderTarget);
 		CreatedMaterialInstance->SetTextureParameterValue(FName("NormalRenderTarget"), CreatedNormalRenderTarget);
 
-
 		//새롭게 할당받은 다이나믹 머터리얼을 충돌 컴포넌트에 적용
 		Hit.Component->SetMaterial(SectionIndex, CreatedMaterialInstance);
 
@@ -161,71 +205,72 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(const FHitResult& Hit,
 	}
 }
 
-void USQPPaintWorldSubsystem::PaintRenderTarget(const uint8 BrushIndex, const float BrushSize,
-                                                const FVector2D& DrawLocation,
-                                                UTextureRenderTarget2D* ColorRenderTarget,
-                                                UTextureRenderTarget2D* NormalRenderTarget)
+void USQPPaintWorldSubsystem::PaintRenderTarget(
+	const uint8 BrushIndex,
+	const float BrushSize,
+	const FLinearColor& BrushColor,
+	const FVector2D& DrawLocation,
+	UTextureRenderTarget2D* ColorRenderTarget,
+	UTextureRenderTarget2D* NormalRenderTarget)
 {
 	if (ColorRenderTarget)
 	{
-		PaintColorRenderTarget(ColorTextureArray[BrushIndex], BrushSize, DrawLocation, ColorRenderTarget);
+		PaintColorRenderTarget(ColorTextureArray[BrushIndex], BrushSize, BrushColor, DrawLocation, ColorRenderTarget);
 	}
 
 	if (NormalRenderTarget)
 	{
-		PaintNormalRenderTarget(NormalTextureArray[BrushIndex], ColorTextureArray[BrushIndex], BrushSize, DrawLocation,
-		                        NormalRenderTarget);
+		PaintNormalRenderTarget(NormalTextureArray[BrushIndex], ColorTextureArray[BrushIndex], BrushSize, DrawLocation, NormalRenderTarget);
 	}
 }
 
-void USQPPaintWorldSubsystem::PaintColorRenderTarget(UTexture2D* BrushTexture, const float BrushSize,
-                                                     const FVector2D& DrawLocation,
-                                                     UTextureRenderTarget2D* ColorRenderTarget)
+void USQPPaintWorldSubsystem::PaintColorRenderTarget(
+	UTexture2D* BrushTexture,
+	const float BrushSize,
+	const FLinearColor& BrushColor,
+	const FVector2D& DrawLocation,
+	UTextureRenderTarget2D* ColorRenderTarget)
 {
 	//만약 컬러 브러시 머터리얼의 다이나믹 인스턴스가 없다면
 	if (ColorBrushMaterialDynamicInstance == nullptr)
 	{
 		//새로운 머터리얼을 하나 생성한다
-		ColorBrushMaterialDynamicInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(
-			GetWorld(), ColorBrushMaterialBase);
+		ColorBrushMaterialDynamicInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(GetWorld(), ColorBrushMaterialBase);
 	}
-
-
+	
 	//브러시 머터리얼의 텍스처 패러미터를 요청한 텍스처로 교체
-	if (UUIManager* UIManager = GetWorld()->GetGameInstance()->GetSubsystem<UUIManager>())
-	{
-		ColorBrushMaterialDynamicInstance->SetVectorParameterValue(FName("PaintColor"), UIManager->GetCurrentColor());
-	}
+	ColorBrushMaterialDynamicInstance->SetVectorParameterValue(FName("PaintColor"), BrushColor);
 	ColorBrushMaterialDynamicInstance->SetTextureParameterValue(FName("BrushTexture"), BrushTexture);
 
 	//드로우 객체 준비
 	UCanvas* Canvas = NewObject<UCanvas>();
 	FVector2D Size;
 	FDrawToRenderTargetContext Context;
-
+	
 	//드로우 시작
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(GetWorld(), ColorRenderTarget, Canvas, Size, Context);
 
 	//드로잉
-	Canvas->K2_DrawMaterial(ColorBrushMaterialDynamicInstance, (Size * DrawLocation - BrushSize / 2),
-	                        FVector2D(BrushSize, BrushSize), FVector2D::ZeroVector);
+	Canvas->K2_DrawMaterial(ColorBrushMaterialDynamicInstance, (Size * DrawLocation - BrushSize / 2), FVector2D(BrushSize, BrushSize), FVector2D::ZeroVector);
 
 	//드로우 종료
 	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(GetWorld(), Context);
 }
 
-void USQPPaintWorldSubsystem::PaintNormalRenderTarget(UTexture2D* BrushTexture, UTexture2D* BrushAlphaTexture,
-                                                      const float BrushSize, const FVector2D& DrawLocation,
-                                                      UTextureRenderTarget2D* NormalRenderTarget)
+void USQPPaintWorldSubsystem::PaintNormalRenderTarget(
+	UTexture2D* BrushTexture,
+	UTexture2D* BrushAlphaTexture,
+	const float BrushSize,
+	const FVector2D& DrawLocation,
+	UTextureRenderTarget2D* NormalRenderTarget)
 {
 	//만약 컬러 브러시 머터리얼의 다이나믹 인스턴스가 없다면
 	if (NormalBrushMaterialDynamicInstance == nullptr)
 	{
 		//새로운 머터리얼을 하나 생성한다
-		NormalBrushMaterialDynamicInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(
-			GetWorld(), NormalBrushMaterialBase);
+		NormalBrushMaterialDynamicInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(GetWorld(), NormalBrushMaterialBase);
 	}
-
+	
 	//브러시 머터리얼의 텍스처 패러미터를 요청한 텍스처로 교체
 	NormalBrushMaterialDynamicInstance->SetTextureParameterValue(FName("BrushTexture"), BrushTexture);
 	NormalBrushMaterialDynamicInstance->SetTextureParameterValue(FName("BrushAlphaTexture"), BrushAlphaTexture);
@@ -234,13 +279,12 @@ void USQPPaintWorldSubsystem::PaintNormalRenderTarget(UTexture2D* BrushTexture, 
 	UCanvas* Canvas = NewObject<UCanvas>();
 	FVector2D Size;
 	FDrawToRenderTargetContext Context;
-
+	
 	//드로우 시작
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(GetWorld(), NormalRenderTarget, Canvas, Size, Context);
 
 	//드로잉
-	Canvas->K2_DrawMaterial(NormalBrushMaterialDynamicInstance, (Size * DrawLocation - BrushSize / 2),
-	                        FVector2D(BrushSize, BrushSize), FVector2D::ZeroVector);
+	Canvas->K2_DrawMaterial(NormalBrushMaterialDynamicInstance, (Size * DrawLocation - BrushSize / 2), FVector2D(BrushSize, BrushSize), FVector2D::ZeroVector);
 
 	//드로우 종료
 	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(GetWorld(), Context);

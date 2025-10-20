@@ -4,6 +4,9 @@
 
 #include "ProjectileBase.h"
 #include "ProjectilePoolWorldSubsystem.h"
+#include "SQPPaintBallProjectile.h"
+#include "SQPPlayer.h"
+#include "SQP_PS_PaintRoom.h"
 #include "GameFramework/Character.h"
 
 UProjectileShooterComponent::UProjectileShooterComponent() :
@@ -53,8 +56,26 @@ void UProjectileShooterComponent::TickComponent(float DeltaTime, ELevelTick Tick
 					//발사체를 발사한다
 					if (const auto Subsystem = GetWorld()->GetSubsystem<UProjectilePoolWorldSubsystem>())
 					{
-						Subsystem->PopProjectile(ProjectileClass, GetComponentTransform(), 2000);
+						//발사체 풀링
+						const auto Projectile = Subsystem->PopProjectile(ProjectileClass, GetComponentTransform(), 2000);
 
+						//소유자 설정
+						Projectile->SetOwner(GetOwner());
+
+						//페인트 볼에 색상 설정
+						if (const auto PaintBall = Cast<ASQPPaintBallProjectile>(Projectile))
+						{
+							if (const auto Player = Cast<ACharacter>(GetOwner()))
+							{
+								if (const auto PlayerState = Player->GetPlayerState<ASQP_PS_PaintRoom>())
+								{
+									PaintBall->SetPaintColor(PlayerState->SelectedColor);
+									GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, TEXT("PaintBallReady!"));
+								}
+							}
+						}
+						
+						// 풀링되지 않은 일반 스폰
 						// const auto Temp = GetWorld()->SpawnActor<AProjectileBase>(ProjectileClass, GetComponentTransform());
 						// Temp->ActiveProjectile(GetComponentTransform(), 2000);
 					}
