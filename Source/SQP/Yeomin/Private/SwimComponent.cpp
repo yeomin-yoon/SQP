@@ -75,12 +75,12 @@ bool USwimComponent::IsOnPaint()
 	UPrimitiveComponent* HitComp = Hit.GetComponent();
 	if (!HitComp) return false;
 
-	// 1. Hit된 Mesh가 캐시에 있는지 확인
+	// 1. Find if HitComp is Cached
 	UTextureRenderTarget2D** CachedRT = PaintRTCache.Find(HitComp);
 
 	UTextureRenderTarget2D* PaintRT = nullptr;
 
-	// 2. 없으면 새로 찾고 캐시에 저장
+	// Cache or Recycle RenderTarget
 	if (!CachedRT)
 	{
 		UMaterialInterface* Mat = HitComp->GetMaterial(0);
@@ -88,34 +88,34 @@ bool USwimComponent::IsOnPaint()
 
 		if (DynMat)
 		{
-			UTexture* Tex = nullptr;
-			if (DynMat->GetTextureParameterValue(FName("ColorRenderTarget"), Tex))
+			UTexture* Texture = nullptr;
+			if (DynMat->GetTextureParameterValue(FName("ColorRenderTarget"), Texture))
 			{
-				PaintRT = Cast<UTextureRenderTarget2D>(Tex);
+				PaintRT = Cast<UTextureRenderTarget2D>(Texture);
 				if (PaintRT)
 				{
-					PaintRTCache.Add(HitComp, PaintRT); // 캐싱
+					PaintRTCache.Add(HitComp, PaintRT);	// Cache RenderTarget
 				}
 			}
 		}
 	}
-	else
+	else	// Recycle Cached RenderTarget
 	{
-		PaintRT = *CachedRT; // 캐시된 RenderTarget 재사용
+		PaintRT = *CachedRT;
 	}
 
-	// RenderTarget 없으면 페인트 아님
+	// Return False if there is no RenderTarget
 	if (!PaintRT)
 		return false;
 
-	// UV 구하기
+	// Find Collision UV
 	FVector2D UV;
 	if (!UGameplayStatics::FindCollisionUV(Hit, 0, UV))
 		return false;
 
-	// RenderTarget에서 색 읽기
+	// Read RenderTarget at UV
 	FColor Color = UKismetRenderingLibrary::ReadRenderTargetUV(this, PaintRT, UV.X, UV.Y);
 
-	// 흰색이면 페인트 X
+	// Return False if White, else Return True
 	return !(Color.R == 255 && Color.G == 255 && Color.B == 255);
 }
