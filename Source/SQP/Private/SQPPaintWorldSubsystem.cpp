@@ -215,7 +215,7 @@ void USQPPaintWorldSubsystem::PaintRenderTarget(
 {
 	if (ColorRenderTarget)
 	{
-		PaintColorRenderTarget(ColorTextureArray[BrushIndex], BrushSize, DrawLocation, ColorRenderTarget);
+		PaintColorRenderTarget(ColorTextureArray[BrushIndex], BrushSize, BrushColor, DrawLocation, ColorRenderTarget);
 	}
 
 	if (NormalRenderTarget)

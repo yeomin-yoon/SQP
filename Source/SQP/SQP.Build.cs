@@ -32,7 +32,7 @@ public class SQP : ModuleRules
 			"OnlineSubsystemUtils",
 			"Sockets",
 			//클립보드
-			"ApplicationCore"
+			"ApplicationCore", "Synthesis"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
