@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InputActionValue.h"
 #include "Components/WidgetInteractionComponent.h"
 #include "UIInteractionComponent.generated.h"
 
@@ -20,6 +19,9 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY()
+	TObjectPtr<APawn> OwnerPawn;
+
+	UPROPERTY()
 	TObjectPtr<APlayerController> PC;
 	UPROPERTY()
 	TObjectPtr<class UInputMappingContext> IMC;
@@ -32,4 +34,10 @@ protected:
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
+	
+	void OnClick();
+
+	void UpdateLikes();
+	UFUNCTION(Server, Reliable)
+	void Server_CountLike(class ASQP_PS_PaintRoom* TargetPS);
 };

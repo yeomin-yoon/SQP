@@ -4,7 +4,11 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "LikeUI.h"
+#include "MainUIComponent.h"
+#include "SQP_PS_PaintRoom.h"
 #include "Components/WidgetComponent.h"
+#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 
 
 UUIInteractionComponent::UUIInteractionComponent()
@@ -34,12 +38,10 @@ UUIInteractionComponent::UUIInteractionComponent()
 void UUIInteractionComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Only hide local player's LikeUI
-	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	
+	OwnerPawn = Cast<APawn>(GetOwner());
 	if (OwnerPawn->IsLocallyControlled())
 	{
-		// Enhanced Input Subsystem 등록
 		PC = Cast<APlayerController>(OwnerPawn->GetController());
 		if (PC)
 		{
@@ -48,13 +50,26 @@ void UUIInteractionComponent::BeginPlay()
 			{
 				InputSubsystem->AddMappingContext(IMC, 0);
 			}
-
-			// 입력 바인딩
 			if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PC->InputComponent))
 			{
 				if (RightClickAction)
-					EIC->BindAction(RightClickAction, ETriggerEvent::Started, this, &UUIInteractionComponent::OnRightClickPressed);
-					EIC->BindAction(RightClickAction, ETriggerEvent::Completed, this, &UUIInteractionComponent::OnRightClickReleased);
+					EIC->BindAction(RightClickAction, ETriggerEvent::Started, this,
+					                &UUIInteractionComponent::OnRightClickPressed);
+				EIC->BindAction(RightClickAction, ETriggerEvent::Completed, this,
+				                &UUIInteractionComponent::OnRightClickReleased);
+			}
+		}
+
+		TArray<AActor*> Actors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APawn::StaticClass(), Actors);
+
+		for (AActor* Actor : Actors)
+		{
+			if (!Actor) continue;
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *Actor->GetName());
+			if (UMainUIComponent* MainUIComp = Actor->FindComponentByClass<UMainUIComponent>())
+			{
+				MainUIComp->OnLikeChanged.AddUObject(this, &UUIInteractionComponent::OnClick);
 			}
 		}
 	}
@@ -64,14 +79,8 @@ void UUIInteractionComponent::BeginPlay()
 void UUIInteractionComponent::OnRightClickPressed()
 {
 	PressPointerKey(EKeys::LeftMouseButton);
-	
-	if (auto* WidgetComp = GetHoveredWidgetComponent())
-	{
-		if (auto* Widget = Cast<ULikeUI>(WidgetComp->GetUserWidgetObject()))
-		{
-			Widget->ClickingActor = GetOwner();
-		}
-	}
+
+	UpdateLikes();
 }
 
 void UUIInteractionComponent::OnRightClickReleased()
@@ -83,4 +92,32 @@ void UUIInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType
                                             FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+}
+
+
+
+void UUIInteractionComponent::OnClick()
+{
+		//Server_UpdateLikes(TargetPawn);
+}
+
+void UUIInteractionComponent::UpdateLikes()
+{
+	if (UWidgetComponent* HoveredUI = GetHoveredWidgetComponent())
+	{
+		if (APawn* TargetPawn = Cast<APawn>(HoveredUI->GetOwner()))
+		{
+			if (ASQP_PS_PaintRoom* TargetPS = Cast<ASQP_PS_PaintRoom>(TargetPawn->GetPlayerState()))
+			{
+				Server_CountLike(TargetPS);
+			}
+		}
+	}
+}
+
+void UUIInteractionComponent::Server_CountLike_Implementation(ASQP_PS_PaintRoom* TargetPS)
+{
+	TargetPS->IncreaseLikeCounter();
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *TargetPS->GetName())
+	UE_LOG(LogTemp, Warning, TEXT("%d"), TargetPS->LikeCounter)
 }

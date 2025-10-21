@@ -1,6 +1,7 @@
 ﻿#include "SkyViewPawn.h"
 #include "EnhancedInputComponent.h"
 #include "SkyViewComponent.h"
+#include "SQP_PC_PaintRoom.h"
 #include "Camera/CameraComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -15,16 +16,12 @@ ASkyViewPawn::ASkyViewPawn()
 	{
 		SkyViewAction = SkyViewActionObj.Object;
 	}
-
-	bReplicates = true;
 }
 
 void ASkyViewPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
-
 
 
 void ASkyViewPawn::Tick(float DeltaTime)
@@ -39,8 +36,7 @@ void ASkyViewPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(SkyViewAction, ETriggerEvent::Started, this,
-		                                   &ASkyViewPawn::TriggerSkyView);
+		EnhancedInputComponent->BindAction(SkyViewAction, ETriggerEvent::Started, this, &ASkyViewPawn::TriggerSkyView);
 	}
 	else
 	{
@@ -53,10 +49,29 @@ void ASkyViewPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void ASkyViewPawn::TriggerSkyView()
 {
-	Server_QuitSkyView(GetWorld()->GetFirstPlayerController());
+	if (IsLocallyControlled())
+	{
+		PC = Cast<ASQP_PC_PaintRoom>(GetController());
+		if (PC)
+		{
+			QuitSkyView();
+			UE_LOG(LogTemp, Warning, TEXT("PlayerController 찾음: %s"), *PC->GetName());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("PlayerController 캐스팅 실패"));
+		}
+	}
 }
 
-void ASkyViewPawn::Server_QuitSkyView_Implementation(APlayerController* PC)
+void ASkyViewPawn::QuitSkyView()
 {
-	GetOwner()->GetComponentByClass<USkyViewComponent>()->Server_IsSkyView(PC);
+	if (PC)
+	{
+		PC->Server_PossessPreviousPawn();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cant Get ASQP_PC_PaintRoom"))
+	}
 }

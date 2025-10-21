@@ -3,6 +3,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "SkyViewPawn.h"
+#include "SQP_PC_PaintRoom.h"
 #include "Camera/CameraComponent.h"
 
 USkyViewComponent::USkyViewComponent()
@@ -33,12 +34,10 @@ void USkyViewComponent::BeginPlay()
 
 	OwnerPawn = Cast<APawn>(GetOwner());
 
-	Server_SpawnSkyViewPawn();
-
-	if (OwnerPawn->IsLocallyControlled())
+	if (OwnerPawn && OwnerPawn->IsLocallyControlled())
 	{
 		// Enhanced Input Subsystem 등록
-		PlayerController = Cast<APlayerController>(OwnerPawn->GetController());
+		PlayerController = Cast<ASQP_PC_PaintRoom>(OwnerPawn->GetController());
 		if (PlayerController)
 		{
 			if (auto* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
@@ -66,66 +65,8 @@ void USkyViewComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void USkyViewComponent::OnSkyView()
 {
-	Server_IsSkyView(PlayerController);
-}
-
-void USkyViewComponent::Server_SpawnSkyViewPawn_Implementation()
-{
-	FVector Loc = GetOwner()->GetComponentByClass<UCameraComponent>()->GetComponentLocation() +
-		InitialLocationOffset;
-	FRotator Rot = GetOwner()->GetActorRotation();
-	Rot.Pitch = InitialPitchOffset;
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = GetOwner();
-	SpawnParams.SpawnCollisionHandlingOverride =
-		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-	SkyViewPawn = GetWorld()->SpawnActor<ASkyViewPawn>(
-		ASkyViewPawn::StaticClass(),
-		Loc,
-		Rot,
-		SpawnParams
-	);
-}
-
-void USkyViewComponent::Server_IsSkyView_Implementation(APlayerController* PC)
-{
-	if (bIsSkyView) // Sky View On
+	if (OwnerPawn->IsLocallyControlled())
 	{
-		Server_ResetSkyViewLocation(bIsSkyView);
-		Server_PossessSkyView(bIsSkyView, PC);
-		bIsSkyView = false;
-		return;
-	}
-	// Sky View Off
-	Server_ResetSkyViewLocation(bIsSkyView);
-	Server_PossessSkyView(bIsSkyView, PC);
-	bIsSkyView = true;
-}
-
-void USkyViewComponent::Server_ResetSkyViewLocation_Implementation(bool isSkyView)
-{
-	if (isSkyView) // Change view to Sky View
-	{
-		FVector Loc = GetOwner()->GetComponentByClass<UCameraComponent>()->GetComponentLocation() +
-			InitialLocationOffset;
-		FRotator Rot = GetOwner()->GetActorRotation();
-		Rot.Pitch = InitialPitchOffset;
-
-		SkyViewPawn->SetActorTransform(FTransform(Rot, Loc));
-	}
-}
-
-void USkyViewComponent::Server_PossessSkyView_Implementation(bool isSkyView, APlayerController* PC)
-{
-	if (isSkyView)
-	{
-		PC->Possess(SkyViewPawn);
-		return;
-	}
-	if (isSkyView == false) // Change view to Character View
-	{
-		PC->Possess(OwnerPawn);
+		PlayerController->OnSkyView();
 	}
 }

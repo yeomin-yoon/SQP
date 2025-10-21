@@ -15,6 +15,16 @@ class SQP_API ASQP_PS_PaintRoom : public APlayerState
 	GENERATED_BODY()
 
 public:
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	UPROPERTY()
 	FLinearColor SelectedColor;
+
+	UFUNCTION()
+	void IncreaseLikeCounter();
+
+	UPROPERTY(ReplicatedUsing=OnRep_LikeCounter)
+	int32 LikeCounter = 0;
+	UFUNCTION()
+	void OnRep_LikeCounter();
 };

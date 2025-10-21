@@ -11,7 +11,32 @@ class SQP_API ASQP_PC_PaintRoom : public ASQPPlayerController
 {
 	GENERATED_BODY()
 
+protected:
+	virtual void BeginPlay() override;
+
 public:
+	virtual void OnPossess(APawn* InPawn) override;
+	UPROPERTY()
+	TObjectPtr<APawn> CurrentPawn;
+	UPROPERTY()
+	TObjectPtr<APawn> PreviousPawn;
+
 	UFUNCTION(Server, Reliable)
 	void Server_PaintColorChange(FLinearColor Value);
+
+	UFUNCTION(Server, Reliable)
+	void Server_UpdateLikes(int32 LikeNum);
+
+	void SpawnSkyViewPawn();
+	UPROPERTY(EditDefaultsOnly, Category="Sky View")
+	FVector InitialLocationOffset = FVector(0.f, 0.f, 100);
+	UPROPERTY(EditDefaultsOnly, Category="Sky View")
+	float InitialPitchOffset = -15.f;
+	UPROPERTY()
+	TObjectPtr<class ASkyViewPawn> SkyViewPawn;
+	UFUNCTION(Server, Reliable)
+	void Server_PossessSkyView();
+	UFUNCTION(Server, Reliable)
+	void Server_PossessPreviousPawn();
+	void OnSkyView();
 };

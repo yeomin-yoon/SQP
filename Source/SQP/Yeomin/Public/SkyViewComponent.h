@@ -22,31 +22,14 @@ public:
 
 public:
 	void OnSkyView();
-	UFUNCTION(Server, Reliable)
-	void Server_SpawnSkyViewPawn();
-	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void Server_IsSkyView(APlayerController* PC);
-	UFUNCTION(Server, Reliable)
-	void Server_ResetSkyViewLocation(bool isSkyView);
-	UFUNCTION(Server, Reliable)
-	void Server_PossessSkyView(bool isSkyView, APlayerController* PC);
-	
+
 	UPROPERTY()
-	TObjectPtr<APlayerController> PlayerController;
+	TObjectPtr<class ASQP_PC_PaintRoom> PlayerController;
 	UPROPERTY()
 	TObjectPtr<class UInputMappingContext> IMC;
 	UPROPERTY()
 	TObjectPtr<class UInputAction> SkyViewAction;
-	
+
 	UPROPERTY()
 	TObjectPtr<APawn> OwnerPawn;
-	UPROPERTY()
-	TObjectPtr<class ASkyViewPawn> SkyViewPawn;
-
-	bool bIsSkyView = true;
-
-	UPROPERTY(EditDefaultsOnly, Category="Sky View")
-	FVector InitialLocationOffset = FVector(0.f, 0.f, 100);
-	UPROPERTY(EditDefaultsOnly, Category="Sky View")
-	float InitialPitchOffset = -15.f;
 };

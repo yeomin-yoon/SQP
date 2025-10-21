@@ -17,9 +17,13 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UInputAction> SkyViewAction;
+
+	UPROPERTY()
+	TObjectPtr<class ASQP_PC_PaintRoom> PC;
+	
 	void TriggerSkyView();
-	UFUNCTION(Server, Reliable)
-	void Server_QuitSkyView(APlayerController* PC);
+
+	void QuitSkyView();
 
 public:
 	virtual void Tick(float DeltaTime) override;

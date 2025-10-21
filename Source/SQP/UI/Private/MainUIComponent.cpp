@@ -3,7 +3,10 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include "LikeUI.h"
+#include "UIInteractionComponent.h"
 #include "UIManager.h"
+#include "Components/Button.h"
 #include "Components/WidgetComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -34,21 +37,31 @@ UMainUIComponent::UMainUIComponent()
 	}
 
 	ConstructorHelpers::FObjectFinder<UInputMappingContext> IMCAsset(
-	TEXT("'/Game/Input/IMC_Default.IMC_Default'")
-);
+		TEXT("'/Game/Input/IMC_Default.IMC_Default'")
+	);
 	if (IMCAsset.Succeeded())
 	{
 		IMC = IMCAsset.Object;
 	}
+
+	SetIsReplicated(true);
 }
 
+
+void UMainUIComponent::OnClick()
+{
+	OnLikeChanged.Broadcast();
+}
 
 void UMainUIComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	InteractionComp = GetOwner()->GetComponentByClass<UUIInteractionComponent>();
 
 	LikeUIComp->SetupAttachment(GetOwner()->GetRootComponent());
 	LikeUIComp->SetRelativeLocation(FVector(0, 0, 200));
+	ULikeUI* LikeUI = Cast<ULikeUI>(LikeUIComp->GetWidget());
+	LikeUI->LikeBtn->OnPressed.AddDynamic(this, &UMainUIComponent::OnClick);
 
 	UIManager = GetWorld()->GetGameInstance()->GetSubsystem<UUIManager>();
 
