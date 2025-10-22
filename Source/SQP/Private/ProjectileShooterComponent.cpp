@@ -70,6 +70,7 @@ void UProjectileShooterComponent::TickComponent(float DeltaTime, ELevelTick Tick
 								if (const auto PlayerState = Player->GetPlayerState<ASQP_PS_PaintRoom>())
 								{
 									PaintBall->SetPaintColor(PlayerState->SelectedColor);
+									PaintBall->SetBrushSize(PlayerState->SelectedBrushSize);
 									GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, TEXT("PaintBallReady!"));
 								}
 							}

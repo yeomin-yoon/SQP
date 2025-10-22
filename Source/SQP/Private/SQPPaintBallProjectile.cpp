@@ -26,31 +26,38 @@ void ASQPPaintBallProjectile::BeginPlay()
 	}
 }
 
-void ASQPPaintBallProjectile::OnOverlapBeginCallback(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ASQPPaintBallProjectile::OnOverlapBeginCallback(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                                     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+                                                     bool bFromSweep, const FHitResult& SweepResult)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("PaintBall BeginOverlap!"));
-	
+
 	if (HasAuthority())
 	{
 		//모든 클라이언트에 채색 시도 명령
-		Multicast_TryPaint(PaintColor);
-		
+		Multicast_TryPaint(PaintColor, BrushSize);
+
 		//비활성화
 		InactivateProjectile();
 	}
 }
 
-void ASQPPaintBallProjectile::Multicast_TryPaint_Implementation(const FLinearColor BrushColor)
+void ASQPPaintBallProjectile::Multicast_TryPaint_Implementation(const FLinearColor BrushColor,
+                                                                const float BrushSizeValue)
 {
 	const FVector Offset = GetActorForwardVector() * 100;
 	const FVector Start = GetActorLocation() - Offset;
 	const FVector End = GetActorLocation() + Offset;
-	const TArray<AActor*> ActorsToIgnore { this };
+	const TArray<AActor*> ActorsToIgnore{this};
 	const uint8 BrushIndex = FMath::RandRange(0, 8);
-	
+
 	if (const auto Subsystem = GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>())
 	{
-		constexpr float BrushSize = 250;
-		Subsystem->TryPaintColor(Start, End, ActorsToIgnore, BrushIndex, BrushSize, BrushColor);
+		if (!BrushSizeValue)
+		{
+			constexpr float TempBrushSize = 250;
+			Subsystem->TryPaintColor(Start, End, ActorsToIgnore, BrushIndex, TempBrushSize, BrushColor);
+		}
+		Subsystem->TryPaintColor(Start, End, ActorsToIgnore, BrushIndex, BrushSizeValue, BrushColor);
 	}
 }

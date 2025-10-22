@@ -12,6 +12,11 @@ void ASQP_PC_PaintRoom::Server_PaintColorChange_Implementation(const FLinearColo
 	GetPlayerState<ASQP_PS_PaintRoom>()->SelectedColor = Value;
 }
 
+void ASQP_PC_PaintRoom::Server_ChangeBrushSize_Implementation(float Value)
+{
+	GetPlayerState<ASQP_PS_PaintRoom>()->SelectedBrushSize = Value;
+}
+
 void ASQP_PC_PaintRoom::Server_UpdateLikes_Implementation(int32 LikeNum)
 {
 	ASQP_PS_PaintRoom* PS = Cast<ASQP_PS_PaintRoom>(PlayerState);

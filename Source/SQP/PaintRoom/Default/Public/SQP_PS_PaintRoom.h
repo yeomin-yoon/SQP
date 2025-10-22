@@ -20,6 +20,9 @@ public:
 	UPROPERTY()
 	FLinearColor SelectedColor;
 
+	UPROPERTY()
+	float SelectedBrushSize;
+
 	UFUNCTION()
 	void IncreaseLikeCounter();
 

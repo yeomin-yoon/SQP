@@ -27,13 +27,12 @@ void ASQP_PS_PaintRoom::OnRep_LikeCounter()
 
 	if (UMainUIComponent* MainUIComp = GetPawn()->FindComponentByClass<UMainUIComponent>())
 	{
-		PRINTLOGNET(TEXT("%s"), *GetPawn()->GetActorNameOrLabel());
-
-		ULikeUI* LikeComp = Cast<ULikeUI>(MainUIComp->LikeUIComp->GetWidget());
-		if (LikeComp)
+		//PRINTLOGNET(TEXT("%s"), *GetPawn()->GetActorNameOrLabel());
+		
+		if (ULikeUI* LikeUI = Cast<ULikeUI>(MainUIComp->LikeUIComp->GetWidget()))
 		{
-			LikeComp->LikeNumberText->SetText(FText::FromString(RichText));
-			PRINTLOGNET(TEXT("SetLikeText"));
+			LikeUI->LikeNumberText->SetText(FText::FromString(RichText));
+			//PRINTLOGNET(TEXT("SetLikeText"));
 		}
 	}
 }

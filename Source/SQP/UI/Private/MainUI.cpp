@@ -7,6 +7,7 @@
 #include "SQP_PS_PaintRoom.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
+#include "Components/Slider.h"
 #include "Kismet/KismetMathLibrary.h"
 
 void UMainUI::NativeConstruct()
@@ -18,6 +19,7 @@ void UMainUI::NativeConstruct()
 	SetColorGreenBtn->OnClicked.AddDynamic(this, &UMainUI::OnClickGreenBtn);
 	SetColorBlueBtn->OnClicked.AddDynamic(this, &UMainUI::OnClickBlueBtn);
 	SetColorWhiteBtn->OnClicked.AddDynamic(this, &UMainUI::OnClickWhiteBtn);
+	BrushSlider->OnValueChanged.AddDynamic(this, &UMainUI::OnBrushSizeChanged);
 }
 
 void UMainUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -111,6 +113,11 @@ void UMainUI::OnSliderXChanged(float Value)
 	ColorWheelSlider->SetSliderHandleColor(UpdateColorWheel());
 
 	UpdatePlayerState();
+}
+
+void UMainUI::OnBrushSizeChanged(float Value)
+{
+	Cast<ASQP_PC_PaintRoom>(GetWorld()->GetFirstPlayerController())->Server_ChangeBrushSize(Value);
 }
 
 void UMainUI::UpdatePlayerState()

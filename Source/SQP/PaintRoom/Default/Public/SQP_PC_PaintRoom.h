@@ -25,6 +25,9 @@ public:
 	void Server_PaintColorChange(FLinearColor Value);
 
 	UFUNCTION(Server, Reliable)
+	void Server_ChangeBrushSize(float Value);
+
+	UFUNCTION(Server, Reliable)
 	void Server_UpdateLikes(int32 LikeNum);
 
 	void SpawnSkyViewPawn();

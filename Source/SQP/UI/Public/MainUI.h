@@ -39,6 +39,9 @@ protected:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UButton> SetColorWhiteBtn;
 
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<class USlider> BrushSlider;
+
 	float GetAngle();
 	bool IsInRadius();
 	FLinearColor UpdateColorWheel();
@@ -56,7 +59,9 @@ protected:
 
 	UFUNCTION()
 	void OnSliderXChanged(float Value);
-
+	UFUNCTION()
+	void OnBrushSizeChanged(float Value);
+	
 	UFUNCTION()
 	void UpdatePlayerState();
 };

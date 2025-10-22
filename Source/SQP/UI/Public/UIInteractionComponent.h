@@ -35,9 +35,4 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 	
-	void OnClick();
-
-	void UpdateLikes();
-	UFUNCTION(Server, Reliable)
-	void Server_CountLike(class ASQP_PS_PaintRoom* TargetPS);
 };

@@ -59,19 +59,6 @@ void UUIInteractionComponent::BeginPlay()
 				                &UUIInteractionComponent::OnRightClickReleased);
 			}
 		}
-
-		TArray<AActor*> Actors;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APawn::StaticClass(), Actors);
-
-		for (AActor* Actor : Actors)
-		{
-			if (!Actor) continue;
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *Actor->GetName());
-			if (UMainUIComponent* MainUIComp = Actor->FindComponentByClass<UMainUIComponent>())
-			{
-				MainUIComp->OnLikeChanged.AddUObject(this, &UUIInteractionComponent::OnClick);
-			}
-		}
 	}
 }
 
@@ -79,8 +66,6 @@ void UUIInteractionComponent::BeginPlay()
 void UUIInteractionComponent::OnRightClickPressed()
 {
 	PressPointerKey(EKeys::LeftMouseButton);
-
-	UpdateLikes();
 }
 
 void UUIInteractionComponent::OnRightClickReleased()
@@ -92,32 +77,4 @@ void UUIInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType
                                             FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-}
-
-
-
-void UUIInteractionComponent::OnClick()
-{
-		//Server_UpdateLikes(TargetPawn);
-}
-
-void UUIInteractionComponent::UpdateLikes()
-{
-	if (UWidgetComponent* HoveredUI = GetHoveredWidgetComponent())
-	{
-		if (APawn* TargetPawn = Cast<APawn>(HoveredUI->GetOwner()))
-		{
-			if (ASQP_PS_PaintRoom* TargetPS = Cast<ASQP_PS_PaintRoom>(TargetPawn->GetPlayerState()))
-			{
-				Server_CountLike(TargetPS);
-			}
-		}
-	}
-}
-
-void UUIInteractionComponent::Server_CountLike_Implementation(ASQP_PS_PaintRoom* TargetPS)
-{
-	TargetPS->IncreaseLikeCounter();
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *TargetPS->GetName())
-	UE_LOG(LogTemp, Warning, TEXT("%d"), TargetPS->LikeCounter)
 }

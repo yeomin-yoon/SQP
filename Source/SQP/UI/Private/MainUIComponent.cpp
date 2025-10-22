@@ -4,6 +4,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "LikeUI.h"
+#include "SQP_PS_PaintRoom.h"
 #include "UIInteractionComponent.h"
 #include "UIManager.h"
 #include "Components/Button.h"
@@ -26,7 +27,7 @@ UMainUIComponent::UMainUIComponent()
 	}
 	LikeUIComp->SetupAttachment(this);
 	LikeUIComp->SetWidgetSpace(EWidgetSpace::World);
-	LikeUIComp->SetRelativeScale3D(FVector(0.5f));
+	LikeUIComp->SetRelativeScale3D(FVector(1.f,0.4f,0.2f));
 
 	ConstructorHelpers::FObjectFinder<UInputAction> ToggleMouseAsset(
 		TEXT("'/Game/Splatoon/Input/IA_ToggleMouse.IA_ToggleMouse'")
@@ -50,7 +51,18 @@ UMainUIComponent::UMainUIComponent()
 
 void UMainUIComponent::OnClick()
 {
-	OnLikeChanged.Broadcast();
+	if (APawn* TargetPawn = Cast<APawn>(GetOwner()))
+	{
+		if (ASQP_PS_PaintRoom* TargetPS = Cast<ASQP_PS_PaintRoom>(TargetPawn->GetPlayerState()))
+		{
+			Server_CountLike(TargetPS);
+		}
+	}
+}
+
+void UMainUIComponent::Server_CountLike_Implementation(class ASQP_PS_PaintRoom* TargetPS)
+{
+	TargetPS->IncreaseLikeCounter();
 }
 
 void UMainUIComponent::BeginPlay()
@@ -59,18 +71,17 @@ void UMainUIComponent::BeginPlay()
 	InteractionComp = GetOwner()->GetComponentByClass<UUIInteractionComponent>();
 
 	LikeUIComp->SetupAttachment(GetOwner()->GetRootComponent());
-	LikeUIComp->SetRelativeLocation(FVector(0, 0, 200));
+	LikeUIComp->SetRelativeLocation(FVector(0, 0, 650));
 	ULikeUI* LikeUI = Cast<ULikeUI>(LikeUIComp->GetWidget());
 	LikeUI->LikeBtn->OnPressed.AddDynamic(this, &UMainUIComponent::OnClick);
 
 	UIManager = GetWorld()->GetGameInstance()->GetSubsystem<UUIManager>();
-
-	UIManager->CreateMainUI();
-
+	
 	// Only hide local player's LikeUI
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 	if (OwnerPawn->IsLocallyControlled())
 	{
+		UIManager->CreateMainUI();
 		LikeUIComp->SetVisibility(false);
 		LikeUIComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 

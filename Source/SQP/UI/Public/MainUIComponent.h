@@ -5,7 +5,6 @@
 #include "Components/ActorComponent.h"
 #include "MainUIComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE(FOnLikeChanged);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class SQP_API UMainUIComponent : public USceneComponent
@@ -15,11 +14,11 @@ class SQP_API UMainUIComponent : public USceneComponent
 public:
 	UMainUIComponent();
 
-	FOnLikeChanged OnLikeChanged;
-
 protected:
 	UFUNCTION()
 	void OnClick();
+	UFUNCTION(Server, Reliable)
+	void Server_CountLike(class ASQP_PS_PaintRoom* TargetPS);
 	virtual void BeginPlay() override;
 
 	UPROPERTY()
