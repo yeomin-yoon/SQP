@@ -1,6 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SQPPaintWorldSubsystem.h"
+
+#include "PaintRoomSaveGame.h"
 #include "Engine/Canvas.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/GameplayStatics.h"
@@ -288,4 +290,27 @@ void USQPPaintWorldSubsystem::PaintNormalRenderTarget(
 
 	//드로우 종료
 	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(GetWorld(), Context);
+}
+
+void USQPPaintWorldSubsystem::SavePaintOfWorld()
+{
+	//게임 세이브 생성
+	const auto SaveGame = Cast<UPaintRoomSaveGame>(UGameplayStatics::CreateSaveGameObject(UPaintRoomSaveGame::StaticClass()));
+
+	//이전까지 저장해뒀던 것들
+	for (auto Pair : Map)
+	{
+		UTexture* Texture = nullptr;
+		Pair.Value->GetTextureParameterValue(FName(""), Texture);
+		if (const auto RenderTargetTexture = Cast<UTextureRenderTarget2D>(Texture))
+		{
+			TArray<FLinearColor> TextureColors;
+			UKismetRenderingLibrary::ReadRenderTargetRaw(this, RenderTargetTexture, TextureColors);
+			FPaintedTextureData PaintData { Pair.Key, TextureColors, 1024, 1024 };
+			SaveGame->PaintedTextures.Emplace(Pair.Key, PaintData);
+		}
+	}
+
+	//게임 세이브를 슬롯에 저장
+	UGameplayStatics::SaveGameToSlot(SaveGame, TEXT("MySlotName"), 0);
 }

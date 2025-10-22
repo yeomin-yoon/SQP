@@ -62,6 +62,10 @@ public:
 		const FVector2D& DrawLocation,
 		UTextureRenderTarget2D* NormalRenderTarget);
 
+	//모든 다이나믹 머터리얼에 접근해서 데이터를 저장한다
+	UFUNCTION(BlueprintCallable)
+	void SavePaintOfWorld();
+
 protected:
 	//컬러 페인트 텍스처 배열
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -90,4 +94,7 @@ protected:
 	//노말용 브러시 다이나믹 머터리얼 인스턴스 포인터
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<UMaterialInstanceDynamic> NormalBrushMaterialDynamicInstance;
+
+	//대상 액터를 저장해놓는다
+	TMap<FString, UMaterialInstanceDynamic*> Map;
 };
