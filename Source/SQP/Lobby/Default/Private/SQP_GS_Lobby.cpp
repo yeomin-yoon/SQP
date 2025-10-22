@@ -1,6 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SQP_GS_Lobby.h"
+
+#include "ActiveButton.h"
+#include "HostSideLobbyMenuWidget.h"
+#include "SQP.h"
 #include "SQP_GM_Lobby.h"
 #include "SQP_PC_Lobby.h"
 #include "SQP_PS_Lobby.h"
@@ -11,6 +15,41 @@ void ASQP_GS_Lobby::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ASQP_GS_Lobby, ExistingPlayerInfoArray);
+}
+
+void ASQP_GS_Lobby::AddPlayerState(APlayerState* PlayerState)
+{
+	Super::AddPlayerState(PlayerState);
+
+	//전체 플레이어의 준비 상태에 따라서 시작 버튼을 활성화
+	if (const auto HostLobbyMenuWidget = Cast<UHostSideLobbyMenuWidget>(GetHostPlayerController()->LobbyMenuWidget))
+	{
+		const bool bIsAllReady = GetHostGameMode()->CheckAllPlayersReady();
+		HostLobbyMenuWidget->StartButton->SetActive(bIsAllReady);
+	}
+}
+
+void ASQP_GS_Lobby::RemovePlayerState(APlayerState* PlayerState)
+{
+	Super::RemovePlayerState(PlayerState);
+
+	//전체 플레이어의 준비 상태에 따라서 시작 버튼을 활성화???
+	if (const auto HostLobbyMenuWidget = Cast<UHostSideLobbyMenuWidget>(GetHostPlayerController()->LobbyMenuWidget))
+	{
+		const bool bIsAllReady = GetHostGameMode()->CheckAllPlayersReady();
+		PRINTLOGNET(TEXT("한명 나가서 현재 숫자 %d"), GetWorld()->GetGameState()->PlayerArray.Num());
+		HostLobbyMenuWidget->StartButton->SetActive(bIsAllReady);
+	}
+}
+
+ASQP_PC_Lobby* ASQP_GS_Lobby::GetHostPlayerController()
+{
+	return Cast<ASQP_PC_Lobby>(GetWorld()->GetFirstPlayerController());
+}
+
+ASQP_GM_Lobby* ASQP_GS_Lobby::GetHostGameMode()
+{
+	return Cast<ASQP_GM_Lobby>(GetWorld()->GetAuthGameMode());
 }
 
 void ASQP_GS_Lobby::OnNewPlayerLogin(APlayerController* LoginPlayer)

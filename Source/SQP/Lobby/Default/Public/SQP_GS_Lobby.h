@@ -6,6 +6,9 @@
 #include "SQPGameState.h"
 #include "SQP_GS_Lobby.generated.h"
 
+class ASQP_PC_Lobby;
+class ASQP_GM_Lobby;
+
 UCLASS()
 class SQP_API ASQP_GS_Lobby : public ASQPGameState
 {
@@ -13,6 +16,16 @@ class SQP_API ASQP_GS_Lobby : public ASQPGameState
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void AddPlayerState(APlayerState* PlayerState) override;
+	
+	virtual void RemovePlayerState(APlayerState* PlayerState) override;
+
+	UFUNCTION()
+	ASQP_PC_Lobby* GetHostPlayerController();
+	
+	UFUNCTION()
+	ASQP_GM_Lobby* GetHostGameMode();
 	
 	UFUNCTION()
 	void OnNewPlayerLogin(APlayerController* LoginPlayer);

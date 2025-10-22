@@ -91,13 +91,6 @@ void ASQP_GM_Lobby::PostLogin(APlayerController* NewPlayer)
 		GS->OnNewPlayerLogin(NewPC);
 	}
 
-	//전체 플레이어의 준비 상태에 따라서 시작 버튼을 활성화
-	if (const auto HostLobbyMenuWidget = Cast<UHostSideLobbyMenuWidget>(GetHostPlayerController()->LobbyMenuWidget))
-	{
-		const bool bIsAllReady = CheckAllPlayersReady();
-		HostLobbyMenuWidget->StartButton->SetActive(bIsAllReady);
-	}
-
 	PRINTLOGNET(TEXT("Lobby PostLogin End!"));
 }
 
@@ -111,8 +104,6 @@ void ASQP_GM_Lobby::Logout(AController* Exiting)
 		GS->OnOldPlayerLogout(Exiting);
 	}
 }
-
-
 
 bool ASQP_GM_Lobby::CheckAllPlayersReady() const
 {
