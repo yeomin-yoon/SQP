@@ -6,22 +6,44 @@
 #include "GameFramework/SaveGame.h"
 #include "PaintRoomSaveGame.generated.h"
 
+//페인트 데이터를 저장하기 위한 구조체 
 USTRUCT(BlueprintType)
-struct FPaintedTextureData
+struct FPaintExecutionData
 {
 	GENERATED_BODY()
 
 	UPROPERTY()
-	FString ObjectUniqueID;
+	FGuid PersistantUniqueID;
 
 	UPROPERTY()
-	TArray<FLinearColor> Pixels;
+	int32 FaceIndex;
 
 	UPROPERTY()
-	int32 TextureWidth = 0;
+	uint8 BrushIndex;
 
 	UPROPERTY()
-	int32 TextureHeight = 0;
+	FLinearColor BrushColor;
+
+	UPROPERTY()
+	FVector2D BrushLocation;
+
+	UPROPERTY()
+	float BrushSize;
+
+	FPaintExecutionData() : FaceIndex(0), BrushIndex(0), BrushColor(), BrushLocation(), BrushSize(0) { }
+	FPaintExecutionData(
+		const FGuid InPersistantUniqueID,
+		const int32 InFaceIndex,
+		const uint8 InBrushIndex,
+		const FLinearColor InBrushColor,
+		const FVector2D InBrushLocation,
+		const float InBrushSize) :
+		PersistantUniqueID(InPersistantUniqueID),
+		FaceIndex(InFaceIndex),
+		BrushIndex(InBrushIndex),
+		BrushColor(InBrushColor),
+		BrushLocation(InBrushLocation),
+		BrushSize(InBrushSize) { }
 };
 
 UCLASS()
@@ -30,5 +52,6 @@ class SQP_API UPaintRoomSaveGame : public USaveGame
 	GENERATED_BODY()
 
 public:
-	TMap<FString, FPaintedTextureData> PaintedTextures;
+	UPROPERTY()
+	TArray<FPaintExecutionData> PaintExecutionDataArray;
 };
