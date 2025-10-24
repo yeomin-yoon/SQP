@@ -7,8 +7,11 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "SQPGameInstance.generated.h"
 
+class USQP_SG_PaintRoom;
+class USaveGame;
+
 UENUM(BlueprintType)
-enum class EGameState : uint8
+enum class EProgramState : uint8
 {
 	None       UMETA(DisplayName = "None"),
 	Main	   UMETA(DisplayName = "Main"),
@@ -18,6 +21,9 @@ enum class EGameState : uint8
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnFindCompleteSignature, const TArray<FOnlineSessionSearchResult>&);
 
+static const FName SESSION_NAME = FName(TEXT("DP_NAME"));
+static const FString MAIN_SAVE = TEXT("MAIN_SAVE");
+
 UCLASS()
 class SQP_API USQPGameInstance : public UGameInstance
 {
@@ -26,18 +32,28 @@ class SQP_API USQPGameInstance : public UGameInstance
 public:
 	virtual void Init() override;
 
-	//게임 스테이트를 저장하는 프로퍼티
-	__declspec(property(get=GetGameState, put=SetGameState)) EGameState GAME_STATE;
-	UFUNCTION(BlueprintCallable)
-	FORCEINLINE void SetGameState(const EGameState Value) { CurrentGameState = Value; }
-	UFUNCTION(BlueprintCallable)
-	FORCEINLINE EGameState GetGameState() const { return CurrentGameState; }
+#pragma region 프로그램 스테이트
 
-#pragma region 세션 관련
+protected:
+	//프로그램 스테이트 필드
+	EProgramState CurrentProgramState;
+
+public:
+	//프로그램 스테이트를 저장하는 프로퍼티
+	__declspec(property(get=GetProgramState, put=SetProgramState)) EProgramState PROGRAM_STATE;
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void SetProgramState(const EProgramState Value) { CurrentProgramState = Value; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE EProgramState GetProgramState() const { return CurrentProgramState; }
+
+#pragma endregion 
+
+#pragma region 세션 생성-검색-합류 관련
 	
-	//생성한 세션을 가리키는 포인터
+	//온라인 서브시스템을 통해 얻은 온라인 세션 인터페이스
 	TWeakPtr<IOnlineSession> OnlineSessionInterface;
 
+	//생성한 세션의 이름을 저장하는 필드
 	UPROPERTY()
 	FName CurrentSessionName;
 
@@ -70,12 +86,21 @@ public:
 	
 #pragma endregion
 
-protected:
-	//게임 스테이트 필드
-	EGameState CurrentGameState;
+#pragma region 페인트 룸 저장 관련
+	
+	UFUNCTION()
+	void SavePaintRoomData(const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame);
+	
+	UFUNCTION()
+	USaveGame* LoadSelectedPaintRoomData();
 
+	UPROPERTY()
+	FString SelectedPaintRoomSaveGameID = TEXT("0AEE9376-4553-E102-F93A-91BDBEEE165A2025.10.24-18.26.23");
+
+#pragma endregion 
+	
+protected:
 	//네트워크 오류를 처리하는 콜백
 	UFUNCTION()
 	void OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString);
-
 };

@@ -2,6 +2,7 @@
 
 #include "SQP_GM_PaintRoom.h"
 
+#include "SQPGameInstance.h"
 #include "SQPPaintWorldSubsystem.h"
 #include "SQP_GS_PaintRoom.h"
 #include "SQP_PC_PaintRoom.h"
@@ -38,12 +39,20 @@ void ASQP_GM_PaintRoom::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>()->LoadPaintOfWorld();
+	//선택된 페인트 룸 데이터를 로드에 성공했다면
+	if (const auto SaveGame = Cast<USQPGameInstance>(GetWorld()->GetGameInstance())->LoadSelectedPaintRoomData())
+	{
+		//페인트 볼 실행 데이터를 적용하도록 지시한다
+		GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>()->LoadPaintOfWorld(SaveGame);	
+	}
 }
 
 void ASQP_GM_PaintRoom::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
-	GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>()->SavePaintOfWorld();
+	if (HasAuthority())
+	{
+		GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>()->SavePaintOfWorld();	
+	}
 }

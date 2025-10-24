@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "PaintRoomSaveGame.h"
+#include "SQP_SG_PaintRoom.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "SQPPaintWorldSubsystem.generated.h"
 
@@ -66,7 +66,7 @@ public:
 
 	//데이터를 로드해서 짝이 맞는 페인트 MID에 할당한다
 	UFUNCTION(BlueprintCallable)
-	void LoadPaintOfWorld();
+	void LoadPaintOfWorld(USaveGame* SG);
 
 	//페인트 실행 데이터 중에서 중요도가 높은 것 위주로 필터링한다 
 	UFUNCTION(BlueprintCallable)

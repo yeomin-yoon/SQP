@@ -3,10 +3,11 @@
 #include "SQPPaintWorldSubsystem.h"
 
 #include "CborTypes.h"
-#include "PaintRoomSaveGame.h"
+#include "SQP_SG_PaintRoom.h"
 #include "PropertyAccess.h"
 #include "SavablePaint.h"
 #include "SQP.h"
+#include "SQPGameInstance.h"
 #include "Engine/Canvas.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/GameplayStatics.h"
@@ -247,7 +248,7 @@ void USQPPaintWorldSubsystem::PaintNormalRenderTarget(
 void USQPPaintWorldSubsystem::SavePaintOfWorld()
 {
 	//저장 객체
-	const auto SaveGame = Cast<UPaintRoomSaveGame>(UGameplayStatics::CreateSaveGameObject(UPaintRoomSaveGame::StaticClass()));
+	const auto SaveGame = Cast<USQP_SG_PaintRoom>(UGameplayStatics::CreateSaveGameObject(USQP_SG_PaintRoom::StaticClass()));
 
 	//덮어쓰기
 	SaveGame->PEDContainer = TemporalPEDContainer;
@@ -261,17 +262,16 @@ void USQPPaintWorldSubsystem::SavePaintOfWorld()
 	{
 		PRINTLOG(TEXT("Successfully Store %s PED... : Length %d"), *Pair.Key.ToString(), Pair.Value.PEDArray.Num());
 	}
-	
-	//게임 세이브를 슬롯에 저장
-	UGameplayStatics::SaveGameToSlot(SaveGame, TEXT("MySlotName"), 0);
+
+	//게임 인스턴스에 저장 요청
+	Cast<USQPGameInstance>(GetWorld()->GetGameInstance())->SavePaintRoomData(FGuid::NewGuid(), SaveGame);
 
 	PRINTLOG(TEXT("PaintWorldSubsystem Save PaintTextureData!"));
 }
 
-void USQPPaintWorldSubsystem::LoadPaintOfWorld()
+void USQPPaintWorldSubsystem::LoadPaintOfWorld(USaveGame* SG)
 {
-	//슬롯에 저장되어 있던 게임 세이브를 로드
-	if (const auto LoadGame = Cast<UPaintRoomSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("MySlotName"), 0)))
+	if (USQP_SG_PaintRoom* SG_PaintRoom = Cast<USQP_SG_PaintRoom>(SG))
 	{
 		//저장-로드 기능을 호출할 수 있는 인터페이스를 가진 액터 검색
 		TArray<AActor*>	OutActors;
@@ -285,13 +285,13 @@ void USQPPaintWorldSubsystem::LoadPaintOfWorld()
 			ActorMap.Emplace(SaveActor->GetPersistantActorID(), OutActor);
 		}
 
-		for (auto Pair : LoadGame->PEDContainer)
+		for (auto Pair : SG_PaintRoom->PEDContainer)
 		{
 			PRINTLOG(TEXT("Successfully Load %s PED... : Length %d"), *Pair.Key.ToString(), Pair.Value.PEDArray.Num());
 		}
 
 		//게임 세이브 데이터를 복사해온다
-		TemporalPEDContainer = LoadGame->PEDContainer;
+		TemporalPEDContainer = SG_PaintRoom->PEDContainer;
 
 		//모든 페인트 액터에 대해서 순회하며
 		for (const auto Pair : ActorMap)
@@ -366,7 +366,7 @@ void USQPPaintWorldSubsystem::LoadPaintOfWorld()
 					MeshComp->SetMaterial(SectionIndex, CreatedMaterialInstance);	
 				}
 			}
-		}
+		}	
 	}
 }
 

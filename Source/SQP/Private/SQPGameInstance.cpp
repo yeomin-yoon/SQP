@@ -5,6 +5,8 @@
 #include "OnlineSubsystem.h"
 #include "OnlineSubsystemUtils.h"
 #include "OnlineSessionSettings.h"
+#include "SQP_SG_PaintRoomID.h"
+#include "Kismet/GameplayStatics.h"
 #include "Online/OnlineSessionNames.h"
 
 void USQPGameInstance::Init()
@@ -12,7 +14,7 @@ void USQPGameInstance::Init()
 	Super::Init();
 
 	//초기 게임 상태
-	GAME_STATE = EGameState::Main;
+	PROGRAM_STATE = EProgramState::Main;
 
 	//네트워크 실패 콜백 등록
 	GEngine->OnNetworkFailure().AddUObject(this, &USQPGameInstance::OnNetworkFailure);
@@ -21,10 +23,10 @@ void USQPGameInstance::Init()
 	if (const IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld()))
 	{
 		OnlineSessionInterface = Subsystem->GetSessionInterface();
-		const TSharedPtr<IOnlineSession> Session = OnlineSessionInterface.Pin();
-		Session->OnCreateSessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnCreateSessionComplete);
-		Session->OnFindSessionsCompleteDelegates.AddUObject(this, &USQPGameInstance::OnFindSessionCompleted);
-		Session->OnJoinSessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnJoinSessionCompleted);
+		const TSharedPtr<IOnlineSession> Temp = OnlineSessionInterface.Pin();
+		Temp->OnCreateSessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnCreateSessionComplete);
+		Temp->OnFindSessionsCompleteDelegates.AddUObject(this, &USQPGameInstance::OnFindSessionCompleted);
+		Temp->OnJoinSessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnJoinSessionCompleted);
 	}
 }
 
@@ -43,7 +45,7 @@ void USQPGameInstance::CreateMySession(const FString DisplayName, const int32 Pl
 		SessionSettings.bUsesPresence = true;
 		SessionSettings.bShouldAdvertise = true;
 		SessionSettings.NumPublicConnections = PlayerCount;
-		SessionSettings.Set(FName("DP_NAME"), DisplayName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+		SessionSettings.Set(SESSION_NAME, DisplayName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 		//세션 생성
 		const TSharedPtr<IOnlineSession> Session = OnlineSessionInterface.Pin();
@@ -55,8 +57,11 @@ void USQPGameInstance::OnCreateSessionComplete(const FName SessionName, const bo
 {
 	PRINTLOG(TEXT("세션 [%s] 생성 %s!"), *SessionName.ToString(), bWasSuccessful ? TEXT("성공!") : TEXT("실패!"));
 
-	//리슨 서버로서 게임 맵으로 이동
-	GetWorld()->ServerTravel("/Game/Splatoon/Maps/Lobby?Listen");
+	if (bWasSuccessful)
+	{
+		//리슨 서버로서 게임 맵으로 이동
+		GetWorld()->ServerTravel("/Game/Splatoon/Maps/Lobby?Listen");
+	}
 }
 
 void USQPGameInstance::FindOtherSession()
@@ -132,22 +137,71 @@ void USQPGameInstance::OnJoinSessionCompleted(const FName SessionName, const EOn
 	}
 }
 
+void USQPGameInstance::SavePaintRoomData(const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame)
+{
+	//ID를 문자열로 전환한다
+	const FString Date = FDateTime::Now().ToString();
+	const FString IDString = PaintRoomSaveGameID.ToString(EGuidFormats::DigitsWithHyphens) + Date;
+	
+	//전달받은 게임 세이브를 전달받은 ID를 이용하여 슬롯에 저장
+	UGameplayStatics::SaveGameToSlot(PaintRoomSaveGame, IDString, 0);
+
+	//페인트 룸 저장 포맷 구조체 생성
+	FSQP_PaintRoomSaveFormat SaveFormat(IDString, FDateTime::Now().ToString(), IDString);
+
+	//기존 메인 세이브 게임을 로드하거나 생성하거나
+	USQP_SG_PaintRoomID* MainSaveGame;
+	
+	//페인트 룸 세이브 게임에 대한 정보를 독자적으로 저장하기 위한 세이브 게임 객체
+	if (const auto LoadedMainSaveGame = Cast<USQP_SG_PaintRoomID>(UGameplayStatics::LoadGameFromSlot(MAIN_SAVE, 0)))
+	{
+		MainSaveGame = LoadedMainSaveGame;
+	}
+	else
+	{
+		//로드에 실패했다면 메인 세이브 슬롯을 새롭게 생성
+		MainSaveGame = Cast<USQP_SG_PaintRoomID>(UGameplayStatics::CreateSaveGameObject(USQP_SG_PaintRoomID::StaticClass()));
+	}
+
+	//페인트 룸의 정보를 배열에 추가
+	MainSaveGame->PaintRoomSaveGameList.Emplace(SaveFormat);
+
+	//메인 세이브 슬롯을 저장
+	UGameplayStatics::SaveGameToSlot(MainSaveGame, MAIN_SAVE, 0);
+
+	PRINTLOG(TEXT("Successfully Save PaintRoomSaveGame ID : %s"), *PaintRoomSaveGameID.ToString(EGuidFormats::DigitsWithHyphens));
+}
+
+USaveGame* USQPGameInstance::LoadSelectedPaintRoomData()
+{
+	if (const auto Temp = UGameplayStatics::LoadGameFromSlot(SelectedPaintRoomSaveGameID, 0))
+	{
+		PRINTLOG(TEXT("Successfully Save PaintRoomSaveGame ID : %s"), *SelectedPaintRoomSaveGameID);
+		
+		return Temp;
+	}
+
+	PRINTLOG(TEXT("Fail PaintRoomSaveGame ID : %s"), *SelectedPaintRoomSaveGameID);
+	
+	return nullptr;
+}
+
 void USQPGameInstance::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
 {
 	//맵 경로
 	FString TargetMapPath = "";
 
 	// 현재 게임 상태에 따라 이동할 맵을 결정
-	switch (CurrentGameState)
+	switch (CurrentProgramState)
 	{
-	case EGameState::Lobby:
+	case EProgramState::Lobby:
 		{
 			//로비에 있다가 튕겼다면
 			PRINTLOG(TEXT("Network Failure in Lobby. Returning to Host Browser."));
 			TargetMapPath = TEXT("Main");
 			break;
 		}
-	case EGameState::InGame:
+	case EProgramState::InGame:
 		{
 			//게임 플레이 중에 튕겼다면
 			PRINTLOG(TEXT("Network Failure in Game. Returning to Main Menu."));

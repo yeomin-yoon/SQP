@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
-#include "PaintRoomSaveGame.generated.h"
+#include "SQP_SG_PaintRoom.generated.h"
 
 //페인트 데이터를 저장하기 위한 구조체 
 USTRUCT(BlueprintType)
@@ -57,7 +57,7 @@ struct FPaintExecutionDataWrapper
 };
 
 UCLASS()
-class SQP_API UPaintRoomSaveGame : public USaveGame
+class SQP_API USQP_SG_PaintRoom : public USaveGame
 {
 	GENERATED_BODY()
 

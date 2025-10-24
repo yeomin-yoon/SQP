@@ -56,6 +56,7 @@ public class SQP : ModuleRules
 			
 			//페인트룸
 			Path.Combine(ModuleDirectory, "PaintRoom/Default", "Public"),
+			Path.Combine(ModuleDirectory, "PaintRoom/Save", "Public"),
 			
 			Path.Combine(ModuleDirectory, "UI", "Public"),
 			Path.Combine(ModuleDirectory, "Yeomin", "Public"),
