@@ -87,15 +87,18 @@ public:
 #pragma endregion
 
 #pragma region 페인트 룸 저장 관련
+
+	UFUNCTION()
+	static USaveGame* LoadMainSaveGame();
 	
 	UFUNCTION()
-	void SavePaintRoomData(const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame);
+	static void SavePaintRoomData(const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame);
 	
 	UFUNCTION()
-	USaveGame* LoadSelectedPaintRoomData();
+	USaveGame* LoadSelectedPaintRoomData() const;
 
 	UPROPERTY()
-	FString SelectedPaintRoomSaveGameID = TEXT("0AEE9376-4553-E102-F93A-91BDBEEE165A2025.10.24-18.26.23");
+	FString SelectedPaintRoomSaveGameID;
 
 #pragma endregion 
 	

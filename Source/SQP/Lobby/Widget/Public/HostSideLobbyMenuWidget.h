@@ -6,6 +6,7 @@
 #include "LobbyMenuWidgetBase.h"
 #include "HostSideLobbyMenuWidget.generated.h"
 
+class UScrollBox;
 class UActiveButton;
 class UTextBlock;
 
@@ -18,12 +19,21 @@ public:
 	UHostSideLobbyMenuWidget();
 
 	virtual void NativeConstruct() override;
+
+	virtual void OnOtherPlayerEnter(FPlayerInfo& NewPlayerInfo) override;
 	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UActiveButton> StartButton;
-	
-	virtual void OnOtherPlayerEnter(FPlayerInfo& NewPlayerInfo) override;
 
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UScrollBox> SaveDataScrollBox;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UButton> CancelSaveDataSelectionButton;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> PaintRoomSaveInfoWidgetClass;
+	
 	UFUNCTION()
 	void OnStartButtonClicked();
 };
