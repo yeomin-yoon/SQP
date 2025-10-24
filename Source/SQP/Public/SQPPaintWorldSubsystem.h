@@ -30,7 +30,7 @@ public:
 	void GetRenderTargetFromHit(
 		const FHitResult& Hit,
 		UTextureRenderTarget2D*& OutColorRenderTarget,
-		UTextureRenderTarget2D*& OutNormalRenderTarget) const;
+		UTextureRenderTarget2D*& OutNormalRenderTarget);
 
 	//컬러 렌더 타겟 텍스처와 노말 렌더 타겟 텍스처를 대상으로 드로잉을 시도한다
 	UFUNCTION(BlueprintCallable)
@@ -97,15 +97,15 @@ protected:
 
 	//명중한 머터리얼과 비교하기 위한 캔버스 머터리얼 베이스
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UMaterial> CanvasMaterialBase;
+	TObjectPtr<UMaterialInterface> CanvasMaterialBase;
 
 	//컬러용 브러시 다이나믹 머터리얼 인스턴스 생성용 머터리얼 베이스
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UMaterial> ColorBrushMaterialBase;
+	TObjectPtr<UMaterialInterface> ColorBrushMaterialBase;
 
 	//노말용 브러시 다이나믹 머터리얼 인스턴스 생성용 머터리얼 베이스
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UMaterial> NormalBrushMaterialBase;
+	TObjectPtr<UMaterialInterface> NormalBrushMaterialBase;
 
 	//컬러용 브러시 다이나믹 머터리얼 인스턴스 포인터
 	UPROPERTY(BlueprintReadOnly)

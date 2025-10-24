@@ -37,7 +37,7 @@ USQPPaintWorldSubsystem::USQPPaintWorldSubsystem()
 	}
 
 	//컬러 브러시의 머터리얼 베이스 로드
-	if (static ConstructorHelpers::FObjectFinder<UMaterial>
+	if (static ConstructorHelpers::FObjectFinder<UMaterialInterface>
 		Finder(TEXT("/Game/Splatoon/Material/M_SplatoonColorBrush.M_SplatoonColorBrush"));
 		Finder.Succeeded())
 	{
@@ -45,14 +45,14 @@ USQPPaintWorldSubsystem::USQPPaintWorldSubsystem()
 	}
 
 	//노말 브러시의 머터리얼 베이스 로드
-	if (static ConstructorHelpers::FObjectFinder<UMaterial>
+	if (static ConstructorHelpers::FObjectFinder<UMaterialInterface>
 		Finder(TEXT("/Game/Splatoon/Material/M_SplatoonNormalBrush.M_SplatoonNormalBrush"));
 		Finder.Succeeded())
 	{
 		NormalBrushMaterialBase = Finder.Object;
 	}
 	//캔버스의 머터리얼 베이스 로드
-	if (static ConstructorHelpers::FObjectFinder<UMaterial>
+	if (static ConstructorHelpers::FObjectFinder<UMaterialInterface>
 		Finder(TEXT("/Game/Splatoon/Material/M_SplatoonCanvas.M_SplatoonCanvas"));
 		Finder.Succeeded())
 	{
@@ -107,7 +107,7 @@ void USQPPaintWorldSubsystem::TryPaintColor(
 void USQPPaintWorldSubsystem::GetRenderTargetFromHit(
 	const FHitResult& Hit,
 	UTextureRenderTarget2D*& OutColorRenderTarget,
-	UTextureRenderTarget2D*& OutNormalRenderTarget) const
+	UTextureRenderTarget2D*& OutNormalRenderTarget)
 {
 	//충돌한 면에 있는 머터리얼 획득
 	int32 SectionIndex;
@@ -117,7 +117,7 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(
 	{
 		return;
 	}
-	
+
 	//충돌 컴포넌트에서 머터리얼 인터페이스 획득
 	const auto MaterialInterface = Hit.Component->GetMaterialFromCollisionFaceIndex(Hit.FaceIndex, SectionIndex);
 
@@ -127,6 +127,11 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(
 		return;
 	}
 
+	if (!Cast<UMaterialInstanceDynamic>(MaterialInterface))
+	{
+		CanvasMaterialBase = MaterialInterface;
+	}
+	
 	//캔버스 머터리얼과 충돌했다면
 	if (CheckCanvasMaterialBase(MaterialInterface))
 	{
@@ -144,6 +149,7 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(
 			//렌더 타겟 텍스처로 형변환
 			OutColorRenderTarget = Cast<UTextureRenderTarget2D>(ColorTexture);
 			OutNormalRenderTarget = Cast<UTextureRenderTarget2D>(NormalTexture);
+
 			return;
 		}
 		
@@ -197,7 +203,7 @@ void USQPPaintWorldSubsystem::PaintColorRenderTarget(
 	UCanvas* Canvas = NewObject<UCanvas>();
 	FVector2D Size;
 	FDrawToRenderTargetContext Context;
-	
+
 	//드로우 시작
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(GetWorld(), ColorRenderTarget, Canvas, Size, Context);
 
@@ -449,7 +455,7 @@ void USQPPaintWorldSubsystem::CreateCanvasMaterialInstanceDynamic(
 {
 	//머터리얼 다이나믹 인스턴스로의 형변환에 실패했다면 새로운 인스턴스를 할당받은 후에 반환한다
 	const auto CreatedMaterialInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(GetWorld(), CanvasMaterialBase);
-
+	
 	//컬러 값을 가지는 렌더 타겟
 	constexpr ETextureRenderTargetFormat ColorFormat = RTF_RGBA8;
 	const auto CreatedColorRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(GetWorld(), 1024, 1024, ColorFormat, FLinearColor::White, false);
