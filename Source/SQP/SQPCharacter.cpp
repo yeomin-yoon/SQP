@@ -66,7 +66,10 @@ void ASQPCharacter::Tick(float DeltaSeconds)
 
 	if (HasAuthority())
 	{
-		DynMat->SetScalarParameterValue(FName("WheelSpeed"), WheelSpeed);
+		if (DynMat)
+		{
+			DynMat->SetScalarParameterValue(FName("WheelSpeed"), WheelSpeed);
+		}
 	}
 	if (IsLocallyControlled())
 	{

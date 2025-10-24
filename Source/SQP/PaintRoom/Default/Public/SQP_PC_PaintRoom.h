@@ -46,4 +46,7 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_PossessPreviousPawn();
 	void OnSkyView();
+
+	UFUNCTION(Server, Reliable)
+	void Server_CountLike(class ASQP_PS_PaintRoom* TargetPS);
 };

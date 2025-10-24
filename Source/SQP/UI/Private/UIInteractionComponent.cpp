@@ -79,7 +79,7 @@ void UUIInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType
 
 	FHitResult HitRes;
 	FVector Start = GetComponentLocation();
-	FVector End = Start + GetForwardVector() * 2500.f;
+	FVector End = Start + GetForwardVector() * 2000.f;
 
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(GetOwner());

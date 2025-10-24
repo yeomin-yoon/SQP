@@ -4,6 +4,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
 #include "LikeUI.h"
+#include "SQP_PC_PaintRoom.h"
 #include "SQP_PS_PaintRoom.h"
 #include "UIInteractionComponent.h"
 #include "UIManager.h"
@@ -53,15 +54,13 @@ void UMainUIComponent::OnClick()
 	{
 		if (ASQP_PS_PaintRoom* TargetPS = Cast<ASQP_PS_PaintRoom>(TargetPawn->GetPlayerState()))
 		{
-			Server_CountLike(TargetPS);
+			ASQP_PC_PaintRoom* LocalPC = Cast<ASQP_PC_PaintRoom>(GetWorld()->GetFirstPlayerController());
+			LocalPC->Server_CountLike(TargetPS);
 		}
 	}
 }
 
-void UMainUIComponent::Server_CountLike_Implementation(class ASQP_PS_PaintRoom* TargetPS)
-{
-	TargetPS->IncreaseLikeCounter();
-}
+
 
 void UMainUIComponent::BeginPlay()
 {

@@ -110,3 +110,8 @@ void ASQP_PC_PaintRoom::Server_PossessPreviousPawn_Implementation()
 {
 	Possess(PreviousPawn);
 }
+
+void ASQP_PC_PaintRoom::Server_CountLike_Implementation(class ASQP_PS_PaintRoom* TargetPS)
+{
+	TargetPS->IncreaseLikeCounter();
+}

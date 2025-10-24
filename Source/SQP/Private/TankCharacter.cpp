@@ -13,6 +13,7 @@
 #include "UIInteractionComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 
 // Sets default values
@@ -50,12 +51,15 @@ ATankCharacter::ATankCharacter()
 
 	ProjectileShooter = CreateDefaultSubobject<UProjectileShooterComponent>(TEXT("ShooterComp"));
 	ProjectileShooter->SetupAttachment(GetMesh(), FName("TurretBarrel"));
-	
+
+	InteractionBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("InteractionBoom"));
+	InteractionBoom->SetupAttachment(RootComponent);
+
 	InteractionComp = CreateDefaultSubobject<UUIInteractionComponent>(TEXT("InteractionComp"));
-	InteractionComp->SetupAttachment(FollowCamera);
-	
+	InteractionComp->SetupAttachment(InteractionBoom);
+
 	SwimComp = CreateDefaultSubobject<USwimComponent>(TEXT("SwimComp"));
-	
+
 	SkyViewComp = CreateDefaultSubobject<USkyViewComponent>(TEXT("SkyViewComp"));
 }
 
@@ -77,7 +81,7 @@ void ATankCharacter::BeginPlay()
 			{
 				if (FireAction)
 					EIC->BindAction(FireAction, ETriggerEvent::Started, this, &ATankCharacter::StartFire);
-					EIC->BindAction(FireAction, ETriggerEvent::Completed, this, &ATankCharacter::CompleteFire);
+				EIC->BindAction(FireAction, ETriggerEvent::Completed, this, &ATankCharacter::CompleteFire);
 			}
 		}
 	}
@@ -87,6 +91,11 @@ void ATankCharacter::BeginPlay()
 void ATankCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (InteractionComp && FollowCamera)
+	{
+		InteractionComp->SetRelativeLocation(FollowCamera->GetComponentLocation());
+		InteractionComp->SetRelativeRotation(FollowCamera->GetComponentRotation());
+	}
 }
 
 // Called to bind functionality to input
@@ -104,4 +113,3 @@ void ATankCharacter::CompleteFire()
 {
 	ProjectileShooter->ReleaseTrigger();
 }
-

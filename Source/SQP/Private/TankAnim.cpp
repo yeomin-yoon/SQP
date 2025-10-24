@@ -39,11 +39,11 @@ void UTankAnim::NativeUpdateAnimation(float DeltaSeconds)
 		return;
 	if (!FollowCam)
 		return;
-
-	FVector TargetLoc = Owner->GetComponentByClass<UUIInteractionComponent>()->HitLoc;
-	FRotator Rot = UKismetMathLibrary::FindLookAtRotation(Owner->GetMesh()->GetSocketLocation(FName("TurretBarrel")),
-	                                                      TargetLoc);
-	TurretRotation = FRotator(0.f, Rot.Yaw - Owner->GetActorRotation().Yaw, -1 * Rot.Pitch);
-
-	//UE_LOG(LogTemp, Warning, TEXT("Camera Rotation => Pitch: %.2f | Yaw: %.2f | Roll: %.2f"),	CamRot.Pitch, CamRot.Yaw, CamRot.Roll);
+	if (Owner->GetComponentByClass<UUIInteractionComponent>())
+	{
+		FVector TargetLoc = Owner->GetComponentByClass<UUIInteractionComponent>()->HitLoc;
+		FRotator Rot = UKismetMathLibrary::FindLookAtRotation(Owner->GetMesh()->GetSocketLocation(FName("TurretBarrel")),
+															  TargetLoc);
+		TurretRotation = FRotator(0.f, Rot.Yaw - Owner->GetActorRotation().Yaw, -1 * Rot.Pitch);
+	}
 }

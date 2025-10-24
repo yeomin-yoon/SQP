@@ -17,8 +17,7 @@ public:
 protected:
 	UFUNCTION()
 	void OnClick();
-	UFUNCTION(Server, Reliable)
-	void Server_CountLike(class ASQP_PS_PaintRoom* TargetPS);
+	
 	virtual void BeginPlay() override;
 	
 public:

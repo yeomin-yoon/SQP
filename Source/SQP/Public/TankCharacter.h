@@ -28,6 +28,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UUIInteractionComponent> InteractionComp;
 	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USpringArmComponent> InteractionBoom;
+	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class USwimComponent> SwimComp;
 	UPROPERTY()
 	TObjectPtr<class USkyViewComponent> SkyViewComp;
