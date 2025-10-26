@@ -56,7 +56,6 @@ protected:
 	UFUNCTION()
 	void OnClickBlackBtn();
 	void SetColor(FLinearColor Color);
-	FLinearColor GetColor();
 
 	UFUNCTION()
 	void OnSliderXChanged(float Value);

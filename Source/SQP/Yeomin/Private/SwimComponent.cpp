@@ -36,7 +36,7 @@ void USwimComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 			ElapsedTime += DeltaTime;
 			Server_BrakingFriction(0.07);
 			Server_ChangeMaxSpeed(
-				UEaseFunctionLibrary::LerpFloatEase(1000.f, 500.f, ElapsedTime / SpeedUpTime, EEaseType::EaseOutQuart));
+				UEaseFunctionLibrary::LerpFloatEase(950.f, 500.f, ElapsedTime / SpeedUpTime, EEaseType::EaseOutQuart));
 		}
 		else
 		{

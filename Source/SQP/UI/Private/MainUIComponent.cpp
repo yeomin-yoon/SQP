@@ -73,7 +73,7 @@ void UMainUIComponent::OnMouseWheel(const FInputActionValue& InputActionValue)
 	if (Slider)
 	{
 		float Current = Slider->GetValue();
-		Slider->SetValue(Current + WheelAxis * 30.f);
+		Slider->SetValue(Current + WheelAxis * 40.f);
 	}
 }
 

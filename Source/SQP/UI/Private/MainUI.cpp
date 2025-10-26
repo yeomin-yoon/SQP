@@ -108,13 +108,6 @@ void UMainUI::SetColor(FLinearColor Color)
 	ColorWheelSlider->SetSliderHandleColor(Color);
 }
 
-FLinearColor UMainUI::GetColor()
-{
-	float Sat = UKismetMathLibrary::FClamp(
-		UKismetMathLibrary::Distance2D(FVector2D(0.5f, 0.5f), ColorWheelSlider->GetValue()) * 2.f, 0, 1);
-	return UKismetMathLibrary::HSVToRGB(GetAngle(), Sat, 1, 1);
-}
-
 void UMainUI::OnSliderXChanged(float Value)
 {
 	CurrentColor->SetBrushColor(UpdateColorWheel()); 
