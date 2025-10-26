@@ -13,7 +13,7 @@ struct FPaintExecutionData
 	GENERATED_BODY()
 
 	UPROPERTY()
-	FGuid PersistantUniqueID;
+	FGuid UniqueID;
 
 	UPROPERTY()
 	int32 FaceIndex;
@@ -38,7 +38,7 @@ struct FPaintExecutionData
 		const FLinearColor InBrushColor,
 		const FVector2D InBrushLocation,
 		const float InBrushSize) :
-		PersistantUniqueID(InPersistantUniqueID),
+		UniqueID(InPersistantUniqueID),
 		FaceIndex(InFaceIndex),
 		BrushIndex(InBrushIndex),
 		BrushColor(InBrushColor),
@@ -64,4 +64,7 @@ class SQP_API USQP_SG_PaintRoom : public USaveGame
 public:
 	UPROPERTY()
 	TMap<FGuid, FPaintExecutionDataWrapper> PEDContainer;
+
+	UFUNCTION()
+	TArray<FPaintExecutionData> ConstructFullPEDArray() const;
 };

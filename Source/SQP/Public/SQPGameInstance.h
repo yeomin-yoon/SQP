@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SQP_SG_Main.h"
 #include "Engine/GameInstance.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "SQPGameInstance.generated.h"
 
+struct FSQP_PainRoomSaveFormat;
 class USQP_SG_PaintRoom;
 class USaveGame;
 
@@ -87,15 +89,26 @@ public:
 #pragma endregion
 
 #pragma region 페인트 룸 저장 관련
-	
-	UFUNCTION()
-	void SavePaintRoomData(const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame);
-	
-	UFUNCTION()
-	USaveGame* LoadSelectedPaintRoomData();
 
+public:
+	UFUNCTION()
+	static USaveGame* LoadMainSaveGame();
+	
+	UFUNCTION()
+	void SavePaintRoomData(const FString& PaintRoomSaveName, const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame);
+	
+	UFUNCTION()
+	USaveGame* LoadSelectedPaintRoomData() const;
+
+	UFUNCTION()
+	FORCEINLINE FSQP_PainRoomSaveFormat GetTargetPaintRoomSave() const { return TargetPaintRoomSave; } 
+
+	UFUNCTION()
+	FORCEINLINE void SetTargetPaintRoomSave(const FSQP_PainRoomSaveFormat& Value) { TargetPaintRoomSave = Value;}
+
+private:
 	UPROPERTY()
-	FString SelectedPaintRoomSaveGameID = TEXT("0AEE9376-4553-E102-F93A-91BDBEEE165A2025.10.24-18.26.23");
+	FSQP_PainRoomSaveFormat TargetPaintRoomSave;
 
 #pragma endregion 
 	

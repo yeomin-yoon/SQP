@@ -5,6 +5,7 @@
 #include "ActiveButton.h"
 #include "HostSideLobbyMenuWidget.h"
 #include "SQP.h"
+#include "SQPGameInstance.h"
 #include "SQPGameState.h"
 #include "SQPPlayerController.h"
 #include "SQP_GS_Lobby.h"
@@ -142,8 +143,14 @@ void ASQP_GM_Lobby::MoveToGameMap()
 	//이동 가능 상태
 	if (CheckAllPlayersReady())
 	{
-		//클라이언트와 함께 게임 맵으로 이동
-		GetWorld()->ServerTravel("PlayerTestMap");
+		if (const auto GI = Cast<USQPGameInstance>(GetWorld()->GetGameInstance()))
+		{
+			//적절한 페인트 룸 레벨을 선정한다
+			const FString TagetLevel = GI->GetTargetPaintRoomSave().Level.Equals("") ? TEXT("SaveLoadTest") : GI->GetTargetPaintRoomSave().Level;
+			
+			//클라이언트와 함께 페인트 룸으로 이동한다
+			GetWorld()->ServerTravel(TagetLevel);	
+		}
 	}
 }
 

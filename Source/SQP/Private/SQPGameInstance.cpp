@@ -5,7 +5,7 @@
 #include "OnlineSubsystem.h"
 #include "OnlineSubsystemUtils.h"
 #include "OnlineSessionSettings.h"
-#include "SQP_SG_PaintRoomID.h"
+#include "SQP_SG_Main.h"
 #include "Kismet/GameplayStatics.h"
 #include "Online/OnlineSessionNames.h"
 
@@ -137,34 +137,49 @@ void USQPGameInstance::OnJoinSessionCompleted(const FName SessionName, const EOn
 	}
 }
 
-void USQPGameInstance::SavePaintRoomData(const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame)
+USaveGame* USQPGameInstance::LoadMainSaveGame()
+{
+	if (const auto Temp = Cast<USQP_SG_Main>(UGameplayStatics::LoadGameFromSlot(MAIN_SAVE, 0)))
+	{
+		PRINTLOG(TEXT("Successfully Load MainSaveGame!"));
+		
+		return Temp;
+	}
+
+	PRINTLOG(TEXT("Fail Load MainSaveGame!"));
+
+	return nullptr;
+}
+
+void USQPGameInstance::SavePaintRoomData(const FString& PaintRoomSaveName, const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame)
 {
 	//ID를 문자열로 전환한다
 	const FString Date = FDateTime::Now().ToString();
 	const FString IDString = PaintRoomSaveGameID.ToString(EGuidFormats::DigitsWithHyphens) + Date;
+	const FString Level = UGameplayStatics::GetCurrentLevelName(GetWorld());
 	
 	//전달받은 게임 세이브를 전달받은 ID를 이용하여 슬롯에 저장
 	UGameplayStatics::SaveGameToSlot(PaintRoomSaveGame, IDString, 0);
 
 	//페인트 룸 저장 포맷 구조체 생성
-	FSQP_PaintRoomSaveFormat SaveFormat(IDString, FDateTime::Now().ToString(), IDString);
+	FSQP_PainRoomSaveFormat SaveFormat(PaintRoomSaveName, FDateTime::Now().ToString(), IDString, Level);
 
 	//기존 메인 세이브 게임을 로드하거나 생성하거나
-	USQP_SG_PaintRoomID* MainSaveGame;
+	USQP_SG_Main* MainSaveGame;
 	
 	//페인트 룸 세이브 게임에 대한 정보를 독자적으로 저장하기 위한 세이브 게임 객체
-	if (const auto LoadedMainSaveGame = Cast<USQP_SG_PaintRoomID>(UGameplayStatics::LoadGameFromSlot(MAIN_SAVE, 0)))
+	if (const auto LoadedMainSaveGame = Cast<USQP_SG_Main>(UGameplayStatics::LoadGameFromSlot(MAIN_SAVE, 0)))
 	{
 		MainSaveGame = LoadedMainSaveGame;
 	}
 	else
 	{
 		//로드에 실패했다면 메인 세이브 슬롯을 새롭게 생성
-		MainSaveGame = Cast<USQP_SG_PaintRoomID>(UGameplayStatics::CreateSaveGameObject(USQP_SG_PaintRoomID::StaticClass()));
+		MainSaveGame = Cast<USQP_SG_Main>(UGameplayStatics::CreateSaveGameObject(USQP_SG_Main::StaticClass()));
 	}
 
 	//페인트 룸의 정보를 배열에 추가
-	MainSaveGame->PaintRoomSaveGameList.Emplace(SaveFormat);
+	MainSaveGame->PaintRoomSaveArray.Emplace(SaveFormat);
 
 	//메인 세이브 슬롯을 저장
 	UGameplayStatics::SaveGameToSlot(MainSaveGame, MAIN_SAVE, 0);
@@ -172,16 +187,28 @@ void USQPGameInstance::SavePaintRoomData(const FGuid PaintRoomSaveGameID, USaveG
 	PRINTLOG(TEXT("Successfully Save PaintRoomSaveGame ID : %s"), *PaintRoomSaveGameID.ToString(EGuidFormats::DigitsWithHyphens));
 }
 
-USaveGame* USQPGameInstance::LoadSelectedPaintRoomData()
+USaveGame* USQPGameInstance::LoadSelectedPaintRoomData() const
 {
-	if (const auto Temp = UGameplayStatics::LoadGameFromSlot(SelectedPaintRoomSaveGameID, 0))
+	if (TargetPaintRoomSave.Level.Equals(TEXT("")))
 	{
-		PRINTLOG(TEXT("Successfully Save PaintRoomSaveGame ID : %s"), *SelectedPaintRoomSaveGameID);
+		PRINTLOG(TEXT("Invalid Level!"));
+		return nullptr;
+	}
+	
+	if (TargetPaintRoomSave.ID.Equals(TEXT("")))
+	{
+		PRINTLOG(TEXT("Invalid ID!"));
+		return nullptr;
+	}
+	
+	if (const auto Temp = UGameplayStatics::LoadGameFromSlot(TargetPaintRoomSave.ID, 0))
+	{
+		PRINTLOG(TEXT("Successfully Save PaintRoomSaveGame ID : %s"), *TargetPaintRoomSave.ID);
 		
 		return Temp;
 	}
 
-	PRINTLOG(TEXT("Fail PaintRoomSaveGame ID : %s"), *SelectedPaintRoomSaveGameID);
+	PRINTLOG(TEXT("Fail PaintRoomSaveGame ID : %s"), *TargetPaintRoomSave.ID);
 	
 	return nullptr;
 }
@@ -219,4 +246,4 @@ void USQPGameInstance::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, EN
 
 	//결정된 맵으로 클라이언트와 함께 이동
 	GetWorld()->ServerTravel(TargetMapPath, true);
-}
+} 
