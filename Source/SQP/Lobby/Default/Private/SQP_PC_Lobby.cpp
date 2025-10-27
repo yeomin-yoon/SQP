@@ -9,6 +9,7 @@
 #include "SQP_GM_Lobby.h"
 #include "SQP_PS_Lobby.h"
 #include "LobbyMenuWidgetBase.h"
+#include "SQPGameInstance.h"
 #include "SQP_GS_Lobby.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -17,26 +18,15 @@ ASQP_GM_Lobby* ASQP_PC_Lobby::GetHostGameMode() const
 	return Cast<ASQP_GM_Lobby>(GetWorld()->GetAuthGameMode());	
 }
 
-void ASQP_PC_Lobby::LeaveLobby()
+void ASQP_PC_Lobby::LeaveLobby() const
 {
 	//로비 메뉴 위젯을 제거
 	LobbyMenuWidget->RemoveFromParent();
 	
-	if (HasAuthority()) 
+	//세션을 파괴하고 메인 메뉴로 복귀한다
+	if (const auto GI = Cast<USQPGameInstance>(GetGameInstance()))
 	{
-		//--- 호스트 ---
-		//ServerTravel은 서버에 연결된 모든 클라이언트를 지정된 맵으로 이동시킨 후 자신도 이동한다
-		if (UWorld* World = GetWorld())
-		{
-			//메인 레벨에서는 리슨 서버가 아니므로
-			UGameplayStatics::OpenLevel(this, FName("Main"));
-		}
-	}
-	else 
-	{
-		//--- 클라이언트 ---
-		//ClientTravel은 이 플레이어 컨트롤러가 제어하는 클라이언트만 지정된 맵으로 이동시킨다
-		ClientTravel(TEXT("Main"), ETravelType::TRAVEL_Absolute);
+		GI->TerminateMySession();
 	}
 }
 
@@ -47,8 +37,6 @@ void ASQP_PC_Lobby::ClientWasKicked_Implementation(const FText& KickReason)
 	UGameplayStatics::OpenLevel(this, FName("Main"));
 	
 	Super::ClientWasKicked_Implementation(KickReason);
-
-	PRINTLOGNET(TEXT("%s"), *KickReason.ToString());
 }
 
 void ASQP_PC_Lobby::Client_OnPostLogin_Implementation(const TArray<FPlayerInfo>& ExistingPlayerInfoArray)

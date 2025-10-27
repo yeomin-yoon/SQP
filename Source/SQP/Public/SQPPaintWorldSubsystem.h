@@ -62,11 +62,11 @@ public:
 
 	//모든 페인트 MID에 접근해서 데이터를 저장한다
 	UFUNCTION(BlueprintCallable)
-	void SavePaintOfWorld();
+	void SavePaintOfWorld(const FString& PaintRoomSaveName);
 
 	//데이터를 로드해서 짝이 맞는 페인트 MID에 할당한다
 	UFUNCTION(BlueprintCallable)
-	void LoadPaintOfWorld(USaveGame* SG);
+	void LoadPaintOfWorld(TMap<FGuid, FPaintExecutionDataWrapper>& PEDContainer);
 
 	//페인트 실행 데이터 중에서 중요도가 높은 것 위주로 필터링한다 
 	UFUNCTION(BlueprintCallable)

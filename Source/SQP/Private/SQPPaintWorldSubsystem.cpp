@@ -251,7 +251,7 @@ void USQPPaintWorldSubsystem::PaintNormalRenderTarget(
 
 #pragma region 페인트 실행 데이터를 저장하고 다시 로드하는 메서드 시리즈
 
-void USQPPaintWorldSubsystem::SavePaintOfWorld()
+void USQPPaintWorldSubsystem::SavePaintOfWorld(const FString& PaintRoomSaveName)
 {
 	//저장 객체
 	const auto SaveGame = Cast<USQP_SG_PaintRoom>(UGameplayStatics::CreateSaveGameObject(USQP_SG_PaintRoom::StaticClass()));
@@ -270,16 +270,14 @@ void USQPPaintWorldSubsystem::SavePaintOfWorld()
 	}
 
 	//게임 인스턴스에 저장 요청
-	Cast<USQPGameInstance>(GetWorld()->GetGameInstance())->SavePaintRoomData(FGuid::NewGuid(), SaveGame);
+	Cast<USQPGameInstance>(GetWorld()->GetGameInstance())->SavePaintRoomData(PaintRoomSaveName, FGuid::NewGuid(), SaveGame);
 
 	PRINTLOG(TEXT("PaintWorldSubsystem Save PaintTextureData!"));
 }
 
-void USQPPaintWorldSubsystem::LoadPaintOfWorld(USaveGame* SG)
+void USQPPaintWorldSubsystem::LoadPaintOfWorld(TMap<FGuid, FPaintExecutionDataWrapper>& PEDContainer)
 {
-	if (USQP_SG_PaintRoom* SG_PaintRoom = Cast<USQP_SG_PaintRoom>(SG))
-	{
-		//저장-로드 기능을 호출할 수 있는 인터페이스를 가진 액터 검색
+//저장-로드 기능을 호출할 수 있는 인터페이스를 가진 액터 검색
 		TArray<AActor*>	OutActors;
 		UGameplayStatics::GetAllActorsWithInterface(this, USavablePaint::StaticClass(), OutActors);
 
@@ -291,13 +289,8 @@ void USQPPaintWorldSubsystem::LoadPaintOfWorld(USaveGame* SG)
 			ActorMap.Emplace(SaveActor->GetPersistantActorID(), OutActor);
 		}
 
-		for (auto Pair : SG_PaintRoom->PEDContainer)
-		{
-			PRINTLOG(TEXT("Successfully Load %s PED... : Length %d"), *Pair.Key.ToString(), Pair.Value.PEDArray.Num());
-		}
-
 		//게임 세이브 데이터를 복사해온다
-		TemporalPEDContainer = SG_PaintRoom->PEDContainer;
+		TemporalPEDContainer = PEDContainer;
 
 		//모든 페인트 액터에 대해서 순회하며
 		for (const auto Pair : ActorMap)
@@ -373,11 +366,9 @@ void USQPPaintWorldSubsystem::LoadPaintOfWorld(USaveGame* SG)
 				}
 			}
 		}	
-	}
 }
 
-TArray<FPaintExecutionData> USQPPaintWorldSubsystem::FilterPrimaryPaintExecutionData(
-	const TArray<FPaintExecutionData>& TargetData, const float SimilarityLimit)
+TArray<FPaintExecutionData> USQPPaintWorldSubsystem::FilterPrimaryPaintExecutionData(const TArray<FPaintExecutionData>& TargetData, const float SimilarityLimit)
 {
 	//최적화의 의미가 없다면
 	if (TargetData.Num() < 2)
@@ -407,7 +398,7 @@ TArray<FPaintExecutionData> USQPPaintWorldSubsystem::FilterPrimaryPaintExecution
             bool bIsOverlapping = false;
 
             //동일한 액터의 동일한 면이다
-            if (NewData.PersistantUniqueID == ExistingData.PersistantUniqueID && NewData.FaceIndex == ExistingData.FaceIndex)
+            if (NewData.UniqueID == ExistingData.UniqueID && NewData.FaceIndex == ExistingData.FaceIndex)
             {
                 // 2. BrushLocation이 Limit 이내로 겹치는지 확인
                 if (FVector2D::DistSquared(NewData.BrushLocation, ExistingData.BrushLocation) < LimitSquared)

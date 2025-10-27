@@ -2,6 +2,8 @@
 
 #include "SQP_GM_PaintRoom.h"
 
+#include "PaintRoomWidget.h"
+#include "SQP.h"
 #include "SQPGameInstance.h"
 #include "SQPPaintWorldSubsystem.h"
 #include "SQP_GS_PaintRoom.h"
@@ -33,26 +35,40 @@ ASQP_GM_PaintRoom::ASQP_GM_PaintRoom()
 	{
 		GameStateClass = Finder.Class;
 	}
+
+	//페인트 룸 위젯 클래스 로드
+	if (static ConstructorHelpers::FClassFinder<UPaintRoomWidget>
+		Finder(TEXT("/Game/Splatoon/Blueprint/PaintRoomLevel/WBP_PaintRoom.WBP_PaintRoom_C"));
+		Finder.Succeeded())
+	{
+		PaintRoomWidgetClass = Finder.Class;
+	}
+	
 }
 
 void ASQP_GM_PaintRoom::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//위젯을 생성한다
+	const auto Created = CreateWidget(GetWorld(), PaintRoomWidgetClass);
+	Created->AddToViewport();
+
 	//선택된 페인트 룸 데이터를 로드에 성공했다면
 	if (const auto SaveGame = Cast<USQPGameInstance>(GetWorld()->GetGameInstance())->LoadSelectedPaintRoomData())
 	{
-		//페인트 볼 실행 데이터를 적용하도록 지시한다
-		GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>()->LoadPaintOfWorld(SaveGame);	
-	}
-}
+		if (USQP_SG_PaintRoom* SG_PaintRoom = Cast<USQP_SG_PaintRoom>(SaveGame))
+		{
+			for (auto Pair : SG_PaintRoom->PEDContainer)
+			{
+				PRINTLOG(TEXT("Successfully Load %s PED... : Length %d"), *Pair.Key.ToString(), Pair.Value.PEDArray.Num());
+			}
+			
+			//서버는 직접 페인트 볼 실행 데이터를 적용한다
+			GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>()->LoadPaintOfWorld(SG_PaintRoom->PEDContainer);
 
-void ASQP_GM_PaintRoom::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-
-	if (HasAuthority())
-	{
-		GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>()->SavePaintOfWorld();	
+			//클라이언트에 전송하기 위핸 PED 배열을 추출해서 할당한다
+			GetGameState<ASQP_GS_PaintRoom>()->PaintExecutionDataSnapshot = SG_PaintRoom->ConstructFullPEDArray();
+		}
 	}
 }

@@ -35,7 +35,7 @@ public:
 
 	//로비에서 자발적으로 나간다
 	UFUNCTION()
-	void LeaveLobby();
+	void LeaveLobby() const;
 
 	//포스트 로그인에 성공한 클라이언트에 전용 로비 위젯을 띄우도록 명령하는 Client RPC
 	UFUNCTION(Client, Reliable)

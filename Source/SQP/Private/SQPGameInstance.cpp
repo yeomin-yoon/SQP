@@ -5,7 +5,7 @@
 #include "OnlineSubsystem.h"
 #include "OnlineSubsystemUtils.h"
 #include "OnlineSessionSettings.h"
-#include "SQP_SG_PaintRoomID.h"
+#include "SQP_SG_Main.h"
 #include "Kismet/GameplayStatics.h"
 #include "Online/OnlineSessionNames.h"
 
@@ -27,10 +27,12 @@ void USQPGameInstance::Init()
 		Temp->OnCreateSessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnCreateSessionComplete);
 		Temp->OnFindSessionsCompleteDelegates.AddUObject(this, &USQPGameInstance::OnFindSessionCompleted);
 		Temp->OnJoinSessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnJoinSessionCompleted);
+		Temp->OnDestroySessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnDestroySessionComplete);
+		Temp->OnEndSessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnEndSessionCompleted);
 	}
 }
 
-void USQPGameInstance::CreateMySession(const FString DisplayName, const int32 PlayerCount)
+void USQPGameInstance::CreateMySession(const FString DisplayName, const int32 PlayerCount) const
 {
 	PRINTLOG(TEXT("세션 생성 시도!"));
 	
@@ -55,10 +57,13 @@ void USQPGameInstance::CreateMySession(const FString DisplayName, const int32 Pl
 
 void USQPGameInstance::OnCreateSessionComplete(const FName SessionName, const bool bWasSuccessful)
 {
-	PRINTLOG(TEXT("세션 [%s] 생성 %s!"), *SessionName.ToString(), bWasSuccessful ? TEXT("성공!") : TEXT("실패!"));
+	PRINTLOG(TEXT("Create [%s] Session has %s!"), *SessionName.ToString(), bWasSuccessful ? TEXT("Succeeded!") : TEXT("Failed!"));
 
 	if (bWasSuccessful)
 	{
+		//생성한 세션의 이름을 저장해둔다 - 나중에 파괴할 때 사용
+		CurrentSessionName = SessionName;
+		
 		//리슨 서버로서 게임 맵으로 이동
 		GetWorld()->ServerTravel("/Game/Splatoon/Maps/Lobby?Listen");
 	}
@@ -80,7 +85,7 @@ void USQPGameInstance::FindOtherSession()
 	Session->FindSessions(0, SessionSearch.ToSharedRef());
 }
 
-void USQPGameInstance::OnFindSessionCompleted(const bool bWasSuccessful)
+void USQPGameInstance::OnFindSessionCompleted(const bool bWasSuccessful) const
 {
 	PRINTLOG(TEXT("세션 검색 %s!"), bWasSuccessful ? TEXT("성공!") : TEXT("실패!"));
 
@@ -100,7 +105,7 @@ void USQPGameInstance::OnFindSessionCompleted(const bool bWasSuccessful)
 	}
 }
 
-void USQPGameInstance::JoinOtherSession(const int32 SessionIdx)
+void USQPGameInstance::JoinOtherSession(const int32 SessionIdx) const
 {
 	PRINTLOG(TEXT("세션 합류 시도!"));
 	
@@ -124,6 +129,9 @@ void USQPGameInstance::OnJoinSessionCompleted(const FName SessionName, const EOn
 	{
 		if (const auto PC = GetFirstLocalPlayerController())
 		{
+			//생성한 세션의 이름을 저장해둔다 - 나중에 파괴할 때 사용
+			CurrentSessionName = SessionName;
+			
 			//세션의 URL 파싱
 			FString URL;
 			const TSharedPtr<IOnlineSession> Session = OnlineSessionInterface.Pin();
@@ -137,34 +145,96 @@ void USQPGameInstance::OnJoinSessionCompleted(const FName SessionName, const EOn
 	}
 }
 
-void USQPGameInstance::SavePaintRoomData(const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame)
+void USQPGameInstance::TerminateMySession() const
+{
+	const TSharedPtr<IOnlineSession> Session = OnlineSessionInterface.Pin();
+	if (Session->GetSessionState(CurrentSessionName) == EOnlineSessionState::InProgress)
+	{
+		EndMySession();
+	}
+	else
+	{
+		DestroyMySession();
+	}
+}
+
+void USQPGameInstance::DestroyMySession() const
+{
+	const TSharedPtr<IOnlineSession> Session = OnlineSessionInterface.Pin();
+	Session->DestroySession(CurrentSessionName);
+}
+
+void USQPGameInstance::OnDestroySessionComplete(const FName SessionName, const bool bWasSuccessful)
+{
+	PRINTLOG(TEXT("Destroy Session %s has %s!"), *SessionName.ToString(), bWasSuccessful ? TEXT("Succeeded!") : TEXT("Failed!"));
+	
+	if (bWasSuccessful)
+	{
+		//파괴에 성공했으므로 메인 메뉴로 복귀한다
+		UGameplayStatics::OpenLevel(GetWorld(), TEXT("Main"));
+	}
+}
+
+void USQPGameInstance::EndMySession() const
+{
+	const TSharedPtr<IOnlineSession> Session = OnlineSessionInterface.Pin();
+	Session->EndSession(CurrentSessionName);
+}
+
+void USQPGameInstance::OnEndSessionCompleted(const FName SessionName, const bool bWasSuccessful)
+{
+	PRINTLOG(TEXT("End Session %s has %s!"), *SessionName.ToString(), bWasSuccessful ? TEXT("Succeeded!") : TEXT("Failed!"));
+
+	if (bWasSuccessful)
+	{
+		//종료에 성공했으므로 세션을 파괴한다
+		DestroyMySession();
+	}
+}
+
+USaveGame* USQPGameInstance::LoadMainSaveGame()
+{
+	if (const auto Temp = Cast<USQP_SG_Main>(UGameplayStatics::LoadGameFromSlot(MAIN_SAVE, 0)))
+	{
+		PRINTLOG(TEXT("Successfully Load MainSaveGame!"));
+		
+		return Temp;
+	}
+
+	PRINTLOG(TEXT("Fail Load MainSaveGame!"));
+
+	return nullptr;
+}
+
+void USQPGameInstance::SavePaintRoomData(const FString& PaintRoomSaveName, const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame) const
 {
 	//ID를 문자열로 전환한다
 	const FString Date = FDateTime::Now().ToString();
 	const FString IDString = PaintRoomSaveGameID.ToString(EGuidFormats::DigitsWithHyphens) + Date;
+	const FString Level = UGameplayStatics::GetCurrentLevelName(GetWorld());
 	
 	//전달받은 게임 세이브를 전달받은 ID를 이용하여 슬롯에 저장
 	UGameplayStatics::SaveGameToSlot(PaintRoomSaveGame, IDString, 0);
 
 	//페인트 룸 저장 포맷 구조체 생성
-	FSQP_PaintRoomSaveFormat SaveFormat(IDString, FDateTime::Now().ToString(), IDString);
+	FSQP_PainRoomSaveFormat SaveFormat(PaintRoomSaveName, FDateTime::Now().ToString(), IDString, Level);
 
 	//기존 메인 세이브 게임을 로드하거나 생성하거나
-	USQP_SG_PaintRoomID* MainSaveGame;
+	USQP_SG_Main* MainSaveGame;
 	
 	//페인트 룸 세이브 게임에 대한 정보를 독자적으로 저장하기 위한 세이브 게임 객체
-	if (const auto LoadedMainSaveGame = Cast<USQP_SG_PaintRoomID>(UGameplayStatics::LoadGameFromSlot(MAIN_SAVE, 0)))
+	if (const auto LoadedMainSaveGame = Cast<USQP_SG_Main>(UGameplayStatics::LoadGameFromSlot(MAIN_SAVE, 0)))
 	{
 		MainSaveGame = LoadedMainSaveGame;
 	}
 	else
 	{
 		//로드에 실패했다면 메인 세이브 슬롯을 새롭게 생성
-		MainSaveGame = Cast<USQP_SG_PaintRoomID>(UGameplayStatics::CreateSaveGameObject(USQP_SG_PaintRoomID::StaticClass()));
+		MainSaveGame = Cast<USQP_SG_Main>(UGameplayStatics::CreateSaveGameObject(USQP_SG_Main::StaticClass()));
 	}
 
 	//페인트 룸의 정보를 배열에 추가
-	MainSaveGame->PaintRoomSaveGameList.Emplace(SaveFormat);
+	MainSaveGame->PaintRoomSaveArray.Emplace(SaveFormat);
 
 	//메인 세이브 슬롯을 저장
 	UGameplayStatics::SaveGameToSlot(MainSaveGame, MAIN_SAVE, 0);
@@ -172,16 +242,28 @@ void USQPGameInstance::SavePaintRoomData(const FGuid PaintRoomSaveGameID, USaveG
 	PRINTLOG(TEXT("Successfully Save PaintRoomSaveGame ID : %s"), *PaintRoomSaveGameID.ToString(EGuidFormats::DigitsWithHyphens));
 }
 
-USaveGame* USQPGameInstance::LoadSelectedPaintRoomData()
+USaveGame* USQPGameInstance::LoadSelectedPaintRoomData() const
 {
-	if (const auto Temp = UGameplayStatics::LoadGameFromSlot(SelectedPaintRoomSaveGameID, 0))
+	if (TargetPaintRoomSave.Level.Equals(TEXT("")))
 	{
-		PRINTLOG(TEXT("Successfully Save PaintRoomSaveGame ID : %s"), *SelectedPaintRoomSaveGameID);
+		PRINTLOG(TEXT("Invalid Level!"));
+		return nullptr;
+	}
+	
+	if (TargetPaintRoomSave.ID.Equals(TEXT("")))
+	{
+		PRINTLOG(TEXT("Invalid ID!"));
+		return nullptr;
+	}
+	
+	if (const auto Temp = UGameplayStatics::LoadGameFromSlot(TargetPaintRoomSave.ID, 0))
+	{
+		PRINTLOG(TEXT("Successfully Save PaintRoomSaveGame ID : %s"), *TargetPaintRoomSave.ID);
 		
 		return Temp;
 	}
 
-	PRINTLOG(TEXT("Fail PaintRoomSaveGame ID : %s"), *SelectedPaintRoomSaveGameID);
+	PRINTLOG(TEXT("Fail PaintRoomSaveGame ID : %s"), *TargetPaintRoomSave.ID);
 	
 	return nullptr;
 }
@@ -189,7 +271,7 @@ USaveGame* USQPGameInstance::LoadSelectedPaintRoomData()
 void USQPGameInstance::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
 {
 	//맵 경로
-	FString TargetMapPath = "";
+	FString TargetLevel = "";
 
 	// 현재 게임 상태에 따라 이동할 맵을 결정
 	switch (CurrentProgramState)
@@ -198,25 +280,25 @@ void USQPGameInstance::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, EN
 		{
 			//로비에 있다가 튕겼다면
 			PRINTLOG(TEXT("Network Failure in Lobby. Returning to Host Browser."));
-			TargetMapPath = TEXT("Main");
+			TargetLevel = TEXT("Main");
 			break;
 		}
-	case EProgramState::InGame:
+	case EProgramState::PaintRoom:
 		{
 			//게임 플레이 중에 튕겼다면
 			PRINTLOG(TEXT("Network Failure in Game. Returning to Main Menu."));
-			TargetMapPath = TEXT("Main");
+			TargetLevel = TEXT("Main");
 			break;
 		}
 	default:
 		{
 			//예기치 못한 네트워크 실패
 			PRINTLOG(TEXT("Unexpected Network Failure. Returning to Main Menu."));
-			TargetMapPath = TEXT("Main");
+			TargetLevel = TEXT("Main");
 			break;
 		}
 	}
 
-	//결정된 맵으로 클라이언트와 함께 이동
-	GetWorld()->ServerTravel(TargetMapPath, true);
-}
+	//뭐가 어떻게 되든 일단 지정 레벨로 복귀한다
+	UGameplayStatics::OpenLevel(GetWorld(), *TargetLevel);
+} 

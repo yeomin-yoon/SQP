@@ -28,9 +28,13 @@ void ASQPPaintBallProjectile::BeginPlay()
 	DynMat = FindComponentByClass<UStaticMeshComponent>()->CreateAndSetMaterialInstanceDynamic(0);
 }
 
-void ASQPPaintBallProjectile::OnOverlapBeginCallback(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                                     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-                                                     bool bFromSweep, const FHitResult& SweepResult)
+void ASQPPaintBallProjectile::OnOverlapBeginCallback(
+	UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("PaintBall BeginOverlap!"));
 
@@ -50,7 +54,7 @@ void ASQPPaintBallProjectile::SetPaintColor(const FLinearColor& Value)
 	Multicast_ColorPaintBall(Value);
 }
 
-void ASQPPaintBallProjectile::Multicast_ColorPaintBall_Implementation(FLinearColor Color)
+void ASQPPaintBallProjectile::Multicast_ColorPaintBall_Implementation(const FLinearColor Color)
 {
 	if (DynMat)
 	{
@@ -58,10 +62,9 @@ void ASQPPaintBallProjectile::Multicast_ColorPaintBall_Implementation(FLinearCol
 	}
 }
 
-void ASQPPaintBallProjectile::Multicast_TryPaint_Implementation(const FLinearColor BrushColor,
-                                                                const float BrushSizeValue)
+void ASQPPaintBallProjectile::Multicast_TryPaint_Implementation(const FLinearColor BrushColor, const float BrushSizeValue)
 {
-	const FVector Offset = GetActorForwardVector() * 100;
+	const FVector Offset = GetActorForwardVector() * 200;
 	const FVector Start = GetActorLocation() - Offset;
 	const FVector End = GetActorLocation() + Offset;
 	const TArray<AActor*> ActorsToIgnore{this};

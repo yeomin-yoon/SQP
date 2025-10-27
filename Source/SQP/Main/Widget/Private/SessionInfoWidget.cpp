@@ -13,9 +13,10 @@ void USessionInfoWidget::NativeConstruct()
 	JoinButton->OnClicked.AddDynamic(this, &USessionInfoWidget::OnJoinButtonClicked);
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void USessionInfoWidget::OnJoinButtonClicked()
 {
-	if (auto GI = Cast<USQPGameInstance>(GetGameInstance()))
+	if (const auto GI = Cast<USQPGameInstance>(GetGameInstance()))
 	{
 		GI->JoinOtherSession(BindingSessionIdx);
 	}
