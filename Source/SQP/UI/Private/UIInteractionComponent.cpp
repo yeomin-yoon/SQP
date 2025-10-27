@@ -78,7 +78,7 @@ void UUIInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	FHitResult HitRes;
-	FVector Start = GetComponentLocation();
+	FVector Start = GetComponentLocation() + FVector(0.f, 0.f, 55.f);
 	FVector End = Start + GetForwardVector() * 2000.f;
 
 	FCollisionQueryParams Params;
