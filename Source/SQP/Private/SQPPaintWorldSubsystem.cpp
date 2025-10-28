@@ -104,6 +104,48 @@ void USQPPaintWorldSubsystem::TryPaintColor(
 	}
 }
 
+void USQPPaintWorldSubsystem::TryPaintColorV2(
+	const FVector& Start,
+	const FVector& End,
+	const TArray<AActor*>& ActorsToIgnore,
+	const uint8& BrushIndex,
+	const float& BrushSize,
+	const FLinearColor& BrushColor)
+{
+	if (FHitResult OutHitResult; UKismetSystemLibrary::LineTraceSingle(GetWorld(), Start, End, TraceTypeQuery1, true, ActorsToIgnore, EDrawDebugTrace::ForDuration, OutHitResult, true))
+	{
+		UTextureRenderTarget2D* ColorRenderTarget = nullptr;
+		UTextureRenderTarget2D* NormalRenderTarget = nullptr;
+		GetRenderTargetFromHitV2(OutHitResult, ColorRenderTarget, NormalRenderTarget);
+
+		//드로잉에 필요한 UV좌표를 획득
+		FVector2D BrushLocation;
+		UGameplayStatics::FindCollisionUV(OutHitResult, 0, BrushLocation);
+
+		//대상 액터
+		AActor* TargetActor = OutHitResult.GetActor();
+		
+		//대상이 저장-로드 인터페이스를 구현 중이라면
+		if (const auto SaveActor = Cast<ISavablePaint>(TargetActor))
+		{
+			//고유 ID 획득
+			const FGuid ID = SaveActor->GetPersistantActorID(); 
+			
+			//페인트 실행 데이터로 패러미터를 저장해놓는다
+			FPaintExecutionData Data(ID, OutHitResult.FaceIndex, BrushIndex ,BrushColor, BrushLocation, BrushSize);
+			
+			//ID와 매칭되는 배열을 검색하거나 생성한다
+			FPaintExecutionDataWrapper& Wrapper = TemporalPEDContainer.FindOrAdd(ID);
+			Wrapper.PEDArray.Emplace(Data);
+			
+			PRINTLOG(TEXT("Successfully Store PED of %s! Length = %d"), *TargetActor->GetActorNameOrLabel(), Wrapper.PEDArray.Num());
+		}
+
+		//페인트 월드 서브 시스템에 페인트 요청
+		PaintRenderTarget(BrushIndex, BrushSize, BrushColor, BrushLocation, ColorRenderTarget, NormalRenderTarget);
+	}
+}
+
 void USQPPaintWorldSubsystem::GetRenderTargetFromHit(
 	const FHitResult& Hit,
 	UTextureRenderTarget2D*& OutColorRenderTarget,
@@ -126,11 +168,6 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(
 		GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("Fail to Get Material from Collision"));
 		return;
 	}
-
-	// if (!Cast<UMaterialInstanceDynamic>(MaterialInterface))
-	// {
-	// 	CanvasMaterialBase = MaterialInterface;
-	// }
 	
 	//캔버스 머터리얼과 충돌했다면
 	if (CheckCanvasMaterialBase(MaterialInterface))
@@ -160,6 +197,54 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(
 		//새롭게 할당받은 다이나믹 머터리얼을 충돌 컴포넌트에 적용
 		Hit.Component->SetMaterial(SectionIndex, CreatedMaterialInstance);
 	}
+}
+
+void USQPPaintWorldSubsystem::GetRenderTargetFromHitV2(
+	const FHitResult& Hit,
+	UTextureRenderTarget2D*& OutColorRenderTarget,
+	UTextureRenderTarget2D*& OutNormalRenderTarget)
+{
+	//스태틱 메시 컴포넌트로의 형변환 시도
+	const auto MeshComp = Cast<UStaticMeshComponent>(Hit.Component);
+	if (MeshComp == nullptr)
+	{
+		return;
+	}
+
+	//메시 컴포넌트에서 오버레이 머터리얼 획득 시도
+	if (UMaterialInterface* OverlayMaterialInterface = MeshComp->GetOverlayMaterial())
+	{
+		//해당 오버레이 머터리얼이 캔버스 머터리얼인지 비교
+		if (CheckCanvasMaterialBase(OverlayMaterialInterface))
+		{
+			//머터리얼 다이나믹 인스턴스로의 형변환에 성공했다면
+			if (const auto MatFromCollision = Cast<UMaterialInstanceDynamic>(OverlayMaterialInterface))
+			{
+				//렌더 타겟 텍스처를 획득해서 반환한다
+				UTexture* ColorTexture;
+				UTexture* NormalTexture;
+				MatFromCollision->GetTextureParameterValue(FName("ColorRenderTarget"), ColorTexture);
+				MatFromCollision->GetTextureParameterValue(FName("NormalRenderTarget"), NormalTexture);
+
+				//렌더 타겟 텍스처로 형변환
+				OutColorRenderTarget = Cast<UTextureRenderTarget2D>(ColorTexture);
+				OutNormalRenderTarget = Cast<UTextureRenderTarget2D>(NormalTexture);
+
+				PRINTLOG(TEXT("Success to Switch Splatoon Canvas Material to Dynamic!"));
+
+				return;
+			}	
+		}
+	}
+
+	//머터리얼 다이나믹 인스턴스를 하나 생성하고 내부의 컬러 렌더 타겟과 노말 렌더 타겟까지 반환
+	UMaterialInstanceDynamic* CreatedMaterialInstance;
+	CreateCanvasMaterialInstanceDynamic(CreatedMaterialInstance, OutColorRenderTarget, OutNormalRenderTarget);
+
+	//컴포넌트에 오버레이 용 머터리얼 다이나믹 인스턴스를 할당
+	MeshComp->SetOverlayMaterial(CreatedMaterialInstance);
+
+	PRINTLOG(TEXT("Success to Assign Splatoon Canvas Material to Dynamic!"));
 }
 
 void USQPPaintWorldSubsystem::PaintRenderTarget(

@@ -22,4 +22,7 @@ class SQP_API ISavablePaint
 public:
 	//페인트 데이터 맵을 위한 액터의 고유 ID를 반환
 	virtual FGuid GetPersistantActorID() = 0;
+
+	//페인트 데이터 맵을 위한 액터의 고유 ID를 할당 - 만약 이미 설정되어 있다면 건너뛴다
+	virtual void ValidPersistantActorID() = 0;
 };

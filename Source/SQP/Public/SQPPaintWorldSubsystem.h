@@ -24,10 +24,25 @@ public:
 		const uint8& BrushIndex,
 		const float& BrushSize,
 		const FLinearColor& BrushColor);
+
+	UFUNCTION()
+	void TryPaintColorV2(
+		const FVector& Start,
+		const FVector& End,
+		const TArray<AActor*>& ActorsToIgnore,
+		const uint8& BrushIndex,
+		const float& BrushSize,
+		const FLinearColor& BrushColor);
 	
 	//충돌 구조체에서 컬러 렌더 타겟 텍스처과 노말 렌더 타겟 텍스처를 획득한다
 	UFUNCTION(BlueprintCallable)
 	void GetRenderTargetFromHit(
+		const FHitResult& Hit,
+		UTextureRenderTarget2D*& OutColorRenderTarget,
+		UTextureRenderTarget2D*& OutNormalRenderTarget);
+
+	UFUNCTION(BlueprintCallable)
+	void GetRenderTargetFromHitV2(
 		const FHitResult& Hit,
 		UTextureRenderTarget2D*& OutColorRenderTarget,
 		UTextureRenderTarget2D*& OutNormalRenderTarget);

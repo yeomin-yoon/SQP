@@ -15,14 +15,14 @@ class SQP_API ASQP_PaintableActor : public AActor, public ISavablePaint
 public:
 	ASQP_PaintableActor();
 
-protected:
-	virtual void BeginPlay() override;
-
-public:
-	virtual void Tick(float DeltaTime) override;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FGuid PersistantActorID;
 
+	virtual void OnConstruction(const FTransform& Transform) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Savable Paint")
 	virtual FGuid GetPersistantActorID() override;
+
+	UFUNCTION(BlueprintCallable, Category = "Savable Paint")
+	virtual void ValidPersistantActorID() override;
 };

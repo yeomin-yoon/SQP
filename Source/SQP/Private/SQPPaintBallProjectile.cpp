@@ -8,7 +8,7 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-ASQPPaintBallProjectile::ASQPPaintBallProjectile()
+ASQPPaintBallProjectile::ASQPPaintBallProjectile() : BrushSize(250), Version(true)
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -72,11 +72,13 @@ void ASQPPaintBallProjectile::Multicast_TryPaint_Implementation(const FLinearCol
 
 	if (const auto Subsystem = GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>())
 	{
-		if (!BrushSizeValue)
+		if (Version)
 		{
-			constexpr float TempBrushSize = 250;
-			Subsystem->TryPaintColor(Start, End, ActorsToIgnore, BrushIndex, TempBrushSize, BrushColor);
+			Subsystem->TryPaintColor(Start, End, ActorsToIgnore, BrushIndex, BrushSizeValue, BrushColor);	
 		}
-		Subsystem->TryPaintColor(Start, End, ActorsToIgnore, BrushIndex, BrushSizeValue, BrushColor);
+		else
+		{
+			Subsystem->TryPaintColorV2(Start, End, ActorsToIgnore, BrushIndex, BrushSizeValue, BrushColor);	
+		}
 	}
 }

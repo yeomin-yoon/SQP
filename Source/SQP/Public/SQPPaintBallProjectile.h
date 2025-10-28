@@ -39,6 +39,9 @@ protected:
 	UPROPERTY()
 	float BrushSize;
 
+	UPROPERTY(EditDefaultsOnly)
+	bool Version;
+
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_TryPaint(const FLinearColor BrushColor, const float BrushSizeValue);
 };

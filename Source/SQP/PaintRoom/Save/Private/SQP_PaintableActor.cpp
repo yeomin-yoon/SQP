@@ -2,35 +2,45 @@
 
 #include "SQP_PaintableActor.h"
 
-#include "HeadMountedDisplayTypes.h"
 #include "SQP.h"
-#include "SQPPaintWorldSubsystem.h"
-#include "Kismet/KismetRenderingLibrary.h"
 
 ASQP_PaintableActor::ASQP_PaintableActor()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	//액터 틱 활성화
 	PrimaryActorTick.bCanEverTick = true;
+}
 
-	//아직 고유 ID가 없다면 새롭게 할당
-	if (PersistantActorID.IsValid() == false)
+void ASQP_PaintableActor::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	if (PersistantActorID.IsValid())
 	{
-		PersistantActorID = FGuid::NewGuid();
+		PRINTLOG(TEXT("%s is already Assigned Persistant Actor ID!"), *GetActorNameOrLabel());
 	}
-}
-
-void ASQP_PaintableActor::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-void ASQP_PaintableActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+	else
+	{
+		//아직 고유 ID가 없다면 새롭게 할당
+		PersistantActorID = FGuid::NewGuid();
+		PRINTLOG(TEXT("%s Has been Assigned New Persistant Actor ID!"), *GetActorNameOrLabel());
+	}
 }
 
 FGuid ASQP_PaintableActor::GetPersistantActorID()
 {
 	return PersistantActorID;
+}
+
+void ASQP_PaintableActor::ValidPersistantActorID()
+{
+	if (PersistantActorID.IsValid())
+	{
+		PRINTLOG(TEXT("%s is already Assigned Persistant Actor ID!"), *GetActorNameOrLabel());
+	}
+	else
+	{
+		//아직 고유 ID가 없다면 새롭게 할당
+		PersistantActorID = FGuid::NewGuid();
+		PRINTLOG(TEXT("%s Has been Assigned New Persistant Actor ID!"), *GetActorNameOrLabel());
+	}
 }
