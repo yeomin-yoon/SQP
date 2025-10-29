@@ -68,4 +68,10 @@ protected:
 public:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class USlider> BrushSlider;
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<class ULikeUI> WBP_LikeUI;
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<class UScaleBox> MainUIScaleBox;
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<class URichTextBlock> TimerRichTextBlock;
 };

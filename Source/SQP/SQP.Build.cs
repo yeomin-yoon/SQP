@@ -32,7 +32,9 @@ public class SQP : ModuleRules
 			"OnlineSubsystemUtils",
 			"Sockets",
 			//클립보드
-			"ApplicationCore", "Synthesis"
+			"ApplicationCore", "Synthesis",
+			"HTTP",
+			"ImageWrapper"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
@@ -65,6 +67,7 @@ public class SQP : ModuleRules
 			Path.Combine(ModuleDirectory, "UI", "Public"),
 			Path.Combine(ModuleDirectory, "Yeomin", "Public"),
 			Path.Combine(ModuleDirectory, "DataAssets", "Public"),
+			Path.Combine(ModuleDirectory, "PaintGaming", "Public"),
 		});
 
 		// Uncomment if you are using Slate UI

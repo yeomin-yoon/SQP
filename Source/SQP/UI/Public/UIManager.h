@@ -24,7 +24,7 @@ protected:
 	TObjectPtr<class UMainUI> MainUI;
 	
 public:
-	void CreateMainUI();
+	UMainUI* CreateMainUI();
 	class USlider* GetSliderUI();
 	FLinearColor GetCurrentColor();
 };

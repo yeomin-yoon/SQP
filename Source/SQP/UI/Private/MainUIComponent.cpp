@@ -10,10 +10,13 @@
 #include "UIManager.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Button.h"
+#include "Components/ScaleBox.h"
 #include "Components/Slider.h"
 #include "Components/WidgetComponent.h"
+#include "Features/UEaseFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Shared/FEaseHelper.h"
 
 
 UMainUIComponent::UMainUIComponent()
@@ -38,8 +41,8 @@ UMainUIComponent::UMainUIComponent()
 		ToggleMouseAction = ToggleMouseAsset.Object;
 	}
 	ConstructorHelpers::FObjectFinder<UInputAction> WheelAsset(
-				TEXT("'/Game/Splatoon/Input/IA_WheelAction.IA_WheelAction'")
-			);
+		TEXT("'/Game/Splatoon/Input/IA_WheelAction.IA_WheelAction'")
+	);
 	if (WheelAsset.Succeeded())
 	{
 		IA_WheelAction = WheelAsset.Object;
@@ -72,7 +75,15 @@ void UMainUIComponent::OnMouseWheel(const FInputActionValue& InputActionValue)
 	if (Slider)
 	{
 		float Current = Slider->GetValue();
-		Slider->SetValue(Current + WheelAxis * 40.f);
+		Slider->SetValue(Current + WheelAxis * 50.f);
+	}
+}
+
+void UMainUIComponent::SetMainUIScale(float Scale)
+{
+	if (MainUI)
+	{
+		MainUI->MainUIScaleBox->SetRenderScale(FVector2D(Scale));
 	}
 }
 
@@ -87,43 +98,34 @@ void UMainUIComponent::BeginPlay()
 	LikeUIComp->SetRelativeLocation(FVector(0, 0.f, 0.f));
 
 	UIManager = GetWorld()->GetGameInstance()->GetSubsystem<UUIManager>();
-	
+
 	// Only hide local player's LikeUI
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 	if (OwnerPawn->IsLocallyControlled())
 	{
-		UIManager->CreateMainUI();
+		MainUI = UIManager->CreateMainUI();
 		LikeUIComp->SetVisibility(false);
 		LikeUIComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		
-		TArray<UUserWidget*> FoundWidgets;
-		UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), FoundWidgets, UMainUI::StaticClass());
-		for (UUserWidget* Widget : FoundWidgets)
+		MainUI->MainUIScaleBox->SetRenderScale(FVector2D(0.4f));
+		Slider = MainUI->BrushSlider;
+	}
+
+	PC = Cast<APlayerController>(OwnerPawn->GetController());
+	if (PC)
+	{
+		if (auto* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
+			PC->GetLocalPlayer()))
 		{
-			if (UMainUI* MainUI = Cast<UMainUI>(Widget))
-			{
-				Slider = MainUI->BrushSlider;
-				break;
-			}
+			InputSubsystem->AddMappingContext(IMC, 0);
 		}
-		
-		PC = Cast<APlayerController>(OwnerPawn->GetController());
-		if (PC)
+		if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PC->InputComponent))
 		{
-			if (auto* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
-				PC->GetLocalPlayer()))
+			if (ToggleMouseAction)
+				EIC->BindAction(ToggleMouseAction, ETriggerEvent::Started, this, &UMainUIComponent::OnToggleMouse);
+			EIC->BindAction(ToggleMouseAction, ETriggerEvent::Completed, this, &UMainUIComponent::OffToggleMouse);
+			if (IA_WheelAction)
 			{
-				InputSubsystem->AddMappingContext(IMC, 0);
-			}
-			if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PC->InputComponent))
-			{
-				if (ToggleMouseAction)
-					EIC->BindAction(ToggleMouseAction, ETriggerEvent::Started, this, &UMainUIComponent::OnToggleMouse);
-					EIC->BindAction(ToggleMouseAction, ETriggerEvent::Completed, this, &UMainUIComponent::OffToggleMouse);
-				if (IA_WheelAction)
-				{
-					EIC->BindAction(IA_WheelAction, ETriggerEvent::Started, this, &UMainUIComponent::OnMouseWheel);
-				}
+				EIC->BindAction(IA_WheelAction, ETriggerEvent::Started, this, &UMainUIComponent::OnMouseWheel);
 			}
 		}
 	}
@@ -136,6 +138,14 @@ void UMainUIComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	BillboardLikeUI();
+
+	ElapsedTime += DeltaTime;
+	if (bScaleUp)
+	{
+		SetMainUIScale(UEaseFunctionLibrary::LerpFloatEase(0.4, 1, ElapsedTime / TimeSpeed, EEaseType::EaseOutExpo));
+		return;
+	}
+	SetMainUIScale(UEaseFunctionLibrary::LerpFloatEase(1, 0.4, ElapsedTime / TimeSpeed, EEaseType::EaseOutExpo));
 }
 
 void UMainUIComponent::BillboardLikeUI()
@@ -151,6 +161,7 @@ void UMainUIComponent::BillboardLikeUI()
 
 void UMainUIComponent::OnToggleMouse(const FInputActionValue& InputActionValue)
 {
+	ElapsedTime = 0.f;
 	if (bCursorEnabled)
 	{
 		int32 SizeX, SizeY;
@@ -163,11 +174,15 @@ void UMainUIComponent::OnToggleMouse(const FInputActionValue& InputActionValue)
 		InputMode.SetWidgetToFocus(nullptr);
 		PC->SetInputMode(InputMode);
 		bCursorEnabled = false;
+
+		bScaleUp = true;
 		return;
 	}
 	PC->bShowMouseCursor = bCursorEnabled;
 	PC->SetInputMode(FInputModeGameOnly());
 	bCursorEnabled = true;
+
+	bScaleUp = false;
 }
 
 void UMainUIComponent::OffToggleMouse()

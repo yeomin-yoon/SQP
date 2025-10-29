@@ -23,11 +23,13 @@ void UUIManager::Initialize(FSubsystemCollectionBase& Collection)
 }
 
 
-void UUIManager::CreateMainUI()
+UMainUI* UUIManager::CreateMainUI()
 {
 	MainUI = CreateWidget<UMainUI>(GetWorld(), MainUIClass);
 	MainUI->AddToViewport();
 	MainUI->SetIsFocusable(false);
+
+	return MainUI;
 }
 
 USlider* UUIManager::GetSliderUI()

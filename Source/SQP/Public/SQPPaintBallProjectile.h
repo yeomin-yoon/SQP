@@ -22,7 +22,9 @@ public:
 	UFUNCTION()
 	FORCEINLINE void SetPaintColor(const FLinearColor& Value);
 	UFUNCTION()
-	FORCEINLINE void SetBrushSize(const float& Value) { BrushSize = Value; } 
+	FORCEINLINE void SetBrushSize(const float& Value) { BrushSize = Value; }
+	UFUNCTION()
+	FORCEINLINE void SetPaintBallOwner(class ASQP_PS_PaintRoom* Value) { OwnerPlayerState = Value; } 
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
@@ -41,4 +43,9 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_TryPaint(const FLinearColor BrushColor, const float BrushSizeValue);
+
+	UPROPERTY()
+	TObjectPtr<class ASQP_PS_PaintRoom> OwnerPlayerState;
+	UFUNCTION(Server, Reliable)
+	void Server_AddReady(class AReadyActor* ReadyActor);
 };

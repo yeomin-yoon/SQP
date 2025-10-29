@@ -3,6 +3,7 @@
 
 #include "MainUI.h"
 
+#include "LikeUI.h"
 #include "SQP_PC_PaintRoom.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
@@ -20,6 +21,8 @@ void UMainUI::NativeConstruct()
 	SetColorWhiteBtn->OnClicked.AddDynamic(this, &UMainUI::OnClickWhiteBtn);
 	SetColorBlackBtn->OnClicked.AddDynamic(this, &UMainUI::OnClickBlackBtn);
 	BrushSlider->OnValueChanged.AddDynamic(this, &UMainUI::OnBrushSizeChanged);
+
+	WBP_LikeUI->LikeBtn->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
 void UMainUI::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)

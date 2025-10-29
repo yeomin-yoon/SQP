@@ -13,7 +13,9 @@ class SQP_API UMainUIComponent : public USceneComponent
 
 public:
 	UMainUIComponent();
-
+	UPROPERTY()
+	TObjectPtr<class UMainUI> MainUI;
+	
 protected:
 	UFUNCTION()
 	void OnClick();
@@ -48,4 +50,9 @@ protected:
 	UFUNCTION()
 	void OffToggleMouse();
 	void OnMouseWheel(const FInputActionValue& InputActionValue);
+
+	void SetMainUIScale(float Scale);
+	bool bScaleUp = false;
+	float ElapsedTime = 0.f;
+	float TimeSpeed = 0.5f;
 };
