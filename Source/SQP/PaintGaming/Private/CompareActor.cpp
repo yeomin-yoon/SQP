@@ -2,7 +2,9 @@
 
 
 #include "CompareActor.h"
-
+#include "AISimilarityClient.h"
+#include "Engine/Texture2D.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ACompareActor::ACompareActor()
@@ -15,6 +17,20 @@ ACompareActor::ACompareActor()
 void ACompareActor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!Original || !CompareA || !CompareB)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Texture references missing! Assign in Editor"));
+		return;
+	}
+
+	auto* Client = GetGameInstance()->GetSubsystem<UAISimilarityClient>();
+	Client->SendCompareRequest(Original, CompareA, CompareB,
+		FAIResultDelegate::CreateLambda([](const FString& Winner)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AI 선택 결과: %s"), *Winner);
+		})
+	);
 	
 }
 

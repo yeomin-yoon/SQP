@@ -15,6 +15,15 @@ public:
 	// Sets default values for this actor's properties
 	ACompareActor();
 
+	UPROPERTY(EditAnywhere)
+	UTexture2D* Original;
+
+	UPROPERTY(EditAnywhere)
+	UTexture2D* CompareA;
+
+	UPROPERTY(EditAnywhere)
+	UTexture2D* CompareB;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
