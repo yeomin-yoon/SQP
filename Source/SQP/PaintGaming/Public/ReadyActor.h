@@ -27,7 +27,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(Replicated)
-	TArray<TObjectPtr<class ASQP_PS_PaintRoom>> ReadyPlayerState;
+	TArray<TObjectPtr<class ASQP_PS_Master>> ReadyPlayerState;
 	
 	bool bReady = false;
 	void StartReadyTimer();

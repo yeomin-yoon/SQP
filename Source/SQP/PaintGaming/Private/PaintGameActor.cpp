@@ -33,6 +33,7 @@ void APaintGameActor::BeginPlay()
 	IMGManager = GetGameInstance()->GetSubsystem<UIMGManager>();
 	if (!IMGManager) return;
 
+	
 	DynMat = FindComponentByClass<UStaticMeshComponent>()->CreateAndSetMaterialInstanceDynamic(0);
 }
 
