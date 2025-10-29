@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "SQPGameInstance.h"
+#include "SQP_GI.h"
+
 #include "SQP.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSubsystemUtils.h"
@@ -9,7 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Online/OnlineSessionNames.h"
 
-void USQPGameInstance::Init()
+void USQP_GI::Init()
 {
 	Super::Init();
 
@@ -17,22 +18,22 @@ void USQPGameInstance::Init()
 	PROGRAM_STATE = EProgramState::Main;
 
 	//네트워크 실패 콜백 등록
-	GEngine->OnNetworkFailure().AddUObject(this, &USQPGameInstance::OnNetworkFailure);
+	GEngine->OnNetworkFailure().AddUObject(this, &USQP_GI::OnNetworkFailure);
 
 	//온라인 서브시스템에서 콜백 등록
 	if (const IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld()))
 	{
 		OnlineSessionInterface = Subsystem->GetSessionInterface();
 		const TSharedPtr<IOnlineSession> Temp = OnlineSessionInterface.Pin();
-		Temp->OnCreateSessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnCreateSessionComplete);
-		Temp->OnFindSessionsCompleteDelegates.AddUObject(this, &USQPGameInstance::OnFindSessionCompleted);
-		Temp->OnJoinSessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnJoinSessionCompleted);
-		Temp->OnDestroySessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnDestroySessionComplete);
-		Temp->OnEndSessionCompleteDelegates.AddUObject(this, &USQPGameInstance::OnEndSessionCompleted);
+		Temp->OnCreateSessionCompleteDelegates.AddUObject(this, &USQP_GI::OnCreateSessionComplete);
+		Temp->OnFindSessionsCompleteDelegates.AddUObject(this, &USQP_GI::OnFindSessionCompleted);
+		Temp->OnJoinSessionCompleteDelegates.AddUObject(this, &USQP_GI::OnJoinSessionCompleted);
+		Temp->OnDestroySessionCompleteDelegates.AddUObject(this, &USQP_GI::OnDestroySessionComplete);
+		Temp->OnEndSessionCompleteDelegates.AddUObject(this, &USQP_GI::OnEndSessionCompleted);
 	}
 }
 
-void USQPGameInstance::CreateMySession(const FString DisplayName, const int32 PlayerCount) const
+void USQP_GI::CreateMySession(const FString DisplayName, const int32 PlayerCount) const
 {
 	PRINTLOG(TEXT("세션 생성 시도!"));
 	
@@ -55,7 +56,7 @@ void USQPGameInstance::CreateMySession(const FString DisplayName, const int32 Pl
 	}
 }
 
-void USQPGameInstance::OnCreateSessionComplete(const FName SessionName, const bool bWasSuccessful)
+void USQP_GI::OnCreateSessionComplete(const FName SessionName, const bool bWasSuccessful)
 {
 	PRINTLOG(TEXT("Create [%s] Session has %s!"), *SessionName.ToString(), bWasSuccessful ? TEXT("Succeeded!") : TEXT("Failed!"));
 
@@ -69,7 +70,7 @@ void USQPGameInstance::OnCreateSessionComplete(const FName SessionName, const bo
 	}
 }
 
-void USQPGameInstance::FindOtherSession()
+void USQP_GI::FindOtherSession()
 {
 	PRINTLOG(TEXT("세션 조회 시도!"));
 
@@ -85,7 +86,7 @@ void USQPGameInstance::FindOtherSession()
 	Session->FindSessions(0, SessionSearch.ToSharedRef());
 }
 
-void USQPGameInstance::OnFindSessionCompleted(const bool bWasSuccessful) const
+void USQP_GI::OnFindSessionCompleted(const bool bWasSuccessful) const
 {
 	PRINTLOG(TEXT("세션 검색 %s!"), bWasSuccessful ? TEXT("성공!") : TEXT("실패!"));
 
@@ -105,7 +106,7 @@ void USQPGameInstance::OnFindSessionCompleted(const bool bWasSuccessful) const
 	}
 }
 
-void USQPGameInstance::JoinOtherSession(const int32 SessionIdx) const
+void USQP_GI::JoinOtherSession(const int32 SessionIdx) const
 {
 	PRINTLOG(TEXT("세션 합류 시도!"));
 	
@@ -121,7 +122,7 @@ void USQPGameInstance::JoinOtherSession(const int32 SessionIdx) const
 	Session->JoinSession(0, FName(SessionName), Results[SessionIdx]);
 }
 
-void USQPGameInstance::OnJoinSessionCompleted(const FName SessionName, const EOnJoinSessionCompleteResult::Type Result)
+void USQP_GI::OnJoinSessionCompleted(const FName SessionName, const EOnJoinSessionCompleteResult::Type Result)
 {
 	PRINTLOG(TEXT("세션 합류 %s!"), Result == EOnJoinSessionCompleteResult::Success ? TEXT("성공") : TEXT("실패"));
 	
@@ -145,7 +146,7 @@ void USQPGameInstance::OnJoinSessionCompleted(const FName SessionName, const EOn
 	}
 }
 
-void USQPGameInstance::TerminateMySession() const
+void USQP_GI::TerminateMySession() const
 {
 	const TSharedPtr<IOnlineSession> Session = OnlineSessionInterface.Pin();
 	if (Session->GetSessionState(CurrentSessionName) == EOnlineSessionState::InProgress)
@@ -158,13 +159,13 @@ void USQPGameInstance::TerminateMySession() const
 	}
 }
 
-void USQPGameInstance::DestroyMySession() const
+void USQP_GI::DestroyMySession() const
 {
 	const TSharedPtr<IOnlineSession> Session = OnlineSessionInterface.Pin();
 	Session->DestroySession(CurrentSessionName);
 }
 
-void USQPGameInstance::OnDestroySessionComplete(const FName SessionName, const bool bWasSuccessful)
+void USQP_GI::OnDestroySessionComplete(const FName SessionName, const bool bWasSuccessful)
 {
 	PRINTLOG(TEXT("Destroy Session %s has %s!"), *SessionName.ToString(), bWasSuccessful ? TEXT("Succeeded!") : TEXT("Failed!"));
 	
@@ -175,13 +176,13 @@ void USQPGameInstance::OnDestroySessionComplete(const FName SessionName, const b
 	}
 }
 
-void USQPGameInstance::EndMySession() const
+void USQP_GI::EndMySession() const
 {
 	const TSharedPtr<IOnlineSession> Session = OnlineSessionInterface.Pin();
 	Session->EndSession(CurrentSessionName);
 }
 
-void USQPGameInstance::OnEndSessionCompleted(const FName SessionName, const bool bWasSuccessful)
+void USQP_GI::OnEndSessionCompleted(const FName SessionName, const bool bWasSuccessful)
 {
 	PRINTLOG(TEXT("End Session %s has %s!"), *SessionName.ToString(), bWasSuccessful ? TEXT("Succeeded!") : TEXT("Failed!"));
 
@@ -192,7 +193,7 @@ void USQPGameInstance::OnEndSessionCompleted(const FName SessionName, const bool
 	}
 }
 
-USaveGame* USQPGameInstance::LoadMainSaveGame()
+USaveGame* USQP_GI::LoadMainSaveGame()
 {
 	if (const auto Temp = Cast<USQP_SG_Main>(UGameplayStatics::LoadGameFromSlot(MAIN_SAVE, 0)))
 	{
@@ -206,7 +207,7 @@ USaveGame* USQPGameInstance::LoadMainSaveGame()
 	return nullptr;
 }
 
-void USQPGameInstance::SavePaintRoomData(const FString& PaintRoomSaveName, const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame) const
+void USQP_GI::SavePaintRoomData(const FString& PaintRoomSaveName, const FGuid PaintRoomSaveGameID, USaveGame* PaintRoomSaveGame) const
 {
 	//ID를 문자열로 전환한다
 	const FString Date = FDateTime::Now().ToString();
@@ -242,7 +243,7 @@ void USQPGameInstance::SavePaintRoomData(const FString& PaintRoomSaveName, const
 	PRINTLOG(TEXT("Successfully Save PaintRoomSaveGame ID : %s"), *PaintRoomSaveGameID.ToString(EGuidFormats::DigitsWithHyphens));
 }
 
-USaveGame* USQPGameInstance::LoadSelectedPaintRoomData() const
+USaveGame* USQP_GI::LoadSelectedPaintRoomData() const
 {
 	if (TargetPaintRoomSave.Level.Equals(TEXT("")))
 	{
@@ -268,7 +269,7 @@ USaveGame* USQPGameInstance::LoadSelectedPaintRoomData() const
 	return nullptr;
 }
 
-void USQPGameInstance::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
+void USQP_GI::OnNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure::Type FailureType, const FString& ErrorString)
 {
 	//맵 경로
 	FString TargetLevel = "";

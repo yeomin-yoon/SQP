@@ -75,8 +75,6 @@ class SQP_API ASQP_GM_Lobby : public AGameModeBase
 
 public:
 	ASQP_GM_Lobby();
-
-	virtual void BeginPlay() override;
 	
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 

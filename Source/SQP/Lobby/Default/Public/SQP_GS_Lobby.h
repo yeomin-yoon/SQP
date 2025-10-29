@@ -17,15 +17,11 @@ class SQP_API ASQP_GS_Lobby : public ASQPGameState
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void AddPlayerState(APlayerState* PlayerState) override;
-	
-	virtual void RemovePlayerState(APlayerState* PlayerState) override;
-
 	UFUNCTION()
-	ASQP_PC_Lobby* GetHostPlayerController();
+	ASQP_PC_Lobby* GetHostPlayerController() const;
 	
 	UFUNCTION()
-	ASQP_GM_Lobby* GetHostGameMode();
+	ASQP_GM_Lobby* GetHostGameMode() const;
 	
 	UFUNCTION()
 	void OnNewPlayerLogin(APlayerController* LoginPlayer);

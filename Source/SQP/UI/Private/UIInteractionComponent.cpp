@@ -3,13 +3,6 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
-#include "LikeUI.h"
-#include "MainUIComponent.h"
-#include "SQP_PS_PaintRoom.h"
-#include "Components/WidgetComponent.h"
-#include "GameFramework/Character.h"
-#include "Kismet/GameplayStatics.h"
-
 
 UUIInteractionComponent::UUIInteractionComponent()
 {

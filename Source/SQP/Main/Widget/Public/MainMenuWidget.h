@@ -7,6 +7,7 @@
 #include "Blueprint/UserWidget.h"
 #include "MainMenuWidget.generated.h"
 
+class UTextBlock;
 class UWidgetSwitcher;
 class UEditableTextBox;
 class UVerticalBox;
@@ -40,22 +41,35 @@ private:
 	UFUNCTION()
 	void OnBackButtonClicked();
 
+	UFUNCTION()
+	void OnEnterNicknameTextCommitted(const FText& InText, ETextCommit::Type InCommitMethod);
+
+	//세션 검색 여부를 
 	UPROPERTY(VisibleAnywhere)
 	bool bIsFindingSession;
 
+	//검색 버튼 콜백
 	UFUNCTION()
 	void OnFindButtonClicked();
 
+	//세션 검색 성공 시 처리하기 위해서 등록하는 콜백
 	void OnFindCompleted(const TArray<FOnlineSessionSearchResult>& Results);
 
+	//검색한 세션 정보를 표시하는 위젯 블루프린트 클래스
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> SessionInfoWidgetClass;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(BindWidget))
 	TObjectPtr<UWidgetSwitcher> WidgetSwitcher;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(BindWidget))
+	TObjectPtr<UEditableTextBox> EnterNicknameTextBox;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(BindWidget))
+	TObjectPtr<UTextBlock> WelcomeTextBlock;
 	
-	UPROPERTY(meta=(BindWidget))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(BindWidget))
 	TObjectPtr<UVerticalBox> ButtonContainer;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(BindWidget))

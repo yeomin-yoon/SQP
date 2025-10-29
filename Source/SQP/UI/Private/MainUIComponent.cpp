@@ -6,8 +6,7 @@
 #include "LikeUI.h"
 #include "MainUI.h"
 #include "SQP_PC_PaintRoom.h"
-#include "SQP_PS_PaintRoom.h"
-#include "UIInteractionComponent.h"
+#include "SQP_PS_Master.h"
 #include "UIManager.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Components/Button.h"
@@ -57,9 +56,9 @@ UMainUIComponent::UMainUIComponent()
 
 void UMainUIComponent::OnClick()
 {
-	if (APawn* TargetPawn = Cast<APawn>(GetOwner()))
+	if (const APawn* TargetPawn = Cast<APawn>(GetOwner()))
 	{
-		if (ASQP_PS_PaintRoom* TargetPS = Cast<ASQP_PS_PaintRoom>(TargetPawn->GetPlayerState()))
+		if (ASQP_PS_Master* TargetPS = TargetPawn->GetPlayerState<ASQP_PS_Master>())
 		{
 			ASQP_PC_PaintRoom* LocalPC = Cast<ASQP_PC_PaintRoom>(GetWorld()->GetFirstPlayerController());
 			LocalPC->Server_CountLike(TargetPS);

@@ -46,6 +46,9 @@ public class SQP : ModuleRules
 			"SQP/Variant_SideScrolling/Gameplay",
 			"SQP/Variant_SideScrolling/AI",
 			
+			//디폴트
+			Path.Combine(ModuleDirectory, "Default", "Public"),
+			
 			//로비
 			Path.Combine(ModuleDirectory, "Lobby/Default", "Public"),
 			Path.Combine(ModuleDirectory, "Lobby/Widget", "Public"),

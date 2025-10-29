@@ -6,6 +6,7 @@
 #include "Components/Button.h"
 #include "Components/EditableTextBox.h"
 #include "Components/WidgetSwitcher.h"
+#include "Kismet/GameplayStatics.h"
 
 void UPaintRoomWidget::NativeConstruct()
 {
@@ -56,7 +57,7 @@ void UPaintRoomWidget::OnSaveButtonClicked()
 
 void UPaintRoomWidget::OnBackMainMenuButtonClicked()
 {
-	
+	UGameplayStatics::OpenLevel(GetWorld(), "Main");
 }
 
 void UPaintRoomWidget::OnBackPaintRoomButtonClicked()

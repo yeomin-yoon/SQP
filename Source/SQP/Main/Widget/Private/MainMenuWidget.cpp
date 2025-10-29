@@ -1,13 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "MainMenuWidget.h"
 
 #include "OnlineSessionSettings.h"
 #include "SessionInfoWidget.h"
 #include "SocketSubsystem.h"
 #include "SQP.h"
-#include "SQPGameInstance.h"
+#include "SQP_GI.h"
 #include "Components/Button.h"
 #include "Components/CanvasPanel.h"
 #include "Components/EditableTextBox.h"
@@ -40,10 +39,29 @@ void UMainMenuWidget::NativeConstruct()
 	BackButtonTwo->OnClicked.AddDynamic(this, &UMainMenuWidget::OnBackButtonClicked);
 
 	//시션 검색 완료 콜백 바인딩
-	if (const auto GI = Cast<USQPGameInstance>(GetGameInstance()))
+	if (const auto GI = Cast<USQP_GI>(GetGameInstance()))
 	{
 		GI->OnFindCompleteDelegate.AddUObject(this, &UMainMenuWidget::OnFindCompleted);
 	}
+
+	//메인 세이브를 이용해 재방문 여부 구분
+	if (const auto GI = Cast<USQP_GI>(GetGameInstance()))
+	{
+		if (GI->LoadMainSaveGame())
+		{
+			WelcomeTextBlock->SetText(FText::FromString(TEXT("다시 돌아오신걸 환영합니다!")));
+		}
+		else
+		{
+			WelcomeTextBlock->SetText(FText::FromString(TEXT("처음 뵙겠습니다!")));
+		}
+	}
+
+	//텍스트 바인딩
+	EnterNicknameTextBox->OnTextCommitted.AddDynamic(this, &UMainMenuWidget::OnEnterNicknameTextCommitted);
+
+	//환영 판넬로 스위칭
+	WidgetSwitcher->SetActiveWidgetIndex(3);
 }
 
 void UMainMenuWidget::NativeOnInitialized()
@@ -57,15 +75,14 @@ void UMainMenuWidget::OnHostMenuButtonClicked()
 	bool bCanBindAll;
 	const TSharedPtr<FInternetAddr> LocalAddr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->GetLocalHostAddr(*GLog, bCanBindAll);
 	URL = LocalAddr.IsValid() ? LocalAddr->ToString(false) : "127.0.0.1";
-	
-	// PRINTLOG(TEXT("%s"), *URL);
-	//
-	// //로비 레벨을 리슨 서버 옵션으로 시작
-	// UGameplayStatics::OpenLevel(this, FName("Lobby"), true, "listen");
 
-	if (auto GI = Cast<USQPGameInstance>(GetGameInstance()))
+	if (const auto GI = Cast<USQP_GI>(GetGameInstance()))
 	{
 		GI->CreateMySession(TEXT("정우의 방"), 4);
+	}
+	else
+	{
+		PRINTLOG(TEXT("Game Instance is Not Valid!"));
 	}
 }
 
@@ -98,6 +115,21 @@ void UMainMenuWidget::OnBackButtonClicked()
 	WidgetSwitcher->SetActiveWidgetIndex(0);
 }
 
+void UMainMenuWidget::OnEnterNicknameTextCommitted(const FText& InText, ETextCommit::Type InCommitMethod)
+{
+	if (const FString NewNickname = InText.ToString(); NewNickname.Len() > 0)
+	{
+		if (const auto GI = Cast<USQP_GI>(GetGameInstance()))
+		{
+			//게임 인스턴스에 입력한 정보를 저장
+			GI->AssignNewUser(NewNickname);
+		}
+
+		//비로소 메인 메뉴로 전환
+		WidgetSwitcher->SetActiveWidgetIndex(0);
+	}
+}
+
 void UMainMenuWidget::OnFindButtonClicked()
 {
 	//이미 검색 중이라면
@@ -106,13 +138,16 @@ void UMainMenuWidget::OnFindButtonClicked()
 		return;
 	}
 	
-	if (const auto GI = Cast<USQPGameInstance>(GetGameInstance()))
+	if (const auto GI = Cast<USQP_GI>(GetGameInstance()))
 	{
 		//차단기 올리기
 		bIsFindingSession = true;
 
 		//세션 검색
 		GI->FindOtherSession();
+
+		//버튼 잠시 비활성화
+		FindButton->SetIsEnabled(!bIsFindingSession);
 	}
 }
 
@@ -137,4 +172,7 @@ void UMainMenuWidget::OnFindCompleted(const TArray<FOnlineSessionSearchResult>& 
 
 	//검색 종료
 	bIsFindingSession = false;
+
+	//버튼 다시 활성화
+	FindButton->SetIsEnabled(!bIsFindingSession);
 }

@@ -2,11 +2,7 @@
 
 #include "SQPPaintBallProjectile.h"
 #include "SQPPaintWorldSubsystem.h"
-#include "SQPPlayer.h"
-#include "SQP_PS_PaintRoom.h"
-#include "UIManager.h"
 #include "Components/SphereComponent.h"
-#include "Kismet/GameplayStatics.h"
 
 ASQPPaintBallProjectile::ASQPPaintBallProjectile()
 {
@@ -36,8 +32,6 @@ void ASQPPaintBallProjectile::OnOverlapBeginCallback(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("PaintBall BeginOverlap!"));
-
 	if (HasAuthority())
 	{
 		//모든 클라이언트에 채색 시도 명령
