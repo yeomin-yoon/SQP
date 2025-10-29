@@ -3,19 +3,44 @@
 #include "SQP_PC_Lobby.h"
 
 #include "ActiveButton.h"
-#include "ActiveButtonBox.h"
 #include "HostSideLobbyMenuWidget.h"
 #include "SQP.h"
 #include "SQP_GM_Lobby.h"
-#include "SQP_PS_Lobby.h"
 #include "LobbyMenuWidgetBase.h"
-#include "SQPGameInstance.h"
+#include "SQP_GI.h"
 #include "SQP_GS_Lobby.h"
+#include "SQP_PS_LobbyRoomComponent.h"
+#include "SQP_PS_Master.h"
 #include "Kismet/GameplayStatics.h"
 
 ASQP_GM_Lobby* ASQP_PC_Lobby::GetHostGameMode() const
 {
 	return Cast<ASQP_GM_Lobby>(GetWorld()->GetAuthGameMode());	
+}
+
+void ASQP_PC_Lobby::Server_SetLobbyState_Implementation(const ELobbyState Value)
+{
+	if (const auto PSMaster = Cast<ASQP_PS_Master>(PlayerState))
+	{
+		//요청대로 플레이어 스테이트 변경, 이후 자동으로 모든 클라이언트에 리플리케이션
+		PSMaster->LobbyRoom->LOBBY_STATE = Value;
+
+		//현존 플레이어 정보를 업데이트 한다
+		for (auto PlayerInfo : Cast<ASQP_GS_Lobby>(GetWorld()->GetGameState())->ExistingPlayerInfoArray)
+		{
+			if (PlayerInfo.PlayerUniqueId == PlayerState->GetUniqueId()->ToString())
+			{
+				PlayerInfo.LobbyState = Value;
+			}
+		}
+	
+		//전체 플레이어의 준비 상태에 따라서 시작 버튼을 활성화
+		if (const auto HostLobbyMenuWidget = Cast<UHostSideLobbyMenuWidget>(GetHostGameMode()->GetHostPlayerController()->LobbyMenuWidget))
+		{
+			const bool bIsAllReady = GetHostGameMode()->CheckAllPlayersReady();
+			HostLobbyMenuWidget->StartButton->SetActive(bIsAllReady);
+		}
+	}
 }
 
 void ASQP_PC_Lobby::LeaveLobby() const
@@ -24,7 +49,7 @@ void ASQP_PC_Lobby::LeaveLobby() const
 	LobbyMenuWidget->RemoveFromParent();
 	
 	//세션을 파괴하고 메인 메뉴로 복귀한다
-	if (const auto GI = Cast<USQPGameInstance>(GetGameInstance()))
+	if (const auto GI = Cast<USQP_GI>(GetGameInstance()))
 	{
 		GI->TerminateMySession();
 	}
@@ -73,26 +98,4 @@ void ASQP_PC_Lobby::Client_CreateLobbyWidget_Implementation(const TSubclassOf<UU
 	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 	
 	PRINTLOGNET(TEXT("Client RPC CreateLobbyWidget End!"));
-}
-
-void ASQP_PC_Lobby::Server_SetLobbyState_Implementation(const ELobbyState Value)
-{
-	//현존 플레이어 정보를 업데이트 한다
-	for (auto PlayerInfo : Cast<ASQP_GS_Lobby>(GetWorld()->GetGameState())->ExistingPlayerInfoArray)
-	{
-		if (PlayerInfo.PlayerUniqueId == PlayerState->GetUniqueId()->ToString())
-		{
-			PlayerInfo.LobbyState = Value;
-		}
-	}
-	
-	//요청대로 플레이어 스테이트 변경, 이후 자동으로 모든 클라이언트에 리플리케이션
-	Cast<ASQP_PS_Lobby>(PlayerState)->LOBBY_STATE = Value;
-	
-	//전체 플레이어의 준비 상태에 따라서 시작 버튼을 활성화
-	if (const auto HostLobbyMenuWidget = Cast<UHostSideLobbyMenuWidget>(GetHostGameMode()->GetHostPlayerController()->LobbyMenuWidget))
-	{
-		const bool bIsAllReady = GetHostGameMode()->CheckAllPlayersReady();
-		HostLobbyMenuWidget->StartButton->SetActive(bIsAllReady);
-	}
 }

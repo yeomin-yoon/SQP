@@ -6,11 +6,37 @@
 #include "SQP_SG_Main.h"
 #include "Engine/GameInstance.h"
 #include "Interfaces/OnlineSessionInterface.h"
-#include "SQPGameInstance.generated.h"
+#include "SQP_GI.generated.h"
 
 struct FSQP_PainRoomSaveFormat;
 class USQP_SG_PaintRoom;
 class USaveGame;
+
+USTRUCT()
+struct FUserInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	FString UserNickname;
+
+	UPROPERTY()
+	FGuid UserID;
+
+	UPROPERTY()
+	FString UserIDString;
+
+	FUserInfo() : UserNickname(TEXT("ANONYMOUS"))
+	{
+		UserID = FGuid::NewGuid();
+		UserIDString = UserID.ToString();
+	}
+	FUserInfo(const FString& InNickname) : UserNickname(InNickname)
+	{
+		UserID = FGuid::NewGuid();
+		UserIDString = UserID.ToString();
+	}
+};
 
 UENUM(BlueprintType)
 enum class EProgramState : uint8
@@ -27,12 +53,22 @@ static const FName SESSION_NAME = FName(TEXT("DP_NAME"));
 static const FString MAIN_SAVE = TEXT("MAIN_SAVE");
 
 UCLASS()
-class SQP_API USQPGameInstance : public UGameInstance
+class SQP_API USQP_GI : public UGameInstance
 {
 	GENERATED_BODY()
 
 public:
 	virtual void Init() override;
+
+#pragma region 유저 스테이트
+
+	UPROPERTY()
+	FUserInfo UserInfo;
+
+	UFUNCTION()
+	FORCEINLINE void AssignNewUser(const FString& NewNickname) { UserInfo = FUserInfo(NewNickname); }
+
+#pragma endregion
 
 #pragma region 프로그램 스테이트
 

@@ -2,9 +2,6 @@
 
 #include "SQPPaintBallProjectile.h"
 #include "SQPPaintWorldSubsystem.h"
-#include "SQPPlayer.h"
-#include "SQP_PS_PaintRoom.h"
-#include "UIManager.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PaintGaming/Public/ReadyActor.h"
@@ -37,8 +34,6 @@ void ASQPPaintBallProjectile::OnOverlapBeginCallback(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("PaintBall BeginOverlap!"));
-
 	if (HasAuthority())
 	{
 		//모든 클라이언트에 채색 시도 명령
@@ -85,8 +80,7 @@ void ASQPPaintBallProjectile::Multicast_ColorPaintBall_Implementation(const FLin
 	}
 }
 
-void ASQPPaintBallProjectile::Multicast_TryPaint_Implementation(const FLinearColor BrushColor,
-                                                                const float BrushSizeValue)
+void ASQPPaintBallProjectile::Multicast_TryPaint_Implementation(const FLinearColor BrushColor, const float BrushSizeValue)
 {
 	const FVector Offset = GetActorForwardVector() * 200;
 	const FVector Start = GetActorLocation() - Offset;

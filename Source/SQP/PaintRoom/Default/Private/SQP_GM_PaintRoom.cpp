@@ -4,11 +4,11 @@
 
 #include "PaintRoomWidget.h"
 #include "SQP.h"
-#include "SQPGameInstance.h"
+#include "SQP_GI.h"
 #include "SQPPaintWorldSubsystem.h"
 #include "SQP_GS_PaintRoom.h"
 #include "SQP_PC_PaintRoom.h"
-#include "SQP_PS_PaintRoom.h"
+#include "SQP_PS_Master.h"
 
 ASQP_GM_PaintRoom::ASQP_GM_PaintRoom()
 {
@@ -21,8 +21,8 @@ ASQP_GM_PaintRoom::ASQP_GM_PaintRoom()
 	}
 
 	//플레이어 스테이트 클래스 로드
-	if (static ConstructorHelpers::FClassFinder<ASQP_PS_PaintRoom>
-		Finder(TEXT("/Game/Splatoon/Blueprint/PaintRoomLevel/BP_SQP_PS_PaintRoom.BP_SQP_PS_PaintRoom_C"));
+	if (static ConstructorHelpers::FClassFinder<ASQP_PS_Master>
+		Finder(TEXT("/Game/Splatoon/Blueprint/Default/BP_SQP_PS_Master.BP_SQP_PS_Master_C"));
 		Finder.Succeeded())
 	{
 		PlayerStateClass = Finder.Class;
@@ -55,7 +55,7 @@ void ASQP_GM_PaintRoom::BeginPlay()
 	Created->AddToViewport();
 
 	//선택된 페인트 룸 데이터를 로드에 성공했다면
-	if (const auto SaveGame = Cast<USQPGameInstance>(GetWorld()->GetGameInstance())->LoadSelectedPaintRoomData())
+	if (const auto SaveGame = Cast<USQP_GI>(GetWorld()->GetGameInstance())->LoadSelectedPaintRoomData())
 	{
 		if (USQP_SG_PaintRoom* SG_PaintRoom = Cast<USQP_SG_PaintRoom>(SaveGame))
 		{

@@ -8,7 +8,7 @@
 #include "HostSideLobbyPlayerInfoWidget.h"
 #include "PaintRoomSaveInfoWidget.h"
 #include "SelectedPRSInfoWidget.h"
-#include "SQPGameInstance.h"
+#include "SQP_GI.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -42,7 +42,7 @@ void UHostSideLobbyMenuWidget::NativeConstruct()
 	CancelSaveDataSelectionButton->OnClicked.AddDynamic(this, &UHostSideLobbyMenuWidget::OnCancelSaveDataSelectionButtonClicked);
 
 	//메인 세이브 게임에 접근
-	if (const auto MainSaveGame = Cast<USQP_SG_Main>(USQPGameInstance::LoadMainSaveGame()))
+	if (const auto MainSaveGame = Cast<USQP_SG_Main>(USQP_GI::LoadMainSaveGame()))
 	{
 		//페인트 룸 세이브 게임 하나마다
 		for (auto PainRoomSave : MainSaveGame->PaintRoomSaveArray)
@@ -85,7 +85,7 @@ void UHostSideLobbyMenuWidget::OnOtherPlayerEnter(FPlayerInfo& NewPlayerInfo)
 void UHostSideLobbyMenuWidget::OnCancelSaveDataSelectionButtonClicked()
 {
 	//게임 인스턴스에 지정된 페인트 룸 세이브 ID를 초기화한다
-	Cast<USQPGameInstance>(GetWorld()->GetGameInstance())->SetTargetPaintRoomSave(FSQP_PainRoomSaveFormat());
+	Cast<USQP_GI>(GetWorld()->GetGameInstance())->SetTargetPaintRoomSave(FSQP_PainRoomSaveFormat());
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
@@ -98,7 +98,7 @@ void UHostSideLobbyMenuWidget::OnSaveDataSlotDoubleClicked(UPaintRoomSaveInfoWid
 	}
 	
 	//게임 인스턴스에 지정된 페인트 룸 세이브 ID를 재설정한다
-	Cast<USQPGameInstance>(GetWorld()->GetGameInstance())->SetTargetPaintRoomSave(Target->BindingPRS);
+	Cast<USQP_GI>(GetWorld()->GetGameInstance())->SetTargetPaintRoomSave(Target->BindingPRS);
 
 	//이전에 선택된 위젯이 있었다면
 	if (CurrentSelectedPaintRoomSaveInfoWidget)

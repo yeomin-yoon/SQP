@@ -4,26 +4,24 @@
 #include "PaintRoom/Default/Public/SQP_PC_PaintRoom.h"
 
 #include "SkyViewPawn.h"
-#include "SQP_PS_PaintRoom.h"
+#include "SQP_PS_Master.h"
+#include "SQP_PS_PaintRoomComponent.h"
 #include "TankCharacter.h"
-#include "GameFramework/GameStateBase.h"
-
 
 void ASQP_PC_PaintRoom::Server_PaintColorChange_Implementation(const FLinearColor Value)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, TEXT("PaintColorChange!"));
-	GetPlayerState<ASQP_PS_PaintRoom>()->SelectedColor = Value;
+	GetPlayerState<ASQP_PS_Master>()->PaintRoom->SelectedColor = Value;
 }
 
-void ASQP_PC_PaintRoom::Server_ChangeBrushSize_Implementation(float Value)
+void ASQP_PC_PaintRoom::Server_ChangeBrushSize_Implementation(const float Value)
 {
-	GetPlayerState<ASQP_PS_PaintRoom>()->SelectedBrushSize = Value;
+	GetPlayerState<ASQP_PS_Master>()->PaintRoom->SelectedBrushSize = Value;
 }
 
-void ASQP_PC_PaintRoom::Server_UpdateLikes_Implementation(int32 LikeNum)
+void ASQP_PC_PaintRoom::Server_UpdateLikes_Implementation(const int32 LikeNum)
 {
-	ASQP_PS_PaintRoom* PS = Cast<ASQP_PS_PaintRoom>(PlayerState);
-	PS->LikeCounter = LikeNum;
+	GetPlayerState<ASQP_PS_Master>()->PaintRoom->LikeCounter = LikeNum;
 }
 
 void ASQP_PC_PaintRoom::BeginPlay()
@@ -101,6 +99,11 @@ void ASQP_PC_PaintRoom::OnSkyView()
 	Server_PossessSkyView();
 }
 
+void ASQP_PC_PaintRoom::Server_CountLike_Implementation(ASQP_PS_Master* TargetPS)
+{
+	TargetPS->PaintRoom->IncreaseLikeCounter();
+}
+
 void ASQP_PC_PaintRoom::Server_PossessSkyView_Implementation()
 {
 	Possess(SkyViewPawn);
@@ -109,9 +112,4 @@ void ASQP_PC_PaintRoom::Server_PossessSkyView_Implementation()
 void ASQP_PC_PaintRoom::Server_PossessPreviousPawn_Implementation()
 {
 	Possess(PreviousPawn);
-}
-
-void ASQP_PC_PaintRoom::Server_CountLike_Implementation(class ASQP_PS_PaintRoom* TargetPS)
-{
-	TargetPS->IncreaseLikeCounter();
 }

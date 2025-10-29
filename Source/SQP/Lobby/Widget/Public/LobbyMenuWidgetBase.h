@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SQP_PS_Lobby.h"
 #include "Blueprint/UserWidget.h"
 #include "LobbyMenuWidgetBase.generated.h"
 

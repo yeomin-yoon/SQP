@@ -13,6 +13,7 @@
 #include "UIInteractionComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/PlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
 
 
@@ -97,6 +98,11 @@ void ATankCharacter::BeginPlay()
 void ATankCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (GetPlayerState())
+	{
+		DrawDebugString(GetWorld(), GetActorLocation(), GetPlayerState()->GetPlayerName(), nullptr, FColor::Red, 0);	
+	}
 }
 
 // Called to bind functionality to input

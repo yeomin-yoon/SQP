@@ -2,15 +2,15 @@
 
 #include "SQP_GM_Lobby.h"
 
-#include "ActiveButton.h"
 #include "HostSideLobbyMenuWidget.h"
 #include "SQP.h"
-#include "SQPGameInstance.h"
+#include "SQP_GI.h"
 #include "SQPGameState.h"
 #include "SQPPlayerController.h"
 #include "SQP_GS_Lobby.h"
 #include "SQP_PC_Lobby.h"
-#include "SQP_PS_Lobby.h"
+#include "SQP_PS_LobbyRoomComponent.h"
+#include "SQP_PS_Master.h"
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/GameSession.h"
 #include "GameFramework/GameStateBase.h"
@@ -24,8 +24,8 @@ ASQP_GM_Lobby::ASQP_GM_Lobby()
 		PlayerControllerClass = Finder.Class;
 	}
 
-	if (static ConstructorHelpers::FClassFinder<ASQP_PS_Lobby>
-		Finder(TEXT("/Game/Splatoon/Blueprint/LobbyLevel/BP_SQP_PS_Lobby.BP_SQP_PS_Lobby_C"));
+	if (static ConstructorHelpers::FClassFinder<ASQP_PS_Master>
+		Finder(TEXT("/Game/Splatoon/Blueprint/Default/BP_SQP_PS_Master.BP_SQP_PS_Master_C"));
 		Finder.Succeeded())
 	{
 		PlayerStateClass = Finder.Class;
@@ -37,11 +37,8 @@ ASQP_GM_Lobby::ASQP_GM_Lobby()
 	{
 		GameStateClass = Finder.Class;
 	}
-}
 
-void ASQP_GM_Lobby::BeginPlay()
-{
-	Super::BeginPlay();
+	bUseSeamlessTravel = true;
 }
 
 ASQP_PC_Lobby* ASQP_GM_Lobby::GetHostPlayerController() const
@@ -79,19 +76,6 @@ void ASQP_GM_Lobby::PostLogin(APlayerController* NewPlayer)
 	//클라이언트에 지정한 위젯을 생성해서 보여주도록 명령
 	NewPC->Client_CreateLobbyWidget(TargetWidgetClassToShow);
 
-	//새로 들어온 플레이어에 이름을 할당
-	if (const auto PlayerState = NewPlayer->PlayerState)
-	{
-		const FString RandomPlayerName = FString::Printf(TEXT("Player_%d"), GameState->PlayerArray.Num());
-		PlayerState->SetPlayerName(RandomPlayerName);
-	}
-	
-	//게임 스테이트에 새로운 플레이어의 정보 추가
-	if (const auto GS = Cast<ASQP_GS_Lobby>(GetWorld()->GetGameState()))
-	{
-		GS->OnNewPlayerLogin(NewPC);
-	}
-
 	PRINTLOGNET(TEXT("Lobby PostLogin End!"));
 }
 
@@ -128,10 +112,13 @@ bool ASQP_GM_Lobby::CheckAllPlayersReady() const
 		}
 		
 		//한 명이라도 준비가 안됐다면 게임을 시작할 준비가 되지 않은 것이다
-		if (const auto MyPS = Cast<ASQP_PS_Lobby>(PS); MyPS && MyPS->LOBBY_STATE == ELobbyState::UnreadyClient)
+		if (const auto PSMaster = Cast<ASQP_PS_Master>(PS))
 		{
-			PRINTLOGNET(TEXT("There is Unready Player!"));
-			return false;
+			if (PSMaster->LobbyRoom->LOBBY_STATE == ELobbyState::UnreadyClient)
+			{
+				PRINTLOGNET(TEXT("There is Unready Player!"));
+				return false;	
+			}
 		}
 	}
 	
@@ -143,10 +130,11 @@ void ASQP_GM_Lobby::MoveToGameMap()
 	//이동 가능 상태
 	if (CheckAllPlayersReady())
 	{
-		if (const auto GI = Cast<USQPGameInstance>(GetWorld()->GetGameInstance()))
+		if (const auto GI = Cast<USQP_GI>(GetWorld()->GetGameInstance()))
 		{
 			//적절한 페인트 룸 레벨을 선정한다
-			const FString TagetLevel = GI->GetTargetPaintRoomSave().Level.Equals("") ? TEXT("ArtGallery") : GI->GetTargetPaintRoomSave().Level;
+			FString TagetLevel = GI->GetTargetPaintRoomSave().Level.Equals("") ? TEXT("ArtGallery") : GI->GetTargetPaintRoomSave().Level;
+			TagetLevel += TEXT("?seamless");
 			
 			//클라이언트와 함께 페인트 룸으로 이동한다
 			GetWorld()->ServerTravel(TagetLevel);	
@@ -166,7 +154,7 @@ void ASQP_GM_Lobby::KickPlayerByUniqueId(const FString& PlayerUniqueId)
 			//PlayerState에서 고유 ID를 가져와 비교
 			if (TargetPC->PlayerState->GetUniqueId()->ToString() == PlayerUniqueId)
 			{
-				if (UNetConnection* Connection = Cast<UNetConnection>(TargetPC->Player))
+				if (const UNetConnection* Connection = Cast<UNetConnection>(TargetPC->Player))
 				{
 					GameSession->KickPlayer(Connection->PlayerController, KickReason);
 				}

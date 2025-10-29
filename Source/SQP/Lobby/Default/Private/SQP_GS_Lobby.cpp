@@ -7,7 +7,8 @@
 #include "SQP.h"
 #include "SQP_GM_Lobby.h"
 #include "SQP_PC_Lobby.h"
-#include "SQP_PS_Lobby.h"
+#include "SQP_PS_LobbyRoomComponent.h"
+#include "SQP_PS_Master.h"
 #include "Net/UnrealNetwork.h"
 
 void ASQP_GS_Lobby::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -17,37 +18,12 @@ void ASQP_GS_Lobby::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	DOREPLIFETIME(ASQP_GS_Lobby, ExistingPlayerInfoArray);
 }
 
-void ASQP_GS_Lobby::AddPlayerState(APlayerState* PlayerState)
-{
-	Super::AddPlayerState(PlayerState);
-
-	//전체 플레이어의 준비 상태에 따라서 시작 버튼을 활성화
-	if (const auto HostLobbyMenuWidget = Cast<UHostSideLobbyMenuWidget>(GetHostPlayerController()->LobbyMenuWidget))
-	{
-		const bool bIsAllReady = GetHostGameMode()->CheckAllPlayersReady();
-		HostLobbyMenuWidget->StartButton->SetActive(bIsAllReady);
-	}
-}
-
-void ASQP_GS_Lobby::RemovePlayerState(APlayerState* PlayerState)
-{
-	Super::RemovePlayerState(PlayerState);
-
-	//전체 플레이어의 준비 상태에 따라서 시작 버튼을 활성화???
-	if (const auto HostLobbyMenuWidget = Cast<UHostSideLobbyMenuWidget>(GetHostPlayerController()->LobbyMenuWidget))
-	{
-		const bool bIsAllReady = GetHostGameMode()->CheckAllPlayersReady();
-		PRINTLOGNET(TEXT("한명 나가서 현재 숫자 %d"), GetWorld()->GetGameState()->PlayerArray.Num());
-		HostLobbyMenuWidget->StartButton->SetActive(bIsAllReady);
-	}
-}
-
-ASQP_PC_Lobby* ASQP_GS_Lobby::GetHostPlayerController()
+ASQP_PC_Lobby* ASQP_GS_Lobby::GetHostPlayerController() const
 {
 	return Cast<ASQP_PC_Lobby>(GetWorld()->GetFirstPlayerController());
 }
 
-ASQP_GM_Lobby* ASQP_GS_Lobby::GetHostGameMode()
+ASQP_GM_Lobby* ASQP_GS_Lobby::GetHostGameMode() const
 {
 	return Cast<ASQP_GM_Lobby>(GetWorld()->GetAuthGameMode());
 }
@@ -61,9 +37,9 @@ void ASQP_GS_Lobby::OnNewPlayerLogin(APlayerController* LoginPlayer)
 	}
 	
 	//이미 들어와있던 친구들에게 새로 들어온 친구들의 데이터를 넘겨준다
-	if (const auto NewPS = LoginPlayer->GetPlayerState<ASQP_PS_Lobby>())
+	if (const auto NewPS = LoginPlayer->GetPlayerState<ASQP_PS_Master>())
 	{
-		const auto NewPlayerInfo = NewPS->GetPlayerInfo();
+		const auto NewPlayerInfo = NewPS->LobbyRoom->GetPlayerInfo();
 		ExistingPlayerInfoArray.Add(NewPlayerInfo);
 
 		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
@@ -74,14 +50,21 @@ void ASQP_GS_Lobby::OnNewPlayerLogin(APlayerController* LoginPlayer)
 			}
 		}
 	}
+
+	//전체 플레이어의 준비 상태에 따라서 시작 버튼을 활성화
+	if (const auto HostLobbyMenuWidget = Cast<UHostSideLobbyMenuWidget>(GetHostPlayerController()->LobbyMenuWidget))
+	{
+		const bool bIsAllReady = GetHostGameMode()->CheckAllPlayersReady();
+		HostLobbyMenuWidget->StartButton->SetActive(bIsAllReady);
+	}
 }
 
 void ASQP_GS_Lobby::OnOldPlayerLogout(const AController* LogoutPlayer)
 {
 	//이미 들어와있던 친구들에게 새로 들어온 친구들의 데이터를 넘겨준다
-	if (const auto OutPC = LogoutPlayer->GetPlayerState<ASQP_PS_Lobby>())
+	if (const auto OutPS = LogoutPlayer->GetPlayerState<ASQP_PS_Master>())
 	{
-		const auto OutPlayerInfo = OutPC->GetPlayerInfo();
+		const auto OutPlayerInfo = OutPS->LobbyRoom->GetPlayerInfo();
 		ExistingPlayerInfoArray.Remove(OutPlayerInfo);
 
 		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
@@ -91,6 +74,14 @@ void ASQP_GS_Lobby::OnOldPlayerLogout(const AController* LogoutPlayer)
 				OldPC->Client_ReceiveExitPlayerInfo(OutPlayerInfo);
 			}
 		}
+	}
+
+	//전체 플레이어의 준비 상태에 따라서 시작 버튼을 활성화???
+	if (const auto HostLobbyMenuWidget = Cast<UHostSideLobbyMenuWidget>(GetHostPlayerController()->LobbyMenuWidget))
+	{
+		const bool bIsAllReady = GetHostGameMode()->CheckAllPlayersReady();
+		PRINTLOGNET(TEXT("한명 나가서 현재 숫자 %d"), GetWorld()->GetGameState()->PlayerArray.Num());
+		HostLobbyMenuWidget->StartButton->SetActive(bIsAllReady);
 	}
 }
 

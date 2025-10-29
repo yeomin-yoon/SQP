@@ -5,10 +5,9 @@
 #include "ProjectileBase.h"
 #include "ProjectilePoolWorldSubsystem.h"
 #include "SQPPaintBallProjectile.h"
-#include "SQPPlayer.h"
-#include "SQP_PS_PaintRoom.h"
+#include "SQP_PS_Master.h"
+#include "SQP_PS_PaintRoomComponent.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/GameStateBase.h"
 
 UProjectileShooterComponent::UProjectileShooterComponent() :
 	bIsOnTrigger(false),
@@ -68,12 +67,10 @@ void UProjectileShooterComponent::TickComponent(float DeltaTime, ELevelTick Tick
 						{
 							if (const auto Player = Cast<ACharacter>(GetOwner()))
 							{
-								if (const auto PlayerState = Player->GetPlayerState<ASQP_PS_PaintRoom>())
+								if (const auto PlayerState = Player->GetPlayerState<ASQP_PS_Master>())
 								{
-									PaintBall->SetPaintBallOwner(PlayerState);
-									PaintBall->SetPaintColor(PlayerState->SelectedColor);
-									PaintBall->SetBrushSize(PlayerState->SelectedBrushSize);
-									GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Green, TEXT("PaintBallReady!"));
+									PaintBall->SetPaintColor(PlayerState->PaintRoom->SelectedColor);
+									PaintBall->SetBrushSize(PlayerState->PaintRoom->SelectedBrushSize);
 								}
 							}
 						}

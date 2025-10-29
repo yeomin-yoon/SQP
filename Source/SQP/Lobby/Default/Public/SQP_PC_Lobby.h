@@ -7,7 +7,9 @@
 #include "GameFramework/PlayerController.h"
 #include "SQP_PC_Lobby.generated.h"
 
+class ASQP_PS_Lobby;
 class ASQP_GM_Lobby;
+struct FUserInfo;
 enum class ELobbyState : uint8;
 class ULobbyMenuWidgetBase;
 
@@ -49,7 +51,7 @@ public:
 	UFUNCTION()
 	ASQP_GM_Lobby* GetHostGameMode() const;
 
-	
+	//클라이언트가 쫓겨났을 때 호출되는 메서드로, 오버라이드 하여 다양한 액션 구현
 	virtual void ClientWasKicked_Implementation(const FText& KickReason) override;
 	
 

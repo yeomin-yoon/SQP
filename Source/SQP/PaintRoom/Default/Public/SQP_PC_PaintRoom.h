@@ -6,6 +6,8 @@
 #include "SQPPlayerController.h"
 #include "SQP_PC_PaintRoom.generated.h"
 
+class ASQP_PS_Master;
+
 UCLASS()
 class SQP_API ASQP_PC_PaintRoom : public ASQPPlayerController
 {
@@ -48,5 +50,5 @@ public:
 	void OnSkyView();
 
 	UFUNCTION(Server, Reliable)
-	void Server_CountLike(class ASQP_PS_PaintRoom* TargetPS);
+	void Server_CountLike(ASQP_PS_Master* TargetPS);
 };

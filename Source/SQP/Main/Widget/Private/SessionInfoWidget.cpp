@@ -3,7 +3,7 @@
 
 #include "SessionInfoWidget.h"
 
-#include "SQPGameInstance.h"
+#include "SQP_GI.h"
 #include "Components/Button.h"
 
 void USessionInfoWidget::NativeConstruct()
@@ -16,7 +16,7 @@ void USessionInfoWidget::NativeConstruct()
 // ReSharper disable once CppMemberFunctionMayBeConst
 void USessionInfoWidget::OnJoinButtonClicked()
 {
-	if (const auto GI = Cast<USQPGameInstance>(GetGameInstance()))
+	if (const auto GI = Cast<USQP_GI>(GetGameInstance()))
 	{
 		GI->JoinOtherSession(BindingSessionIdx);
 	}

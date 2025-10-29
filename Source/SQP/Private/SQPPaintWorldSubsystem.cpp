@@ -7,7 +7,7 @@
 #include "PropertyAccess.h"
 #include "SavablePaint.h"
 #include "SQP.h"
-#include "SQPGameInstance.h"
+#include "SQP_GI.h"
 #include "Engine/Canvas.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/GameplayStatics.h"
@@ -270,7 +270,7 @@ void USQPPaintWorldSubsystem::SavePaintOfWorld(const FString& PaintRoomSaveName)
 	}
 
 	//게임 인스턴스에 저장 요청
-	Cast<USQPGameInstance>(GetWorld()->GetGameInstance())->SavePaintRoomData(PaintRoomSaveName, FGuid::NewGuid(), SaveGame);
+	Cast<USQP_GI>(GetWorld()->GetGameInstance())->SavePaintRoomData(PaintRoomSaveName, FGuid::NewGuid(), SaveGame);
 
 	PRINTLOG(TEXT("PaintWorldSubsystem Save PaintTextureData!"));
 }
