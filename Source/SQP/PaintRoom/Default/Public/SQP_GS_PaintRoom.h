@@ -23,7 +23,7 @@ class SQP_API ASQP_GS_PaintRoom : public ASQPGameState
 
 public:
 	ASQP_GS_PaintRoom();
-
+	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	//서버로부터 PED 배열을 최초 1회만 전달받는다
@@ -48,7 +48,8 @@ public:
 	TArray<UTexture2D*> ComparisonTextures;
 	TArray<FString> PlayerNames;
 
-	void AddPlayerTexture(const FString& PlayerName, UTexture2D* Texture);
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_AddPlayerTexture(const FString& PlayerName, UTexture2D* Texture);
 
 	// for (const auto& Pair : PlayerTextureMap)
 	// {

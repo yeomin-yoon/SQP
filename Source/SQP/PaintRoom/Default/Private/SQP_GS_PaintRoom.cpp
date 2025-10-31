@@ -5,12 +5,44 @@
 
 #include "SQPPaintWorldSubsystem.h"
 #include "SQP_SG_PaintRoom.h"
+#include "GameFramework/PlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 ASQP_GS_PaintRoom::ASQP_GS_PaintRoom()
 {
 	//리플리케이션 활성화
 	bReplicates = true;
+}
+
+void ASQP_GS_PaintRoom::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server GameState BeginPlay: Player count = %d"), PlayerArray.Num());
+	}
+	else
+	{
+		// 클라이언트는 복제 지연이 있으므로 타이머로 나중에 확인
+		FTimerHandle TimerHandle;
+		GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Client GameState: Player count = %d"), PlayerArray.Num());
+			for (APlayerState* PlayerState : PlayerArray)
+			{
+				if (PlayerState)
+				{
+					FString PlayerName = PlayerState->GetPlayerName();
+					UE_LOG(LogTemp, Warning, TEXT("Player: %s"), *PlayerName);
+			
+					UE_LOG(LogTemp, Warning, TEXT("PlayerState: %s"), *PlayerState->GetName());
+				}
+			}
+		}, 5, false);
+	}
+	
+	//Multicast_AddPlayerTexture(, nullptr);
 }
 
 void ASQP_GS_PaintRoom::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -56,7 +88,7 @@ void ASQP_GS_PaintRoom::OnRep_PaintExecutionDataSnapshot()
 	}
 }
 
-void ASQP_GS_PaintRoom::AddPlayerTexture(const FString& PlayerName, UTexture2D* Texture)
+void ASQP_GS_PaintRoom::Multicast_AddPlayerTexture_Implementation(const FString& PlayerName, UTexture2D* Texture)
 {
 	PlayerTextureMap.Add(PlayerName, Texture);
 }
