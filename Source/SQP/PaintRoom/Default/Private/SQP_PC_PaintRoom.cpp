@@ -164,9 +164,9 @@ void ASQP_PC_PaintRoom::Server_ReceiveCatchMindAnswer_Implementation(const FStri
 	}
 }
 
-void ASQP_PC_PaintRoom::Client_ReceiveCatchMindSuggestion_Implementation(const FString& Suggestion)
+void ASQP_PC_PaintRoom::Client_ReceiveCatchMindSuggestion_Implementation(const FString& Suggestion, const FString& Hint)
 {
-	CatchMindWidget->SetSuggestionText(Suggestion);
+	CatchMindWidget->SetSuggestionText(Suggestion, Hint);
 }
 
 void ASQP_PC_PaintRoom::Server_CountLike_Implementation(ASQP_PS_Master* TargetPS)

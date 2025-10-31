@@ -36,7 +36,7 @@ public:
 	void ShowWrong();
 
 	UFUNCTION()
-	void SetSuggestionText(const FString& Suggestion) const;
+	void SetSuggestionText(const FString& Suggestion, const FString& Hint) const;
 
 protected:
 	UPROPERTY(meta=(BindWidget))
@@ -52,8 +52,11 @@ protected:
 	TObjectPtr<UTextBlock> SuggestionTextBlock;
 	
 	UPROPERTY(meta=(BindWidget))
-	TObjectPtr<UTextBlock> TimerTextBlock;
+	TObjectPtr<UTextBlock> HintTextBlock;
 
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> HintTitleTextBlock;
+	
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UEditableTextBox> AnswerTextBox;
 

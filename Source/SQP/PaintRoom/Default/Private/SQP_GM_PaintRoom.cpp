@@ -44,7 +44,14 @@ ASQP_GM_PaintRoom::ASQP_GM_PaintRoom()
 	{
 		PaintRoomWidgetClass = Finder.Class;
 	}
-	
+
+	//캐치 마인드 데이터 테이블 로드
+	if (static ConstructorHelpers::FObjectFinder<UDataTable>
+		Finder(TEXT("/Game/Splatoon/Data/CatchMindDataTable.CatchMindDataTable"));
+		Finder.Succeeded())
+	{
+		CatchMindMiniGameDataTable = Finder.Object;
+	}
 }
 
 void ASQP_GM_PaintRoom::BeginPlay()
@@ -107,8 +114,12 @@ void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
 			TempPSMasterArray[i]->PaintRoom->PAINT_ROOM_ROLE = (i == PainterIdx ? EPaintRoomRole::CatchMindPainter : EPaintRoomRole::CatchMindParticipant); 
 		}
 
+		const int32 Rand = FMath::RandRange(1, SuggestionArray.Num());
+		const FCatchMind* Selected = CatchMindMiniGameDataTable->FindRow<FCatchMind>(FName(FString::Printf(TEXT("제시어%d"), Rand)), TEXT(""));
+		
 		//랜덤 제시어를 하나 선택
-		const FString Suggestion = SuggestionArray[FMath::RandRange(0, SuggestionArray.Num() - 1)];
+		const FString Hint = Selected->Hint;
+		const FString Suggestion = Selected->Suggestion;
 
 		//모든 유저에게 제시어 업데이트 명령
 		for (int i = 0; i < Size; i++)
@@ -126,7 +137,7 @@ void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
 					Target += TEXT("?");
 				}
 			}
-			TempPCPaintArray[i]->Client_ReceiveCatchMindSuggestion(Target);
+			TempPCPaintArray[i]->Client_ReceiveCatchMindSuggestion(Target, Hint);
 		}
 
 		//제시어 업데이트

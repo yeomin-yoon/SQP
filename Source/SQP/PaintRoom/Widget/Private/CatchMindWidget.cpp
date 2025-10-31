@@ -21,7 +21,8 @@ void UCatchMindWidget::HideAll() const
 	ParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	SuggestionTitleTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	SuggestionTextBlock->SetVisibility(ESlateVisibility::Hidden);
-	TimerTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	HintTitleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	HintTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	WrongTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	CorrectTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	AnswerTextBox->SetVisibility(ESlateVisibility::Hidden);
@@ -34,7 +35,8 @@ void UCatchMindWidget::ShowPainter() const
 	ParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	SuggestionTitleTextBlock->SetVisibility(ESlateVisibility::Visible);
 	SuggestionTextBlock->SetVisibility(ESlateVisibility::Visible);
-	TimerTextBlock->SetVisibility(ESlateVisibility::Visible);
+	HintTitleTextBlock->SetVisibility(ESlateVisibility::Visible);
+	HintTextBlock->SetVisibility(ESlateVisibility::Visible);
 	WrongTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	CorrectTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	AnswerTextBox->SetVisibility(ESlateVisibility::Hidden);
@@ -47,7 +49,8 @@ void UCatchMindWidget::ShowParticipant() const
 	ParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Visible);
 	SuggestionTitleTextBlock->SetVisibility(ESlateVisibility::Visible);
 	SuggestionTextBlock->SetVisibility(ESlateVisibility::Visible);
-	TimerTextBlock->SetVisibility(ESlateVisibility::Visible);
+	HintTitleTextBlock->SetVisibility(ESlateVisibility::Visible);
+	HintTextBlock->SetVisibility(ESlateVisibility::Visible);
 	WrongTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	CorrectTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	AnswerTextBox->SetVisibility(ESlateVisibility::Visible);
@@ -84,9 +87,10 @@ void UCatchMindWidget::ShowWrong()
 	}), 2, false);
 }
 
-void UCatchMindWidget::SetSuggestionText(const FString& Suggestion) const
+void UCatchMindWidget::SetSuggestionText(const FString& Suggestion, const FString& Hint) const
 {
 	SuggestionTextBlock->SetText(FText::FromString(Suggestion));
+	HintTextBlock->SetText(FText::FromString(Hint));
 }
 
 void UCatchMindWidget::OnAnswerTextCommitted(const FText& InText, ETextCommit::Type InCommitMethod)

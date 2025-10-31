@@ -57,7 +57,7 @@ public:
 
 	//서버가 캐치마인드 제시어를 보내주는 Client RPC
 	UFUNCTION(Client, Reliable)
-	void Client_ReceiveCatchMindSuggestion(const FString& Suggestion);
+	void Client_ReceiveCatchMindSuggestion(const FString& Suggestion, const FString& Hint);
 
 	//서버에게 캐치마인드 정답을 보내주는 Server RPC
 	UFUNCTION(Server, Reliable)
