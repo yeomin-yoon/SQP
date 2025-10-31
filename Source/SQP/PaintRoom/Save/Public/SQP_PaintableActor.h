@@ -18,6 +18,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void OnConstruction(const FTransform& Transform) override;
+
 public:
 	virtual void Tick(float DeltaTime) override;
 
@@ -25,4 +27,13 @@ public:
 	FGuid PersistantActorID;
 
 	virtual FGuid GetPersistantActorID() override;
+
+	UFUNCTION()
+	void ClearPaint();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_ClearPaint();
+
+	UFUNCTION()
+	void ResetCanvasMaterialUV();
 };

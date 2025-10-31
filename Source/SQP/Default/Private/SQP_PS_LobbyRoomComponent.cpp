@@ -9,6 +9,7 @@
 #include "SQP_GS_Lobby.h"
 #include "SQP_PC_Lobby.h"
 #include "SQP_PS_Master.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 USQP_PS_LobbyRoomComponent::USQP_PS_LobbyRoomComponent()
@@ -19,7 +20,25 @@ USQP_PS_LobbyRoomComponent::USQP_PS_LobbyRoomComponent()
 void USQP_PS_LobbyRoomComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (UGameplayStatics::GetCurrentLevelName(GetWorld()).Equals("Lobby") == false)
+	{
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
+	{
+		//자신의 상태를 확인하고 상태을 정한다
+		if (GetBindingPSMaster()->GetPlayerController() == GetWorld()->GetFirstPlayerController())
+		{
+			LobbyState = ELobbyState::Host;
+		}
+		else
+		{
+			LobbyState = ELobbyState::UnreadyClient;
+		}	
+	}
+
 	if (const auto GI = GetSQPGameInstance())
 	{
 		//서버에 자신의 유저 정보를 전송한다
@@ -63,13 +82,11 @@ ELobbyState USQP_PS_LobbyRoomComponent::GetLobbyState() const
 
 void USQP_PS_LobbyRoomComponent::SetLobbyState(const ELobbyState Value)
 {
+	if (GetOwner()->HasAuthority())
 	{
-		if (GetOwner()->HasAuthority())
-		{
-			LobbyState = Value;
+		LobbyState = Value;
 
-			OnRep_LobbyState();
-		}
+		OnRep_LobbyState();
 	}
 }
 

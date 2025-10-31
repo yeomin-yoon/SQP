@@ -60,6 +60,12 @@ public:
 		const FVector2D& BrushLocation,
 		UTextureRenderTarget2D* NormalRenderTarget);
 
+	UFUNCTION(BlueprintCallable)
+	void ClearPaint(AActor* Target);
+
+	UFUNCTION(BlueprintCallable)
+	void ResetCanvasMaterialUV(AActor* Target);
+
 	//모든 페인트 MID에 접근해서 데이터를 저장한다
 	UFUNCTION(BlueprintCallable)
 	void SavePaintOfWorld(const FString& PaintRoomSaveName);
@@ -83,6 +89,9 @@ public:
 		UTextureRenderTarget2D*& OutColorRenderTarget,
 		UTextureRenderTarget2D*& OutNormalRenderTarget) const;
 
+	UFUNCTION()
+	FORCEINLINE UMaterialInterface* GetCanvasMaterialBase() const { return CanvasMaterialBase; }
+	
 protected:
 	//오브젝트 별로 페인트 기능의 실행 정보를 저장하는 맵
 	TMap<FGuid, FPaintExecutionDataWrapper> TemporalPEDContainer;

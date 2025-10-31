@@ -126,11 +126,6 @@ void USQPPaintWorldSubsystem::GetRenderTargetFromHit(
 		GEngine->AddOnScreenDebugMessage(-1, 1, FColor::Red, TEXT("Fail to Get Material from Collision"));
 		return;
 	}
-
-	// if (!Cast<UMaterialInstanceDynamic>(MaterialInterface))
-	// {
-	// 	CanvasMaterialBase = MaterialInterface;
-	// }
 	
 	//캔버스 머터리얼과 충돌했다면
 	if (CheckCanvasMaterialBase(MaterialInterface))
@@ -245,6 +240,79 @@ void USQPPaintWorldSubsystem::PaintNormalRenderTarget(
 
 	//드로우 종료
 	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(GetWorld(), Context);
+}
+
+void USQPPaintWorldSubsystem::ClearPaint(AActor* Target)
+{
+	if (const auto MeshComp = Target->GetComponentByClass<UStaticMeshComponent>())
+	{
+		for (const auto MaterialInterface : MeshComp->GetMaterials())
+		{
+			if (CheckCanvasMaterialBase(MaterialInterface))
+			{
+				//머터리얼 다이나믹 인스턴스로의 형변환에 성공했다면
+				if (const auto MID = Cast<UMaterialInstanceDynamic>(MaterialInterface))
+				{
+					//컬러 값을 가지는 렌더 타겟
+					constexpr ETextureRenderTargetFormat ColorFormat = RTF_RGBA8;
+					const auto CreatedColorRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(GetWorld(), 1024, 1024, ColorFormat, FLinearColor::White, false);
+
+					//노말 값을 가지는 렌더 타겟
+					constexpr ETextureRenderTargetFormat NormalFormat = RTF_RGBA16f;
+					const auto CreatedNormalRenderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(GetWorld(), 1024, 1024, NormalFormat, FLinearColor(0, 0, 1.0, 1.0), false);
+					if (CreatedNormalRenderTarget)
+					{
+						CreatedNormalRenderTarget->CompressionSettings = TC_VectorDisplacementmap;
+						CreatedNormalRenderTarget->MipGenSettings = TMGS_NoMipmaps;
+						CreatedNormalRenderTarget->UpdateResource();
+						CreatedNormalRenderTarget->SRGB = false;
+					}
+
+					//렌더 타겟 텍스처를 획득해서 
+					MID->SetTextureParameterValue(FName("ColorRenderTarget"), CreatedColorRenderTarget);
+					MID->SetTextureParameterValue(FName("NormalRenderTarget"), CreatedNormalRenderTarget);
+				}
+			}
+		}
+	}
+}
+
+void USQPPaintWorldSubsystem::ResetCanvasMaterialUV(AActor* Target)
+{
+	const FVector Scale = Target->GetActorScale3D();
+
+	PRINTLOG(TEXT("%s"), *Scale.ToString());
+	
+	if (const auto MeshComp = Target->GetComponentByClass<UStaticMeshComponent>())
+	{
+		const TArray<UMaterialInterface*> MaterialInterfaces = MeshComp->GetMaterials();
+		for (int32 i = 0; i < MaterialInterfaces.Num(); i++)
+		{
+			if (CheckCanvasMaterialBase(MaterialInterfaces[i]))
+			{
+				//머터리얼 다이나믹 인스턴스로의 형변환에 성공했다면
+				if (const auto MID = Cast<UMaterialInstanceDynamic>(MaterialInterfaces[i]))
+				{
+					//패러미터 설정
+					MID->SetVectorParameterValue(FName("TilingAndOffset"), FVector4(1 * Scale.X, 1 * Scale.Y, 0, 0));
+				}
+				else
+				{
+					//새로운 MID 생성
+					UMaterialInstanceDynamic* CreatedMaterialInstance;
+					UTextureRenderTarget2D* OutColorRenderTarget;
+					UTextureRenderTarget2D* OutNormalRenderTarget;
+					CreateCanvasMaterialInstanceDynamic(CreatedMaterialInstance, OutColorRenderTarget, OutNormalRenderTarget);
+
+					//패러미터 설정
+					CreatedMaterialInstance->SetVectorParameterValue(FName("TilingAndOffset"), FVector4(1 * Scale.X, 1 * Scale.Y, 0, 0));
+
+					//생성한 MID로 바꿔치기
+					MeshComp->SetMaterial(i, CreatedMaterialInstance);
+				}
+			}	
+		}	
+	}
 }
 
 #pragma endregion 

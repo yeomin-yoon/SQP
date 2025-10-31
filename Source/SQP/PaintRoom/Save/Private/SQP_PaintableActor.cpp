@@ -17,12 +17,31 @@ ASQP_PaintableActor::ASQP_PaintableActor()
 	{
 		PersistantActorID = FGuid::NewGuid();
 	}
+
+	//리플리케이션 대상
+	bReplicates = true;
 }
 
 void ASQP_PaintableActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+}
+
+void ASQP_PaintableActor::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	// PRINTLOGNET(TEXT("OnConstruction!!!"));
+	//
+	// if (const auto Subsystem = GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>())
+	// {
+	// 	if (const auto MeshComp = GetComponentByClass<UStaticMeshComponent>())
+	// 	{
+	// 		MeshComp->SetMaterial(0, Subsystem->GetCanvasMaterialBase());
+	// 	}
+	// 	
+	// 	Subsystem->ResetCanvasMaterialUV(this);
+	// }
 }
 
 void ASQP_PaintableActor::Tick(float DeltaTime)
@@ -33,4 +52,28 @@ void ASQP_PaintableActor::Tick(float DeltaTime)
 FGuid ASQP_PaintableActor::GetPersistantActorID()
 {
 	return PersistantActorID;
+}
+
+void ASQP_PaintableActor::ClearPaint()
+{
+	if (const auto Subsystem = GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>())
+	{
+		Subsystem->ClearPaint(this);
+	}
+}
+
+void ASQP_PaintableActor::Multicast_ClearPaint_Implementation()
+{
+	if (const auto Subsystem = GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>())
+	{
+		Subsystem->ClearPaint(this);
+	}
+}
+
+void ASQP_PaintableActor::ResetCanvasMaterialUV()
+{
+	if (const auto Subsystem = GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>())
+	{
+		Subsystem->ResetCanvasMaterialUV(this);
+	}
 }

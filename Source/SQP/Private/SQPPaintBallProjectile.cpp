@@ -3,13 +3,14 @@
 #include "SQPPaintBallProjectile.h"
 #include "SQPPaintWorldSubsystem.h"
 #include "Components/SphereComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PaintGaming/Public/ReadyActor.h"
 
 ASQPPaintBallProjectile::ASQPPaintBallProjectile()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	//발사체 이동 컴포넌트 설정
+	ProjectileMoveComp->InitialSpeed = 3000;
 }
 
 void ASQPPaintBallProjectile::BeginPlay()

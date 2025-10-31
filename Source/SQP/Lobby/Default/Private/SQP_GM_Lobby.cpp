@@ -101,6 +101,8 @@ bool ASQP_GM_Lobby::CheckAllPlayersReady() const
 		PRINTLOGNET(TEXT("There is no Enough Player!"));
 		return false;
 	}
+
+	int32 ReadyCount = 0;
 	
 	//게임 스테이트의 플레이어 목록을 순회
 	for (APlayerState* PS : GetWorld()->GetGameState()->PlayerArray)
@@ -108,6 +110,7 @@ bool ASQP_GM_Lobby::CheckAllPlayersReady() const
 		//서버의 플레이어 컨트롤러라면 건너뛴다
 		if (PS->GetPlayerController() == GetWorld()->GetFirstPlayerController())
 		{
+			ReadyCount++;
 			continue;
 		}
 		
@@ -119,10 +122,14 @@ bool ASQP_GM_Lobby::CheckAllPlayersReady() const
 				PRINTLOGNET(TEXT("There is Unready Player!"));
 				return false;	
 			}
+
+			ReadyCount++;
 		}
 	}
-	
-	return true;
+
+	PRINTLOGNET(TEXT("There is %d / %d Ready in the Lobby!"), ReadyCount, GetWorld()->GetGameState()->PlayerArray.Num());
+
+	return ReadyCount >= GetWorld()->GetGameState()->PlayerArray.Num();
 }
 
 void ASQP_GM_Lobby::MoveToGameMap()

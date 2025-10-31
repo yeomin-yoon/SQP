@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "SQP_GM_PaintRoom.generated.h"
 
+class ASQP_PaintableActor;
+
 USTRUCT(BlueprintType)
 struct FCatchMind : public FTableRowBase
 {
@@ -42,6 +44,14 @@ public:
 	//캐치 마인드 미니 게임을 시작하는 메서드
 	UFUNCTION(BlueprintCallable)
 	void StartCatchMindMiniGame();
+
+	//캐치 마인드 미니 게임의 캔버스 액터 블루프린트 클래스
+	UPROPERTY()
+	TSubclassOf<ASQP_PaintableActor> CatchMindCanvasActorClass;
+
+	//캐치 마인드 미니 게임의 캔버스 액터
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<ASQP_PaintableActor> CatchMindCanvasActor;
 
 	//캐치 마인드 미니 게임을 종료하는 메서드
 	UFUNCTION()

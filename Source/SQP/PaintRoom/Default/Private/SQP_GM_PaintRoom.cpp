@@ -7,6 +7,7 @@
 #include "SQP_GI.h"
 #include "SQPPaintWorldSubsystem.h"
 #include "SQP_GS_PaintRoom.h"
+#include "SQP_PaintableActor.h"
 #include "SQP_PC_PaintRoom.h"
 #include "SQP_PS_Master.h"
 #include "SQP_PS_PaintRoomComponent.h"
@@ -52,6 +53,14 @@ ASQP_GM_PaintRoom::ASQP_GM_PaintRoom()
 	{
 		CatchMindMiniGameDataTable = Finder.Object;
 	}
+
+	//캐치 마인드 캔버스 액터 블루프린트 클래스 로드
+	if (static ConstructorHelpers::FClassFinder<ASQP_PaintableActor>
+		Finder(TEXT("/Game/Splatoon/Blueprint/PaintRoomLevel/BP_CatchMindCanvas.BP_CatchMindCanvas_C"));
+		Finder.Succeeded())
+	{
+		CatchMindCanvasActorClass = Finder.Class;
+	}
 }
 
 void ASQP_GM_PaintRoom::BeginPlay()
@@ -61,6 +70,13 @@ void ASQP_GM_PaintRoom::BeginPlay()
 	//위젯을 생성한다
 	const auto Created = CreateWidget(GetWorld(), PaintRoomWidgetClass);
 	Created->AddToViewport();
+
+	//액터를 생성한다
+	const auto Spawned = GetWorld()->SpawnActor<ASQP_PaintableActor>(CatchMindCanvasActorClass);
+	Spawned->SetActorLocation(FVector(2200, 0, 700));
+	Spawned->SetActorScale3D(FVector(15, 15, 1));
+	Spawned->SetActorRotation(FRotator(90, 0, 0));
+	CatchMindCanvasActor = Spawned;
 
 	//선택된 페인트 룸 데이터를 로드에 성공했다면
 	if (const auto SaveGame = Cast<USQP_GI>(GetWorld()->GetGameInstance())->LoadSelectedPaintRoomData())
@@ -114,12 +130,14 @@ void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
 			TempPSMasterArray[i]->PaintRoom->PAINT_ROOM_ROLE = (i == PainterIdx ? EPaintRoomRole::CatchMindPainter : EPaintRoomRole::CatchMindParticipant); 
 		}
 
+		//랜덤 제시어를 하나 선택
 		const int32 Rand = FMath::RandRange(1, SuggestionArray.Num());
 		const FCatchMind* Selected = CatchMindMiniGameDataTable->FindRow<FCatchMind>(FName(FString::Printf(TEXT("제시어%d"), Rand)), TEXT(""));
-		
-		//랜덤 제시어를 하나 선택
 		const FString Hint = Selected->Hint;
 		const FString Suggestion = Selected->Suggestion;
+
+		//캐치 마인드를 위한 캔버스를 초기화
+		CatchMindCanvasActor->Multicast_ClearPaint();
 
 		//모든 유저에게 제시어 업데이트 명령
 		for (int i = 0; i < Size; i++)
@@ -188,6 +206,9 @@ void ASQP_GM_PaintRoom::EndCatchMindMiniGame()
 		{
 			//모든 클라이언트가 알 수 있도록 게임 스테이트의 변수를 변경
 			GSPaint->PAINT_ROOM_STATE = EPaintRoomState::None;
+
+			//캐치 마인드를 위한 캔버스를 초기화
+			CatchMindCanvasActor->ClearPaint();
 		}), 5, false);
 	}
 }
