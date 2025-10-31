@@ -58,7 +58,7 @@ public:
 	
 protected:
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<ACharacter> OwnerCharacter;
+	TObjectPtr<APawn> OwnerCharacter;
 	
 	//사격 모드
 	UPROPERTY()

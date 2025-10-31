@@ -25,7 +25,7 @@ void UProjectileShooterComponent::BeginPlay()
 	Super::BeginPlay();
 
 	//로컬 플레이어 확인을 위해 소유 캐릭터 획득
-	OwnerCharacter = Cast<ACharacter>(GetOwner());
+	OwnerCharacter = Cast<APawn>(GetOwner());
 }
 
 void UProjectileShooterComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -33,16 +33,25 @@ void UProjectileShooterComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
 	//서버 측의 오소리티 캐릭터일 때만
-	if (OwnerCharacter == nullptr || OwnerCharacter->HasAuthority() == false)
+	if (OwnerCharacter == nullptr)
 	{
 		return;
 	}
 
-	//사격이 가능한 상태일 때만
-	if (OwnerCharacter->GetPlayerState<ASQP_PS_Master>()->PaintRoom->CAN_FIRE_PAINT_BALL == false)
-	{
+	if (OwnerCharacter->HasAuthority() == false)
 		return;
-	}
+
+	//사격이 가능한 상태일 때만
+	APlayerState* PS = OwnerCharacter->GetPlayerState();
+	if (PS == nullptr)
+		return;
+
+	ASQP_PS_Master* MasterPS = Cast<ASQP_PS_Master>(PS);
+	if (MasterPS == nullptr || MasterPS->PaintRoom == nullptr)
+		return;
+
+	if (MasterPS->PaintRoom->CAN_FIRE_PAINT_BALL == false)
+		return;
 
 	//트리거가 활성화되어 있을 때만
 	if (bIsOnTrigger == false)

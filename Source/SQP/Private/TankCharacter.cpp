@@ -49,7 +49,7 @@ ATankCharacter::ATankCharacter()
 	}
 
 	SetRootComponent(GetCapsuleComponent());
-
+	
 	ProjectileShooter = CreateDefaultSubobject<UProjectileShooterComponent>(TEXT("ShooterComp"));
 	ProjectileShooter->SetupAttachment(GetMesh(), FName("TurretBarrel"));
 
@@ -62,16 +62,22 @@ ATankCharacter::ATankCharacter()
 	InteractionComp = CreateDefaultSubobject<UUIInteractionComponent>(TEXT("InteractionComp"));
 	InteractionComp->SetupAttachment(InteractionBoom);
 	InteractionComp->SetRelativeLocation(FVector(0.f, 0.f, -55.f));
-	
+
 	SwimComp = CreateDefaultSubobject<USwimComponent>(TEXT("SwimComp"));
 
 	SkyViewComp = CreateDefaultSubobject<USkyViewComponent>(TEXT("SkyViewComp"));
+
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
 void ATankCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	// if (HasAuthority() && IsLocallyControlled())
+	// {
+	// 	ProjectileShooter->UnregisterComponent();
+	// }
 
 	if (IsLocallyControlled())
 	{
@@ -99,9 +105,11 @@ void ATankCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bIsInactivePawn)
+		return;
 	if (GetPlayerState())
 	{
-		DrawDebugString(GetWorld(), GetActorLocation(), GetPlayerState()->GetPlayerName(), nullptr, FColor::Red, 0);	
+		DrawDebugString(GetWorld(), GetActorLocation(), GetPlayerState()->GetPlayerName(), nullptr, FColor::Red, 0);
 	}
 }
 
@@ -120,5 +128,3 @@ void ATankCharacter::CompleteFire()
 {
 	ProjectileShooter->ReleaseTrigger();
 }
-
-

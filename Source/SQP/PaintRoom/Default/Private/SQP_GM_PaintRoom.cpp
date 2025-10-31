@@ -3,6 +3,7 @@
 #include "SQP_GM_PaintRoom.h"
 
 #include "PaintRoomWidget.h"
+#include "SkyViewPawn.h"
 #include "SQP.h"
 #include "SQP_GI.h"
 #include "SQPPaintWorldSubsystem.h"
@@ -10,6 +11,7 @@
 #include "SQP_PC_PaintRoom.h"
 #include "SQP_PS_Master.h"
 #include "SQP_PS_PaintRoomComponent.h"
+#include "TankCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 ASQP_GM_PaintRoom::ASQP_GM_PaintRoom()
@@ -45,7 +47,6 @@ ASQP_GM_PaintRoom::ASQP_GM_PaintRoom()
 	{
 		PaintRoomWidgetClass = Finder.Class;
 	}
-	
 }
 
 void ASQP_GM_PaintRoom::BeginPlay()
@@ -71,6 +72,25 @@ void ASQP_GM_PaintRoom::BeginPlay()
 
 			//클라이언트에 전송하기 위핸 PED 배열을 추출해서 할당한다
 			GetGameState<ASQP_GS_PaintRoom>()->PaintExecutionDataSnapshot = SG_PaintRoom->ConstructFullPEDArray();
+		}
+	}
+}
+
+void ASQP_GM_PaintRoom::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+	
+	if (HasAuthority() && NewPlayer->IsLocalController())
+	{
+		if (APawn* OldPawn = NewPlayer->GetPawn())
+		{
+			OldPawn->Destroy();
+		}
+		
+		ASkyViewPawn* SpectatorPawn = GetWorld()->SpawnActor<ASkyViewPawn>(ASkyViewPawn::StaticClass(), FVector(0.f, 0.f, 200.f), FRotator(0, 0, 0));
+		if (SpectatorPawn)
+		{
+			NewPlayer->Possess(SpectatorPawn);
 		}
 	}
 }
@@ -174,4 +194,9 @@ void ASQP_GM_PaintRoom::StartTimer(ASQP_GS_PaintRoom* GS, float Time)
 	GS->CountdownStartTime = GetWorld()->GetTimeSeconds();
 	GS->CountdownTotalTime = Time;
 	GS->bOnCountdown = true;
+}
+
+void ASQP_GM_PaintRoom::StartCompetitionMiniGame()
+{
+	
 }

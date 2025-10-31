@@ -1,115 +1,106 @@
 ﻿#include "AISimilarityClient.h"
+
 #include "HttpModule.h"
-#include "Interfaces/IHttpRequest.h"
-#include "Interfaces/IHttpResponse.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
-#include "Modules/ModuleManager.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
 
+static bool TextureToPNGBytes(UTexture2D* Texture, TArray<uint8>& OutData) { OutData.Empty(); if (!Texture || !Texture->GetPlatformData() || Texture->GetPlatformData()->Mips.Num() == 0) { UE_LOG(LogTemp, Error, TEXT("Invalid texture")); return false; } FTexture2DMipMap& Mip = Texture->GetPlatformData()->Mips[0]; int32 Width = Mip.SizeX; int32 Height = Mip.SizeY; if (Width <= 0 || Height <= 0) { UE_LOG(LogTemp, Error, TEXT("Invalid texture size")); return false; } void* Data = Mip.BulkData.Lock(LOCK_READ_ONLY); if (!Data) { UE_LOG(LogTemp, Error, TEXT("Failed to lock texture bulk data")); return false; } const int32 NumPixels = Width * Height; TArray<FColor> Pixels; Pixels.SetNumUninitialized(NumPixels); FMemory::Memcpy(Pixels.GetData(), Data, NumPixels * sizeof(FColor)); Mip.BulkData.Unlock(); IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>("ImageWrapper"); TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG); if (ImageWrapper.IsValid() && ImageWrapper->SetRaw(Pixels.GetData(), Pixels.Num() * sizeof(FColor), Width, Height, ERGBFormat::BGRA, 8)) { OutData = ImageWrapper->GetCompressed(100); return true; } UE_LOG(LogTemp, Error, TEXT("Failed to compress image")); return false; }
 
-bool UAISimilarityClient::ConvertTextureToPNG(UTexture2D* Texture, TArray<uint8>& OutData)
+void UAISimilarityClient::CompareTextures(UTexture2D* Original, const TArray<UTexture2D*>& ComparisonTextures,
+                                          const TArray<FString>& PlayerNames)
 {
-    if (!Texture) return false;
+	if (!Original || ComparisonTextures.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid inputs"));
+		return;
+	}
 
-    // 텍스쳐 데이터 읽기 위해 압축 풀기
-    Texture->CompressionSettings = TextureCompressionSettings::TC_VectorDisplacementmap;
-    Texture->SRGB = true;
-    Texture->UpdateResource();
+	FString Boundary = TEXT("----AITextureBoundary");
+	FString Url = TEXT("http://127.0.0.1:8000/compare_textures/");
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
 
-    FTexture2DMipMap& Mip = Texture->GetPlatformData()->Mips[0];
-    void* Data = Mip.BulkData.Lock(LOCK_READ_ONLY);
-    int32 Width = Mip.SizeX;
-    int32 Height = Mip.SizeY;
+	Request->SetURL(Url);
+	Request->SetVerb(TEXT("POST"));
+	Request->SetHeader(TEXT("Content-Type"), TEXT("multipart/form-data; boundary=") + Boundary);
 
-    // RGBA8 형식으로 PNG 변환
-    TArray<uint8> RawData;
-    RawData.AddUninitialized(Width * Height * 4);
-    FMemory::Memcpy(RawData.GetData(), Data, RawData.Num());
-    Mip.BulkData.Unlock();
+	TArray<uint8> Payload;
 
-    IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>("ImageWrapper");
-    TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
+	auto AppendFile = [&](const FString& FieldName, const FString& FileName, const TArray<uint8>& FileData)
+	{
+		FString Header = FString::Printf(
+			TEXT(
+				"--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\nContent-Type: image/png\r\n\r\n"),
+			*Boundary, *FieldName, *FileName);
+		FTCHARToUTF8 HeaderUtf8(*Header);
+		Payload.Append((uint8*)HeaderUtf8.Get(), HeaderUtf8.Length());
+		Payload.Append(FileData);
+		const FString LineBreak = TEXT("\r\n");
+		FTCHARToUTF8 BreakUtf8(*LineBreak);
+		Payload.Append((uint8*)BreakUtf8.Get(), BreakUtf8.Length());
+	};
 
-    if (ImageWrapper->SetRaw(RawData.GetData(), RawData.Num(), Width, Height, ERGBFormat::RGBA, 8))
-    {
-        OutData = ImageWrapper->GetCompressed();
-        return true;
-    }
-    return false;
-}
+	// 원본 추가
+	TArray<uint8> OrigBytes;
+	if (TextureToPNGBytes(Original, OrigBytes))
+		AppendFile(TEXT("original"), TEXT("original.png"), OrigBytes);
 
-void UAISimilarityClient::SendCompareRequest(
-    UTexture2D* Original, UTexture2D* A, UTexture2D* B, FAIResultDelegate ResultCallback)
-{
-    if (!Original || !A || !B)
-    {
-        ResultCallback.ExecuteIfBound(TEXT("Error: Invalid texture"));
-        return;
-    }
+	// 비교 텍스처들 추가
+	for (int32 i = 0; i < ComparisonTextures.Num(); ++i)
+	{
+		TArray<uint8> Bytes;
+		if (TextureToPNGBytes(ComparisonTextures[i], Bytes))
+		{
+			FString FileName = FString::Printf(TEXT("comp_%d.png"), i);
+			AppendFile(TEXT("comparisons"), FileName, Bytes);
+		}
+	}
 
-    // HTTP 요청 준비
-    TSharedRef<IHttpRequest> Request = FHttpModule::Get().CreateRequest();
-    Request->SetURL(ServerURL);
-    Request->SetVerb(TEXT("POST"));
+	// 끝 경계
+	FString EndBoundary = FString::Printf(TEXT("--%s--\r\n"), *Boundary);
+	FTCHARToUTF8 EndUtf8(*EndBoundary);
+	Payload.Append((uint8*)EndUtf8.Get(), EndUtf8.Length());
 
-    FString Boundary = TEXT("---------------------------UEBoundary");
-    FString ContentType = TEXT("multipart/form-data; boundary=") + Boundary;
-    Request->SetHeader(TEXT("Content-Type"), ContentType);
+	Request->SetContent(Payload);
 
-    // 바디 생성
-    TArray<uint8> Body;
-    auto AddFileToBody = [&](const FString& Name, const FString& Filename, const TArray<uint8>& FileData)
-    {
-        FString Header = FString::Printf(
-            TEXT("--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\n")
-            TEXT("Content-Type: application/octet-stream\r\n\r\n"),
-            *Boundary, *Name, *Filename);
+	Request->OnProcessRequestComplete().BindLambda(
+		[PlayerNames](FHttpRequestPtr Req, FHttpResponsePtr Res, bool bSuccess)
+		{
+			if (bSuccess && Res.IsValid())
+			{
+				FString JsonStr = Res->GetContentAsString();
+				TSharedPtr<FJsonObject> JsonObj;
+				TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonStr);
 
-        Body.Append((uint8*)TCHAR_TO_UTF8(*Header), Header.Len());
-        Body.Append(FileData);
-        Body.Append((const uint8*)"\r\n", 2);
-    };
+				if (FJsonSerializer::Deserialize(Reader, JsonObj))
+				{
+					FString BestFile = JsonObj->GetStringField(TEXT("best_match"));
+					float Score = JsonObj->GetNumberField(TEXT("score"));
 
-    // 텍스처 PNG 변환
-    TArray<uint8> OrigData, AData, BData;
-    ConvertTextureToPNG(Original, OrigData);
-    ConvertTextureToPNG(A, AData);
-    ConvertTextureToPNG(B, BData);
+					int32 Index = -1;
+					FString IndexStr;
+					if (BestFile.Split(TEXT("comp_"), nullptr, &IndexStr))
+					{
+						IndexStr.Split(TEXT(".png"), &IndexStr, nullptr);
+						Index = FCString::Atoi(*IndexStr);
+					}
 
-    AddFileToBody("original", "original.png", OrigData);
-    AddFileToBody("A", "A.png", AData);
-    AddFileToBody("B", "B.png", BData);
-
-    // 끝 경계
-    FString EndBoundary = FString::Printf(TEXT("--%s--\r\n"), *Boundary);
-    Body.Append((uint8*)TCHAR_TO_UTF8(*EndBoundary), EndBoundary.Len());
-
-    Request->SetContent(Body);
-
-    // 응답 처리
-    Request->OnProcessRequestComplete().BindLambda(
-        [ResultCallback](FHttpRequestPtr Req, FHttpResponsePtr Res, bool bSuccess)
-        {
-            if (!bSuccess || !Res.IsValid())
-            {
-                ResultCallback.ExecuteIfBound(TEXT("Error: Request failed"));
-                return;
-            }
-
-            FString ResponseString = Res->GetContentAsString();
-            UE_LOG(LogTemp, Warning, TEXT("AI Response: %s"), *ResponseString);
-
-            // winner만 추출 (단순 방식)
-            FString Winner;
-            if (ResponseString.Contains("\"winner\":\"A\""))
-                Winner = "A";
-            else if (ResponseString.Contains("\"winner\":\"B\""))
-                Winner = "B";
-            else
-                Winner = "Error";
-
-            ResultCallback.ExecuteIfBound(Winner);
-        });
-
-    Request->ProcessRequest();
+					if (PlayerNames.IsValidIndex(Index))
+					{
+						UE_LOG(LogTemp, Warning, TEXT("가장 유사한 플레이어: %s (Score: %.3f)"), *PlayerNames[Index], Score);
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("인덱스 매칭 실패: %s"), *BestFile);
+					}
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("HTTP Request Failed"));
+			}
+		});
+	
+	Request->ProcessRequest();
 }

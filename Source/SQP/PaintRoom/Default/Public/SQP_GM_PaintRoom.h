@@ -13,8 +13,9 @@ class SQP_API ASQP_GM_PaintRoom : public AGameModeBase
 
 public:
 	ASQP_GM_PaintRoom();
-
 	virtual void BeginPlay() override;
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	//페인트 룸에서 사용하는 위젯 블루프린트 클래스
@@ -37,4 +38,8 @@ public:
 	FTimerHandle CatchMindMiniGameTimerHandle;
 
 	void StartTimer(class ASQP_GS_PaintRoom* GS, float Time);
+
+	//경쟁 미니 게임을 시작하는 메서드
+	UFUNCTION(BlueprintCallable)
+	void StartCompetitionMiniGame();
 };

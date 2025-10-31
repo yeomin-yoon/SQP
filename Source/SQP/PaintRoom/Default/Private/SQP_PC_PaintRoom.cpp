@@ -14,8 +14,10 @@
 #include "TimerUI.h"
 #include "UIManager.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/RichTextBlock.h"
 #include "Components/TextBlock.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 ASQP_PC_PaintRoom::ASQP_PC_PaintRoom()
@@ -51,12 +53,8 @@ void ASQP_PC_PaintRoom::BeginPlay()
 
 	GM = Cast<ASQP_GM_PaintRoom>(UGameplayStatics::GetGameMode(GetWorld()));
 	GS = Cast<ASQP_GS_PaintRoom>(UGameplayStatics::GetGameState(this));
+	PS = Cast<ASQP_PS_Master>(PlayerState);
 	UIManager = GetWorld()->GetGameInstance()->GetSubsystem<UUIManager>();
-
-	if (HasAuthority())
-	{
-		SpawnSkyViewPawn();
-	}
 
 	if (IsLocalController())
 	{
@@ -96,27 +94,6 @@ void ASQP_PC_PaintRoom::OnPossess(APawn* InPawn)
 	{
 		DynMat = player->GetMesh()->CreateAndSetMaterialInstanceDynamic(0);
 	}
-
-
-	// int32 Index = GetWorld()->GetGameState()->PlayerArray.IndexOfByKey(this);
-	// UTexture2D* Tex = LoadTextureByIndex(Index);
-	// if (DynMat && Tex)
-	// {
-	// 	DynMat->SetTextureParameterValue(FName("BaseColorTexture"), Tex);
-	// }
-
-	PreviousPawn = CurrentPawn;
-	CurrentPawn = InPawn;
-
-	FVector CamLoc;
-	FRotator CamRot;
-	GetPlayerViewPoint(CamLoc, CamRot);
-	CamLoc += InitialLocationOffset;
-	CamRot.Pitch = InitialPitchOffset;
-	if (SkyViewPawn)
-	{
-		SkyViewPawn->SetActorLocationAndRotation(CamLoc, CamRot);
-	}
 }
 
 UTexture2D* ASQP_PC_PaintRoom::LoadTextureByIndex(int32 Index)
@@ -124,33 +101,6 @@ UTexture2D* ASQP_PC_PaintRoom::LoadTextureByIndex(int32 Index)
 	FString Path = FString::Printf(
 		TEXT("'/Game/Assets/Tanks/red_tank/Textures/TankTexture/tank_texture_%d.tank_texture_%d'"), Index, Index);
 	return Cast<UTexture2D>(StaticLoadObject(UTexture2D::StaticClass(), nullptr, *Path));
-}
-
-void ASQP_PC_PaintRoom::SpawnSkyViewPawn()
-{
-	FVector CamLoc;
-	FRotator CamRot;
-	GetPlayerViewPoint(CamLoc, CamRot);
-	CamLoc += InitialLocationOffset;
-	CamRot.Pitch = InitialPitchOffset;
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = GetOwner();
-	SpawnParams.SpawnCollisionHandlingOverride =
-		ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-	SkyViewPawn = GetWorld()->SpawnActor<ASkyViewPawn>(
-		ASkyViewPawn::StaticClass(),
-		CamLoc,
-		CamRot,
-		SpawnParams
-	);
-}
-
-
-void ASQP_PC_PaintRoom::OnSkyView()
-{
-	Server_PossessSkyView();
 }
 
 void ASQP_PC_PaintRoom::Client_ReceiveCatchMindSuggestion_Implementation(const FString& Suggestion)
@@ -163,23 +113,13 @@ void ASQP_PC_PaintRoom::Server_CountLike_Implementation(ASQP_PS_Master* TargetPS
 	TargetPS->PaintRoom->IncreaseLikeCounter();
 }
 
-void ASQP_PC_PaintRoom::Server_PossessSkyView_Implementation()
-{
-	Possess(SkyViewPawn);
-}
-
-void ASQP_PC_PaintRoom::Server_PossessPreviousPawn_Implementation()
-{
-	Possess(PreviousPawn);
-}
-
 void ASQP_PC_PaintRoom::ReplicatedCountDown()
 {
 	if (GS->bOnCountdown)
 	{
 		Elapsed = GS->GetServerWorldTimeSeconds() - GS->CountdownStartTime;
 		Remaining = GS->CountdownTotalTime - Elapsed;
-		
+
 		RemainingTime = FMath::CeilToInt(Remaining);
 		if (RemainingTime != LastRemainingTime)
 		{
@@ -193,12 +133,10 @@ void ASQP_PC_PaintRoom::ReplicatedCountDown()
 			LastRemainingTime = -1;
 			if (HasAuthority())
 			{
-				
 				GM->EndCatchMindMiniGame();
 			}
 		}
 	}
-	
 }
 
 void ASQP_PC_PaintRoom::UpdateCountdownUI(int RemainingSeconds, UTimerUI* UI)

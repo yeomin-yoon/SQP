@@ -57,24 +57,12 @@ void ACompareActor::Tick(float DeltaTime)
 
 void ACompareActor::SetCompareImage(UTexture2D* Image)
 {
-	if (Tags.Contains("PlayerA"))
-	{
-		GS->Multicast_SetCompareAImage(Image);
-	}
-	else if (Tags.Contains("PlayerB"))
-	{
-		GS->Multicast_SetCompareBImage(Image);
-	}
+	
 }
 
 void ACompareActor::EvaluateWinner()
 {
-	Client->SendCompareRequest(GS->RandomImage, GS->CompareAImage, GS->CompareBImage,
-							   FAIResultDelegate::CreateLambda([](const FString& Winner)
-							   {
-								   UE_LOG(LogTemp, Warning, TEXT("AI 선택 결과: %s"), *Winner);
-							   })
-	);
+
 }
 
 void ACompareActor::FinishGame()

@@ -49,8 +49,8 @@ void USkyViewComponent::BeginPlay()
 			// 입력 바인딩
 			if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 			{
-				if (SkyViewAction)
-					EIC->BindAction(SkyViewAction, ETriggerEvent::Started, this, &USkyViewComponent::OnSkyView);
+				// if (SkyViewAction)
+				// 	EIC->BindAction(SkyViewAction, ETriggerEvent::Started, this, &USkyViewComponent::OnSkyView);
 			}
 		}
 	}
@@ -67,6 +67,6 @@ void USkyViewComponent::OnSkyView()
 {
 	if (OwnerPawn->IsLocallyControlled())
 	{
-		PlayerController->OnSkyView();
+		
 	}
 }

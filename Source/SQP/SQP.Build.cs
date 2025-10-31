@@ -34,7 +34,9 @@ public class SQP : ModuleRules
 			//클립보드
 			"ApplicationCore", "Synthesis",
 			"HTTP",
-			"ImageWrapper"
+			"ImageWrapper",
+			"Json",
+			"JsonUtilities"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

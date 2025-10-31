@@ -68,7 +68,7 @@ void ASkyViewPawn::QuitSkyView()
 {
 	if (PC)
 	{
-		PC->Server_PossessPreviousPawn();
+		
 	}
 	else
 	{

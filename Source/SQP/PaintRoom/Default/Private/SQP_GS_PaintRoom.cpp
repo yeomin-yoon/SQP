@@ -56,6 +56,11 @@ void ASQP_GS_PaintRoom::OnRep_PaintExecutionDataSnapshot()
 	}
 }
 
+void ASQP_GS_PaintRoom::AddPlayerTexture(const FString& PlayerName, UTexture2D* Texture)
+{
+	PlayerTextureMap.Add(PlayerName, Texture);
+}
+
 void ASQP_GS_PaintRoom::OnRep_PaintRoomState()
 {
 	//서버에서 캐치마인드가 시작되었으므로 관련 UI를 업데이트 한다
@@ -64,14 +69,4 @@ void ASQP_GS_PaintRoom::OnRep_PaintRoomState()
 void ASQP_GS_PaintRoom::Multicast_SetRandomImage_Implementation(UTexture2D* Image)
 {
 	RandomImage = Image;
-}
-
-void ASQP_GS_PaintRoom::Multicast_SetCompareAImage_Implementation(UTexture2D* Image)
-{
-	CompareAImage = Image;
-}
-
-void ASQP_GS_PaintRoom::Multicast_SetCompareBImage_Implementation(UTexture2D* Image)
-{
-	CompareBImage = Image;
 }

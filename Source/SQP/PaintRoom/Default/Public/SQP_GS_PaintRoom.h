@@ -43,14 +43,21 @@ public:
 	void Multicast_SetRandomImage(UTexture2D* Image);
 
 	UPROPERTY()
-	TObjectPtr<class UTexture2D> CompareAImage;
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SetCompareAImage(UTexture2D* Image);
-
+	TMap<FString, UTexture2D*> PlayerTextureMap;
 	UPROPERTY()
-	TObjectPtr<class UTexture2D> CompareBImage;
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SetCompareBImage(UTexture2D* Image);
+	TArray<UTexture2D*> ComparisonTextures;
+	TArray<FString> PlayerNames;
+
+	void AddPlayerTexture(const FString& PlayerName, UTexture2D* Texture);
+
+	// for (const auto& Pair : PlayerTextureMap)
+	// {
+	// 	PlayerNames.Add(Pair.Key);
+	// 	ComparisonTextures.Add(Pair.Value);
+	// }
+	//
+	// UAISimilarityClient* AIClient = GetGameInstance()->GetSubsystem<UAISimilarityClient>();
+	// AIClient->CompareTextures(Original, ComparisonTextures, PlayerNames);
 
 	//페인트 룸 스테이트를 관리하는 프로퍼티
 	__declspec(property(get=GetPaintRoomState, put=SetPaintRoomState)) EPaintRoomState PAINT_ROOM_STATE;
