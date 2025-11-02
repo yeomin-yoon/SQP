@@ -345,7 +345,7 @@ void ASQP_GM_PaintRoom::StartCompetitionMiniGame()
 	GSPaint->StartGame();
 
 	// 게임 시작
-	StartTimer(GSPaint, 10.f);
+	StartTimer(GSPaint, 120.f);
 }
 
 void ASQP_GM_PaintRoom::EndCompetitionMiniGame()
@@ -406,7 +406,11 @@ void ASQP_GM_PaintRoom::SpawnActorsInCircle(const TSubclassOf<ACompareActor> Act
 		FRotator Rot = (Center - Pos).Rotation();
 
 		ACompareActor* PaintableActor = World->SpawnActor<ACompareActor>(ActorClass, Pos, Rot);
-		GetGameState<ASQP_GS_PaintRoom>()->MultiCast_SetSpawnActorText(PaintableActor, PlayerNames[i]);
+		float R = FMath::FRandRange(0.3f, 1.0f);
+		float G = FMath::FRandRange(0.3f, 1.0f);
+		float B = FMath::FRandRange(0.3f, 1.0f);
+		FLinearColor RandomColor(R, G, B, 1.0f);
+		GetGameState<ASQP_GS_PaintRoom>()->MultiCast_SetSpawnActorText(PaintableActor, PlayerNames[i], RandomColor);
 
 		PaintableCompareActors.Add(PaintableActor);
 	}

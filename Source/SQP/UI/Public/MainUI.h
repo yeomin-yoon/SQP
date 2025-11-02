@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "UI/Synth2DSlider.h"
 #include "MainUI.generated.h"
 
 /**

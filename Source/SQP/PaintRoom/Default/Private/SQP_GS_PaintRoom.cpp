@@ -34,8 +34,6 @@ void ASQP_GS_PaintRoom::BeginPlay()
 
 	IMGManager = GetGameInstance()->GetSubsystem<UIMGManager>();
 	if (!IMGManager) return;
-
-	//Multicast_PlayOST1();
 }
 
 void ASQP_GS_PaintRoom::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -147,7 +145,7 @@ void ASQP_GS_PaintRoom::Multicast_SetRandomImage_Implementation(UTexture2D* Imag
 	PaintGameActor->ShowRandomImage(Image);
 }
 
-void ASQP_GS_PaintRoom::MultiCast_SetSpawnActorText_Implementation(ACompareActor* PaintableActor, const FString& Name)
+void ASQP_GS_PaintRoom::MultiCast_SetSpawnActorText_Implementation(ACompareActor* PaintableActor, const FString& Name, FLinearColor Color)
 {
 	if (!PaintableActor)
 		return;
@@ -160,9 +158,6 @@ void ASQP_GS_PaintRoom::MultiCast_SetSpawnActorText_Implementation(ACompareActor
 	UCompetitorName* NameUI = Cast<UCompetitorName>(
 		PaintableActor->GetComponentByClass<UWidgetComponent>()->GetWidget());
 	NameUI->CompetitorName->SetText(FText(FText::FromString(PaintableActor->CompetitionPlayerName)));
-	float R = FMath::FRandRange(0.3f, 1.0f);
-	float G = FMath::FRandRange(0.3f, 1.0f);
-	float B = FMath::FRandRange(0.3f, 1.0f);
-	FLinearColor RandomColor(R, G, B, 1.0f);
-	NameUI->CompetitorName->SetColorAndOpacity(FSlateColor(RandomColor));
+	
+	NameUI->CompetitorName->SetColorAndOpacity(FSlateColor(Color));
 }

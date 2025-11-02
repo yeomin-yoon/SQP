@@ -15,6 +15,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values
@@ -49,7 +50,7 @@ ATankCharacter::ATankCharacter()
 	}
 
 	SetRootComponent(GetCapsuleComponent());
-	
+
 	ProjectileShooter = CreateDefaultSubobject<UProjectileShooterComponent>(TEXT("ShooterComp"));
 	ProjectileShooter->SetupAttachment(GetMesh(), FName("TurretBarrel"));
 
@@ -63,21 +64,42 @@ ATankCharacter::ATankCharacter()
 	InteractionComp->SetupAttachment(InteractionBoom);
 	InteractionComp->SetRelativeLocation(FVector(0.f, 0.f, -55.f));
 
-	// SwimComp = CreateDefaultSubobject<USwimComponent>(TEXT("SwimComp"));
+	SwimComp = CreateDefaultSubobject<USwimComponent>(TEXT("SwimComp"));
 
 	SkyViewComp = CreateDefaultSubobject<USkyViewComponent>(TEXT("SkyViewComp"));
 
 	bReplicates = true;
 }
 
+void ATankCharacter::Multicast_SetTankColor_Implementation(const FLinearColor Color)
+{
+	if (DynBody)
+	{
+		DynBody->SetVectorParameterValue("TankColor", RandomColor);
+	}
+}
+
 // Called when the game starts or when spawned
 void ATankCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	// if (HasAuthority() && IsLocallyControlled())
-	// {
-	// 	ProjectileShooter->UnregisterComponent();
-	// }
+	
+	if (HasAuthority())
+	{
+		float R = FMath::FRandRange(0.0f, 1.0f);
+		float G = FMath::FRandRange(0.0f, 1.0f);
+		float B = FMath::FRandRange(0.0f, 1.0f);
+		RandomColor = FLinearColor(R, G, B, 1.0f);
+	}
+	
+	DynBody = GetMesh()->CreateAndSetMaterialInstanceDynamic(0);
+	
+	Multicast_SetTankColor(RandomColor);
+
+	if (IsLocallyControlled())
+	{
+		ProjectileShooter->UnregisterComponent();
+	}
 
 	if (IsLocallyControlled())
 	{
@@ -98,6 +120,13 @@ void ATankCharacter::BeginPlay()
 			}
 		}
 	}
+}
+
+void ATankCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ATankCharacter, RandomColor);
 }
 
 // Called every frame

@@ -3,10 +3,8 @@
 
 #include "ReadyActor.h"
 
-#include "MainUI.h"
 #include "MainUIComponent.h"
 #include "TankCharacter.h"
-#include "Components/RichTextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 

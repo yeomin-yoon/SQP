@@ -3,13 +3,9 @@
 
 #include "PaintGaming/Public/PaintGameActor.h"
 
-#include "IMGManager.h"
-#include "MainUI.h"
 #include "MainUIComponent.h"
-#include "ReadyActor.h"
 #include "SQP_GS_PaintRoom.h"
 #include "TankCharacter.h"
-#include "Components/RichTextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
