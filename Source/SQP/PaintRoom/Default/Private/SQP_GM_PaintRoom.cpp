@@ -329,8 +329,11 @@ void ASQP_GM_PaintRoom::StartCompetitionMiniGame()
 	{
 		APlayerController* PC = Cast<APlayerController>(PS->GetOwner());
 
-		if (!PC->HasAuthority())
+		if (PC->IsLocalController())
+		{
 			continue;
+		}
+			
 		
 		PlayerNames.Add(PS->GetPlayerName());
 	}
@@ -401,7 +404,7 @@ void ASQP_GM_PaintRoom::SpawnActorsInCircle(const TSubclassOf<ACompareActor> Act
 	
 	for (int32 i = 0; i < NumActors; ++i)
 	{
-		const float Angle = StartAngle + (FillRadians / (NumActors - 1)) * i;
+		const float Angle = StartAngle + FillRadians / (NumActors - 1) * i;
 		FVector Pos = Center + FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0) * Radius;
 		FRotator Rot = (Center - Pos).Rotation();
 
