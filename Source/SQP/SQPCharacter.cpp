@@ -12,7 +12,6 @@
 #include "InputActionValue.h"
 #include "Components/AudioComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "UI/VREditorUISystem.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 

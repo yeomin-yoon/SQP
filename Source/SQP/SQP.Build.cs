@@ -36,7 +36,9 @@ public class SQP : ModuleRules
 			"HTTP",
 			"ImageWrapper",
 			"Json",
-			"JsonUtilities"
+			"JsonUtilities",
+			//패키징 때문에 넣어야 함
+			"Cbor"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

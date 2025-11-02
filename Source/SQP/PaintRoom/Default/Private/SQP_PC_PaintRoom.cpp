@@ -66,14 +66,14 @@ ASQP_PC_PaintRoom::ASQP_PC_PaintRoom()
 	AudioComp2->bAutoActivate = false;
 	
 	if (static ConstructorHelpers::FObjectFinder<USoundWave> USoundWave1(
-			TEXT("'/Game/Assets/Sounds/OST/Spray_Paint_Dreams-1.Spray_Paint_Dreams-1'"));
+			TEXT("/Game/Assets/Sounds/OST/Spray_Paint_Dreams-1.Spray_Paint_Dreams-1"));
 		USoundWave1.Succeeded())
 	{
 		AudioComp1->SetSound(USoundWave1.Object);
 	}
 	
 	if (static ConstructorHelpers::FObjectFinder<USoundWave> USoundWave2(
-			TEXT("'/Game/Assets/Sounds/OST/Spray_Paint_Dreams-1.Spray_Paint_Dreams-2'"));
+			TEXT("/Game/Assets/Sounds/OST/Spray_Paint_Dreams-2.Spray_Paint_Dreams-2"));
 		USoundWave2.Succeeded())
 	{
 		AudioComp2->SetSound(USoundWave2.Object);

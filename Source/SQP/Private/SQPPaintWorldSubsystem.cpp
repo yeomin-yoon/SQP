@@ -264,7 +264,8 @@ void USQPPaintWorldSubsystem::ClearPaint(AActor* Target)
 					if (CreatedNormalRenderTarget)
 					{
 						CreatedNormalRenderTarget->CompressionSettings = TC_VectorDisplacementmap;
-						CreatedNormalRenderTarget->MipGenSettings = TMGS_NoMipmaps;
+						//CreatedNormalRenderTarget->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
+						CreatedNormalRenderTarget->MipLoadOptions = ETextureMipLoadOptions::OnlyFirstMip;
 						CreatedNormalRenderTarget->UpdateResource();
 						CreatedNormalRenderTarget->SRGB = false;
 					}
@@ -526,7 +527,8 @@ void USQPPaintWorldSubsystem::CreateCanvasMaterialInstanceDynamic(
 	if (CreatedNormalRenderTarget)
 	{
 		CreatedNormalRenderTarget->CompressionSettings = TC_VectorDisplacementmap;
-		CreatedNormalRenderTarget->MipGenSettings = TMGS_NoMipmaps;
+		//CreatedNormalRenderTarget->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
+		CreatedNormalRenderTarget->MipLoadOptions = ETextureMipLoadOptions::OnlyFirstMip;
 		CreatedNormalRenderTarget->UpdateResource();
 		CreatedNormalRenderTarget->SRGB = false;
 	}
