@@ -4,6 +4,7 @@
 
 #include "CatchMindWidget.h"
 #include "LikeUI.h"
+#include "MainUI.h"
 #include "MainUIComponent.h"
 #include "PlaygroundScoreWidget.h"
 #include "SQP.h"
@@ -15,7 +16,6 @@
 
 USQP_PS_PaintRoomComponent::USQP_PS_PaintRoomComponent() : bCanFirePaintBall(true)
 {
-	
 }
 
 void USQP_PS_PaintRoomComponent::BeginPlay()
@@ -48,12 +48,26 @@ void USQP_PS_PaintRoomComponent::IncreaseLikeCounter()
 	OnRep_LikeCounter();
 }
 
+
 void USQP_PS_PaintRoomComponent::OnRep_LikeCounter() const
 {
 	const FString RichText = FString::Printf(TEXT("<Impact>%d</>"), LikeCounter);
 
 	if (const UMainUIComponent* MainUIComp = GetBindingPSMaster()->GetPawn()->FindComponentByClass<UMainUIComponent>())
 	{
+		if (MainUIComp)
+		{
+			if (MainUIComp->MainUI)
+			{
+				if (MainUIComp->MainUI->WBP_LikeUI)
+				{
+					if (MainUIComp->MainUI->WBP_LikeUI->LikeNumberText)
+					{
+						MainUIComp->MainUI->WBP_LikeUI->LikeNumberText->SetText(FText::FromString(RichText));
+					}
+				}
+			}
+		}
 		if (const ULikeUI* LikeUI = Cast<ULikeUI>(MainUIComp->LikeUIComp->GetWidget()))
 		{
 			LikeUI->LikeNumberText->SetText(FText::FromString(RichText));
@@ -63,7 +77,8 @@ void USQP_PS_PaintRoomComponent::OnRep_LikeCounter() const
 
 void USQP_PS_PaintRoomComponent::OnRep_PaintRoomRole()
 {
-	if (const ASQP_PC_PaintRoom* PCPaint = Cast<ASQP_PC_PaintRoom>(GetBindingPSMaster()->GetPlayerController()); PCPaint == GetWorld()->GetFirstPlayerController())
+	if (const ASQP_PC_PaintRoom* PCPaint = Cast<ASQP_PC_PaintRoom>(GetBindingPSMaster()->GetPlayerController()); PCPaint
+		== GetWorld()->GetFirstPlayerController())
 	{
 		//역할에 따라서 UI 등이 업데이트 된다
 		switch (PAINT_ROOM_ROLE)
@@ -94,6 +109,6 @@ void USQP_PS_PaintRoomComponent::OnRep_PaintRoomRole()
 				//MUST 그림경쟁 UI 업데이트
 				break;
 			}
-		}	
+		}
 	}
-} 
+}

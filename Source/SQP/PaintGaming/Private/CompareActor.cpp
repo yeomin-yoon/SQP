@@ -6,7 +6,6 @@
 #include "CompetitorName.h"
 #include "Components/TextBlock.h"
 #include "Components/WidgetComponent.h"
-#include "Engine/Texture2D.h"
 #include "Net/UnrealNetwork.h"
 
 

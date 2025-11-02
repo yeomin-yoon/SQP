@@ -1,8 +1,6 @@
 #include "TestPlayer.h"
 
 #include "Engine/Canvas.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "Kismet/KismetRenderingLibrary.h"
 

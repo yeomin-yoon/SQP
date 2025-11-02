@@ -108,5 +108,5 @@ public:
 	FString CatchMindSuggestion;
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MultiCast_SetSpawnActorText(class ACompareActor* PaintableActor, const FString& Name);
+	void MultiCast_SetSpawnActorText(class ACompareActor* PaintableActor, const FString& Name, FLinearColor Color);
 };

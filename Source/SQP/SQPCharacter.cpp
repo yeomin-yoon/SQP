@@ -12,7 +12,6 @@
 #include "InputActionValue.h"
 #include "Components/AudioComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "UI/VREditorUISystem.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -53,7 +52,8 @@ ASQPCharacter::ASQPCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
-	AudioComp = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComp2"));
+	AudioComp = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComp"));
+	AudioComp->SetupAttachment(RootComponent);
 	AudioComp->bAutoActivate = false;
 	
 	if (static ConstructorHelpers::FObjectFinder<USoundWave> USoundWave(

@@ -18,6 +18,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UCapsuleComponent> CapsuleComp;
@@ -53,4 +54,11 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	bool bIsInactivePawn = false;
+
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> DynBody;
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SetTankColor(FLinearColor Color);
+	UPROPERTY(Replicated)
+	FLinearColor RandomColor;
 };

@@ -31,12 +31,12 @@ void USwimComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 
 	if (OwnerCharacter && OwnerCharacter->IsLocallyControlled())
 	{
-		if (OwnerCharacter->GetCharacterMovement()->MaxWalkSpeed > 500.f)
+		if (OwnerCharacter->GetCharacterMovement()->MaxWalkSpeed > 550.f)
 		{
 			ElapsedTime += DeltaTime;
 			Server_BrakingFriction(0.07);
 			Server_ChangeMaxSpeed(
-				UEaseFunctionLibrary::LerpFloatEase(950.f, 500.f, ElapsedTime / SpeedUpTime, EEaseType::EaseOutQuart));
+				UEaseFunctionLibrary::LerpFloatEase(950.f, 550.f, ElapsedTime / SpeedUpTime, EEaseType::EaseOutQuart));
 		}
 		else
 		{

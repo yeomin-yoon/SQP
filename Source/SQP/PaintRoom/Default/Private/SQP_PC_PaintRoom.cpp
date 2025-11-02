@@ -19,10 +19,7 @@
 #include "Components/RichTextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "PlaygroundMenuWidget.h"
-#include "SFXManager.h"
-#include "SFXType.h"
 #include "Components/AudioComponent.h"
-#include "Sound/SoundCue.h"
 
 ASQP_PC_PaintRoom::ASQP_PC_PaintRoom()
 {
