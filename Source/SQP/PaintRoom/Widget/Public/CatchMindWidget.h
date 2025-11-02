@@ -21,10 +21,10 @@ public:
 	void HideAll() const;
 
 	UFUNCTION()
-	void ShowPainter() const;
+	void ShowPainter();
 
 	UFUNCTION()
-	void ShowParticipant() const;
+	void ShowParticipant();
 
 	UFUNCTION()
 	void ShowSomeoneWin(const FString& SomeoneName) const;
@@ -47,6 +47,12 @@ protected:
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> ParticipantRoleTextBlock;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> BigPainterRoleTextBlock;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> BigParticipantRoleTextBlock;
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> SuggestionTitleTextBlock;
@@ -76,4 +82,6 @@ protected:
 	void OnAnswerTextCommitted(const FText& InText, ETextCommit::Type InCommitMethod);
 
 	FTimerHandle WrongMessageTimerHandle;
+
+	FTimerHandle RoleMessageTimerHandle;
 };

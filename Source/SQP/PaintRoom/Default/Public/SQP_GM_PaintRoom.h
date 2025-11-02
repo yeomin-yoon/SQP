@@ -47,6 +47,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StartCatchMindMiniGame();
 
+	//캐치 마인드 미니 게임 제한 시간 오버 메서드
+	UFUNCTION()
+	void TimeUpCatchMindMiniGame();
+
+	//캐치 마인드 미니 게임을 종료하는 메서드
+	UFUNCTION()
+	void EndCatchMindMiniGame();
+
 	//캐치 마인드 미니 게임의 캔버스 액터 블루프린트 클래스
 	UPROPERTY()
 	TSubclassOf<ASQP_PaintableActor> CatchMindCanvasActorClass;
@@ -55,14 +63,10 @@ public:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<ASQP_PaintableActor> CatchMindCanvasActor;
 
-	//캐치 마인드 미니 게임을 종료하는 메서드
-	UFUNCTION()
-	void EndCatchMindMiniGame();
-
 	//캐치 마인드 미니 게임을 종료하는 타이머
 	FTimerHandle CatchMindMiniGameTimerHandle;
 
-	void StartTimer(class ASQP_GS_PaintRoom* GS, float Time);
+	void StartTimer(class ASQP_GS_PaintRoom* GS, float Time) const;
 
 	//경쟁 미니 게임을 시작하는 메서드
 	UFUNCTION(BlueprintCallable)

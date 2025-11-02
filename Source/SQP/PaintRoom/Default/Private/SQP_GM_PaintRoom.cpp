@@ -133,6 +133,7 @@ void ASQP_GM_PaintRoom::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 
 void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
 {
+	//이미 캐치 마인드 미니 게임이 진행 중이었다면
 	if (CatchMindMiniGameTimerHandle.IsValid())
 	{
 		return;
@@ -200,15 +201,10 @@ void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
 
 		//30초 동안 선택받은 플레이어는 페인트 볼을 쏠 수 있고, 나머지는 정답을 서버에 전송 가능
 		StartTimer(GSPaint, 30);
-
-		GetWorldTimerManager().SetTimer(CatchMindMiniGameTimerHandle, FTimerDelegate::CreateLambda([this]()
-		{
-			EndCatchMindMiniGame();
-		}), 30, false);
 	}
 }
 
-void ASQP_GM_PaintRoom::EndCatchMindMiniGame()
+void ASQP_GM_PaintRoom::TimeUpCatchMindMiniGame()
 {
 	GetWorldTimerManager().ClearTimer(CatchMindMiniGameTimerHandle);
 	
@@ -248,7 +244,44 @@ void ASQP_GM_PaintRoom::EndCatchMindMiniGame()
 	}
 }
 
-void ASQP_GM_PaintRoom::StartTimer(ASQP_GS_PaintRoom* GS, float Time)
+void ASQP_GM_PaintRoom::EndCatchMindMiniGame()
+{
+	GetWorldTimerManager().ClearTimer(CatchMindMiniGameTimerHandle);
+	
+	PRINTLOGNET(TEXT("GM_PaintRoom::EndCatchMindMiniGame"));
+	
+	if (const auto GSPaint = GetGameState<ASQP_GS_PaintRoom>())
+	{
+		//GS의 PS를 PS_Master로 변환해서 임시 저장
+		TArray<ASQP_PS_Master*> TempPSMasterArray;
+		for (const auto PS : GSPaint->PlayerArray)
+		{
+			TempPSMasterArray.Emplace(Cast<ASQP_PS_Master>(PS));
+		}
+		const int32 Size = TempPSMasterArray.Num();
+
+		//모든 유저가 페인트 볼을 발사할 수 있도록 초기화
+		for (int i = 0; i < Size; i++)
+		{
+			TempPSMasterArray[i]->PaintRoom->PAINT_ROOM_ROLE = EPaintRoomRole::None;
+		}
+
+		//제시어 초기화
+		GSPaint->CATCH_MIND_SUGGESTION = FString();
+
+		FTimerHandle TimerHandle;
+		GetWorldTimerManager().SetTimer(TimerHandle, FTimerDelegate::CreateLambda([this, GSPaint]()
+		{
+			//모든 클라이언트가 알 수 있도록 게임 스테이트의 변수를 변경
+			GSPaint->PAINT_ROOM_STATE = EPaintRoomState::None;
+
+			//캐치 마인드를 위한 캔버스를 초기화
+			CatchMindCanvasActor->ClearPaint();
+		}), 5, false);
+	}
+}
+
+void ASQP_GM_PaintRoom::StartTimer(ASQP_GS_PaintRoom* GS, const float Time) const
 {
 	GS->CountdownStartTime = GetWorld()->GetTimeSeconds();
 	GS->CountdownTotalTime = Time;

@@ -198,7 +198,7 @@ void ASQP_PC_PaintRoom::ReplicatedCountDown()
 			LastRemainingTime = -1;
 			if (HasAuthority())
 			{
-				GM->EndCatchMindMiniGame();
+				GM->TimeUpCatchMindMiniGame();
 			}
 		}
 	}
