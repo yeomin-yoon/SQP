@@ -69,6 +69,7 @@ ASQP_GM_PaintRoom::ASQP_GM_PaintRoom()
 		CatchMindCanvasActorClass = Finder.Class;
 	}
 
+	//경쟁 캔버스 액터 블루프린트 클래스 로드
 	if (static ConstructorHelpers::FClassFinder<ACompareActor>
 		Finder(TEXT("/Game/Splatoon/Blueprint/PaintGaming/BP_Compare.BP_Compare_C"));
 		Finder.Succeeded())
@@ -378,12 +379,13 @@ void ASQP_GM_PaintRoom::EndCompetitionMiniGame()
 	
 	SimilarityClient->CompareTextures(GSPaint->RandomImage, CompareTextures, PlayerNames);
 
+	PRINTLOGNET(TEXT("EndCompetitionMiniGame"));
+
 	InitCompetition();
 }
 
 
-void ASQP_GM_PaintRoom::SpawnActorsInCircle(TSubclassOf<ACompareActor> ActorClass, int32 NumActors, float Radius,
-                                            FVector Center)
+void ASQP_GM_PaintRoom::SpawnActorsInCircle(const TSubclassOf<ACompareActor> ActorClass, const int32 NumActors, const float Radius, const FVector& Center)
 {
 	if (!ActorClass || NumActors <= 0)
 		return;
@@ -391,15 +393,15 @@ void ASQP_GM_PaintRoom::SpawnActorsInCircle(TSubclassOf<ACompareActor> ActorClas
 	UWorld* World = GetWorld();
 	if (!World)
 		return;
-	
-	float GapDegrees = 60.f;
-	float GapRadians = FMath::DegreesToRadians(GapDegrees);
-	float StartAngle = PI / 2 + (GapRadians / 2);
-	float FillRadians = 2 * PI - GapRadians;
+
+	const float GapDegrees = 60.f;
+	const float GapRadians = FMath::DegreesToRadians(GapDegrees);
+	const float StartAngle = PI / 2 + (GapRadians / 2);
+	const float FillRadians = 2 * PI - GapRadians;
 	
 	for (int32 i = 0; i < NumActors; ++i)
 	{
-		float Angle = StartAngle + (FillRadians / (NumActors - 1)) * i;
+		const float Angle = StartAngle + (FillRadians / (NumActors - 1)) * i;
 		FVector Pos = Center + FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0) * Radius;
 		FRotator Rot = (Center - Pos).Rotation();
 

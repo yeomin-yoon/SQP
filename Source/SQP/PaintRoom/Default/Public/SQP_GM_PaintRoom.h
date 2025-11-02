@@ -86,7 +86,7 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UDataTable> CatchMindMiniGameDataTable;
 	
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TSubclassOf<class ACompareActor> CompareActorClass;
 	
 	UPROPERTY()
@@ -101,7 +101,7 @@ public:
 	UPROPERTY()
 	TArray<UTexture2D*> CompareTextures;
 
-	void SpawnActorsInCircle(TSubclassOf<ACompareActor> ActorClass, int32 NumActors, float Radius, FVector Center);
+	void SpawnActorsInCircle(TSubclassOf<ACompareActor> ActorClass, int32 NumActors, float Radius, const FVector& Center);
 
 	void InitCompetition();
 	
