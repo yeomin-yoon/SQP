@@ -76,15 +76,14 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<class UAISimilarityClient> SimilarityClient;
-	UPROPERTY()
-	TObjectPtr<class APaintGameActor> PaintGameActor;
+
 	
 	//캐치 마인드 데이터 테이블
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UDataTable> CatchMindMiniGameDataTable;
 	
 	UPROPERTY()
-	TSubclassOf<ASQP_PaintableActor> CompareActorClass;
+	TSubclassOf<class ACompareActor> CompareActorClass;
 	
 	UPROPERTY()
 	TArray<APlayerState*> CompetitionPSs;
@@ -93,12 +92,14 @@ public:
 	TMap<FString, UTexture2D*> PlayerTextureMap;
 	
 	UPROPERTY()
-	TArray<ASQP_PaintableActor*> PaintableCompareActors;
+	TArray<class ACompareActor*> PaintableCompareActors;
 	TArray<FString> PlayerNames;
 	UPROPERTY()
 	TArray<UTexture2D*> CompareTextures;
 
-	void SpawnActorsInCircle(TSubclassOf<ASQP_PaintableActor> ActorClass, int32 NumActors, float Radius, FVector Center);
+	void SpawnActorsInCircle(TSubclassOf<ACompareActor> ActorClass, int32 NumActors, float Radius, FVector Center);
+
+
 
 	void InitCompetition();
 };

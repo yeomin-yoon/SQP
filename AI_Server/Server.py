@@ -16,7 +16,10 @@ def calc_similarity(img1, img2):
     return 1.0 / (1.0 + diff / 1000.0)
 
 @app.post("/compare_textures/")
-async def compare_textures(original: UploadFile = File(...), comparisons: List[UploadFile] = File(...)):
+async def compare_textures(
+    original: UploadFile = File(...),
+    comparisons: List[UploadFile] = File(...)
+):
     orig_img = Image.open(io.BytesIO(await original.read()))
     best_score = -1.0
     best_name = None
@@ -28,7 +31,7 @@ async def compare_textures(original: UploadFile = File(...), comparisons: List[U
             best_score = score
             best_name = comp.filename
 
-    return {"best_match": best_name, "score": best_score}
+    return {"best_match": best_name, "score": float(best_score)}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

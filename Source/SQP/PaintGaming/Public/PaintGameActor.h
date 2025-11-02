@@ -22,27 +22,25 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	UPROPERTY()
-	TObjectPtr<class UIMGManager> IMGManager;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override; 
 	
 	UPROPERTY()
 	TObjectPtr<class ASQP_GS_PaintRoom> GS;
-	void ShowRandomImage(UTexture2D* Image);
-	
-	
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void ShowRandomImage(UTexture2D* Image);
+
+	UPROPERTY(Replicated)
+	float ElapsedRot = 0.f;
 	UPROPERTY()
 	TObjectPtr<class UMaterialInstanceDynamic> DynMat;
 	
-	void StartGame();
 	void CountDown();
 	void CountDownText();
 	FTimerHandle StartTimer;
 	int32 StartTime;
 	void StartGameTimerFinished();
-	
 };

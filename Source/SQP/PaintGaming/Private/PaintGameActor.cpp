@@ -28,17 +28,16 @@ void APaintGameActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AReadyActor* ReadyActor = Cast<AReadyActor>(
-		UGameplayStatics::GetActorOfClass(GetWorld(), AReadyActor::StaticClass()));
-
-	ReadyActor->OnTimerFinished.BindUObject(this, &APaintGameActor::StartGame);
-
-	IMGManager = GetGameInstance()->GetSubsystem<UIMGManager>();
-	if (!IMGManager) return;
-	
 	DynMat = FindComponentByClass<UStaticMeshComponent>()->CreateAndSetMaterialInstanceDynamic(0);
 
 	GS = Cast<ASQP_GS_PaintRoom>(UGameplayStatics::GetGameState(GetWorld()));
+}
+
+void APaintGameActor::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APaintGameActor, ElapsedRot)
 }
 
 
@@ -54,16 +53,16 @@ void APaintGameActor::ShowRandomImage(UTexture2D* Image)
 void APaintGameActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
 
-void APaintGameActor::StartGame()
-{
 	if (HasAuthority())
 	{
-		GS->Multicast_SetRandomImage(IMGManager->GetRandomImage());
+		ElapsedRot += 0.8f;
+		if (ElapsedRot >= 360.0f)
+		{
+			ElapsedRot = 0.f;
+		}
 	}
-
-	ShowRandomImage(GS->RandomImage);
+	SetActorRotation(FRotator(0, ElapsedRot, 0));
 }
 
 void APaintGameActor::CountDown()

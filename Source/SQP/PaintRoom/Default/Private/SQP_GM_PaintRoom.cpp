@@ -3,6 +3,8 @@
 #include "SQP_GM_PaintRoom.h"
 
 #include "AISimilarityClient.h"
+#include "CompareActor.h"
+#include "CompetitorName.h"
 #include "EngineUtils.h"
 #include "PaintGameActor.h"
 #include "PaintRoomWidget.h"
@@ -16,6 +18,8 @@
 #include "SQP_PS_Master.h"
 #include "SQP_PS_PaintRoomComponent.h"
 #include "TankCharacter.h"
+#include "Components/TextBlock.h"
+#include "Components/WidgetComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
@@ -69,7 +73,7 @@ ASQP_GM_PaintRoom::ASQP_GM_PaintRoom()
 		CatchMindCanvasActorClass = Finder.Class;
 	}
 
-	if (static ConstructorHelpers::FClassFinder<ASQP_PaintableActor>
+	if (static ConstructorHelpers::FClassFinder<ACompareActor>
 		Finder(TEXT("/Game/Splatoon/Blueprint/PaintGaming/BP_Compare.BP_Compare_C"));
 		Finder.Succeeded())
 	{
@@ -99,9 +103,10 @@ void ASQP_GM_PaintRoom::BeginPlay()
 		{
 			for (auto Pair : SG_PaintRoom->PEDContainer)
 			{
-				PRINTLOG(TEXT("Successfully Load %s PED... : Length %d"), *Pair.Key.ToString(), Pair.Value.PEDArray.Num());
+				PRINTLOG(TEXT("Successfully Load %s PED... : Length %d"), *Pair.Key.ToString(),
+				         Pair.Value.PEDArray.Num());
 			}
-			
+
 			//서버는 직접 페인트 볼 실행 데이터를 적용한다
 			GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>()->LoadPaintOfWorld(SG_PaintRoom->PEDContainer);
 
@@ -110,7 +115,7 @@ void ASQP_GM_PaintRoom::BeginPlay()
 		}
 	}
 
-	PaintGameActor = Cast<APaintGameActor>(UGameplayStatics::GetActorOfClass(GetWorld(), APaintGameActor::StaticClass()));
+
 
 	SimilarityClient = GetGameInstance()->GetSubsystem<UAISimilarityClient>();
 }
@@ -118,15 +123,16 @@ void ASQP_GM_PaintRoom::BeginPlay()
 void ASQP_GM_PaintRoom::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
-	
+
 	if (HasAuthority() && NewPlayer->IsLocalController())
 	{
 		if (APawn* OldPawn = NewPlayer->GetPawn())
 		{
 			OldPawn->Destroy();
 		}
-		
-		ASkyViewPawn* SpectatorPawn = GetWorld()->SpawnActor<ASkyViewPawn>(ASkyViewPawn::StaticClass(), FVector(0.f, 0.f, 200.f), FRotator(0, 0, 0));
+
+		ASkyViewPawn* SpectatorPawn = GetWorld()->SpawnActor<ASkyViewPawn>(
+			ASkyViewPawn::StaticClass(), FVector(0.f, 0.f, 200.f), FRotator(0, 0, 0));
 		if (SpectatorPawn)
 		{
 			NewPlayer->Possess(SpectatorPawn);
@@ -137,7 +143,6 @@ void ASQP_GM_PaintRoom::PostLogin(APlayerController* NewPlayer)
 void ASQP_GM_PaintRoom::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
 }
 
 void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
@@ -146,9 +151,9 @@ void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
 	{
 		return;
 	}
-	
+
 	PRINTLOGNET(TEXT("GM_PaintRoom::StartCatchMindMiniGame"));
-	
+
 	if (const auto GSPaint = GetGameState<ASQP_GS_PaintRoom>())
 	{
 		//편리한 작업을 위해 임시 변수 구축
@@ -158,24 +163,27 @@ void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
 			TempPSMasterArray.Emplace(Cast<ASQP_PS_Master>(PS));
 		}
 		TArray<ASQP_PC_PaintRoom*> TempPCPaintArray;
-		for (const auto PS: GSPaint->PlayerArray)
+		for (const auto PS : GSPaint->PlayerArray)
 		{
 			TempPCPaintArray.Emplace(Cast<ASQP_PC_PaintRoom>(PS->GetPlayerController()));
 		}
 		const int32 Size = TempPSMasterArray.Num();
-		
+
 		//이번에 그림을 제시어를 묘사할 캐치마인드 플레이어를 선택
 		const int PainterIdx = FMath::RandRange(1, Size - 1);
 
 		//모든 유저의 페인트 룸 역할을 갱신
 		for (int i = 0; i < Size; i++)
 		{
-			TempPSMasterArray[i]->PaintRoom->PAINT_ROOM_ROLE = (i == PainterIdx ? EPaintRoomRole::CatchMindPainter : EPaintRoomRole::CatchMindParticipant); 
+			TempPSMasterArray[i]->PaintRoom->PAINT_ROOM_ROLE = (i == PainterIdx
+				                                                    ? EPaintRoomRole::CatchMindPainter
+				                                                    : EPaintRoomRole::CatchMindParticipant);
 		}
 
 		//랜덤 제시어를 하나 선택
 		const int32 Rand = FMath::RandRange(1, SuggestionArray.Num());
-		const FCatchMind* Selected = CatchMindMiniGameDataTable->FindRow<FCatchMind>(FName(FString::Printf(TEXT("제시어%d"), Rand)), TEXT(""));
+		const FCatchMind* Selected = CatchMindMiniGameDataTable->FindRow<FCatchMind>(
+			FName(FString::Printf(TEXT("제시어%d"), Rand)), TEXT(""));
 		const FString Hint = Selected->Hint;
 		const FString Suggestion = Selected->Suggestion;
 
@@ -203,7 +211,7 @@ void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
 
 		//제시어 업데이트
 		GSPaint->CATCH_MIND_SUGGESTION = Suggestion;
-		
+
 		//모든 클라이언트가 알 수 있도록 게임 스테이트의 변수를 변경
 		GSPaint->PAINT_ROOM_STATE = EPaintRoomState::CatchMind;
 
@@ -223,9 +231,9 @@ void ASQP_GM_PaintRoom::EndCatchMindMiniGame()
 	{
 		CatchMindMiniGameTimerHandle.Invalidate();
 	}
-	
+
 	PRINTLOGNET(TEXT("GM_PaintRoom::EndCatchMindMiniGame"));
-	
+
 	if (const auto GSPaint = GetGameState<ASQP_GS_PaintRoom>())
 	{
 		//GS의 PS를 PS_Master로 변환해서 임시 저장
@@ -266,8 +274,10 @@ void ASQP_GM_PaintRoom::StartTimer(ASQP_GS_PaintRoom* GS, float Time)
 
 void ASQP_GM_PaintRoom::StartCompetitionMiniGame()
 {
+	if (bIsCompetition)
+		return;
 	bIsCompetition = true;
-	
+
 	ASQP_GS_PaintRoom* GSPaint = GetGameState<ASQP_GS_PaintRoom>();
 	if (!GSPaint)
 		return;
@@ -276,20 +286,20 @@ void ASQP_GM_PaintRoom::StartCompetitionMiniGame()
 	{
 		APlayerController* PC = Cast<APlayerController>(PS->GetOwner());
 
-		if (PC->HasAuthority())
+		if (!PC->HasAuthority())
 			continue;
-
+		
 		PlayerNames.Add(PS->GetPlayerName());
-		// CompetitionPSs.Add(PS);
 	}
-	
-	int32 TotalPlayers = CompetitionPSs.Num();
-	
+
+	int32 TotalPlayers = PlayerNames.Num();
+	CompareTextures.SetNum(TotalPlayers);
+
 	// 스폰 Canvas
-	SpawnActorsInCircle(CompareActorClass, TotalPlayers, 1500.f, FVector(0.f));
+	SpawnActorsInCircle(CompareActorClass, TotalPlayers, 1470.f, FVector(0.f, 0.f, 300.f));
 
 	// 문제 그림 표시
-	PaintGameActor->StartGame();
+	GSPaint->StartGame();
 
 	// 게임 시작
 	StartTimer(GSPaint, 10.f);
@@ -297,9 +307,7 @@ void ASQP_GM_PaintRoom::StartCompetitionMiniGame()
 
 void ASQP_GM_PaintRoom::EndCompetitionMiniGame()
 {
-	UTexture* Image;
-	PaintGameActor->DynMat->GetTextureParameterValue(TEXT("ReferenceImage"), Image);
-	UTexture2D* Image2D = Cast<UTexture2D>(Image);
+	ASQP_GS_PaintRoom* GSPaint = GetGameState<ASQP_GS_PaintRoom>();
 	
 	for (int32 i = 0; i < PaintableCompareActors.Num(); i++)
 	{
@@ -308,14 +316,15 @@ void ASQP_GM_PaintRoom::EndCompetitionMiniGame()
 		PaintableCompareActors[i]->DynMat->GetTextureParameterValue(TEXT("ColorRenderTarget"), CompareImage);
 		CompareTextures[i] = Cast<UTexture2D>(CompareImage);
 	}
-	
-	SimilarityClient->CompareTextures(Image2D, CompareTextures, PlayerNames);
+
+	SimilarityClient->CompareTextures(GSPaint->RandomImage, CompareTextures, PlayerNames);
 
 	InitCompetition();
 }
 
 
-void ASQP_GM_PaintRoom::SpawnActorsInCircle(TSubclassOf<ASQP_PaintableActor> ActorClass, int32 NumActors, float Radius, FVector Center)
+void ASQP_GM_PaintRoom::SpawnActorsInCircle(TSubclassOf<ACompareActor> ActorClass, int32 NumActors, float Radius,
+                                            FVector Center)
 {
 	if (!ActorClass || NumActors <= 0)
 		return;
@@ -323,23 +332,37 @@ void ASQP_GM_PaintRoom::SpawnActorsInCircle(TSubclassOf<ASQP_PaintableActor> Act
 	UWorld* World = GetWorld();
 	if (!World)
 		return;
-
+	
+	float GapDegrees = 60.f;
+	float GapRadians = FMath::DegreesToRadians(GapDegrees);
+	float StartAngle = PI / 2 + (GapRadians / 2);
+	float FillRadians = 2 * PI - GapRadians;
+	
 	for (int32 i = 0; i < NumActors; ++i)
 	{
-		const float Angle = (2 * PI / NumActors) * i;
+		float Angle = StartAngle + (FillRadians / (NumActors - 1)) * i;
 		FVector Pos = Center + FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0) * Radius;
 		FRotator Rot = (Center - Pos).Rotation();
 
-		ASQP_PaintableActor* PaintableActor = World->SpawnActor<ASQP_PaintableActor>(ActorClass, Pos, Rot);
-		PaintableActor->CompetitionPlayerName = PlayerNames[i];
+		ACompareActor* PaintableActor = World->SpawnActor<ACompareActor>(ActorClass, Pos, Rot);
+		PaintableActor->SetReplicates(true);
+		PaintableActor->bAlwaysRelevant = true;
+		GetGameState<ASQP_GS_PaintRoom>()->MultiCast_SetSpawnActorText(PaintableActor, PlayerNames[i]);
+
 		PaintableCompareActors.Add(PaintableActor);
 	}
 }
+
+
 
 void ASQP_GM_PaintRoom::InitCompetition()
 {
 	PlayerNames.Empty();
 	CompareTextures.Empty();
-
+	for (ACompareActor* Actor : PaintableCompareActors)
+	{
+		Actor->Destroy();
+	}
+	PaintableCompareActors.Empty();
 	bIsCompetition = false;
 }

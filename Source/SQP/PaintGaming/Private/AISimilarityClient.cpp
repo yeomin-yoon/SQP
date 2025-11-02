@@ -6,7 +6,87 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 
-static bool TextureToPNGBytes(UTexture2D* Texture, TArray<uint8>& OutData) { OutData.Empty(); if (!Texture || !Texture->GetPlatformData() || Texture->GetPlatformData()->Mips.Num() == 0) { UE_LOG(LogTemp, Error, TEXT("Invalid texture")); return false; } FTexture2DMipMap& Mip = Texture->GetPlatformData()->Mips[0]; int32 Width = Mip.SizeX; int32 Height = Mip.SizeY; if (Width <= 0 || Height <= 0) { UE_LOG(LogTemp, Error, TEXT("Invalid texture size")); return false; } void* Data = Mip.BulkData.Lock(LOCK_READ_ONLY); if (!Data) { UE_LOG(LogTemp, Error, TEXT("Failed to lock texture bulk data")); return false; } const int32 NumPixels = Width * Height; TArray<FColor> Pixels; Pixels.SetNumUninitialized(NumPixels); FMemory::Memcpy(Pixels.GetData(), Data, NumPixels * sizeof(FColor)); Mip.BulkData.Unlock(); IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>("ImageWrapper"); TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG); if (ImageWrapper.IsValid() && ImageWrapper->SetRaw(Pixels.GetData(), Pixels.Num() * sizeof(FColor), Width, Height, ERGBFormat::BGRA, 8)) { OutData = ImageWrapper->GetCompressed(100); return true; } UE_LOG(LogTemp, Error, TEXT("Failed to compress image")); return false; }
+
+static bool SafeTextureToPNG(UTexture2D* Texture, TArray<uint8>& OutData)
+{
+    OutData.Empty();
+
+    // 유효성 검사
+    if (!IsValid(Texture))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[SafeTextureToPNG] Invalid Texture"));
+        return false;
+    }
+
+    FTexturePlatformData* PlatformData = Texture->GetPlatformData();
+    if (!PlatformData || PlatformData->Mips.Num() == 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[SafeTextureToPNG] Missing Platform Data or Mips"));
+        return false;
+    }
+
+    FTexture2DMipMap& Mip = PlatformData->Mips[0];
+    const int32 Width = Mip.SizeX;
+    const int32 Height = Mip.SizeY;
+
+    if (Width <= 0 || Height <= 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[SafeTextureToPNG] Invalid Texture Size: %d x %d"), Width, Height);
+        return false;
+    }
+
+    // BulkData 접근
+    void* Data = Mip.BulkData.Lock(LOCK_READ_ONLY);
+    if (!Data)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[SafeTextureToPNG] Failed to lock bulk data"));
+        return false;
+    }
+
+    const int32 NumPixels = Width * Height;
+    TArray<FColor> Pixels;
+    Pixels.SetNumUninitialized(NumPixels);
+
+    FMemory::Memcpy(Pixels.GetData(), Data, NumPixels * sizeof(FColor));
+    Mip.BulkData.Unlock();
+
+    // ImageWrapper 모듈 로드
+    IImageWrapperModule* ImageWrapperModule = FModuleManager::LoadModulePtr<IImageWrapperModule>("ImageWrapper");
+    if (!ImageWrapperModule)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[SafeTextureToPNG] Failed to load ImageWrapper module"));
+        return false;
+    }
+
+    TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule->CreateImageWrapper(EImageFormat::PNG);
+    if (!ImageWrapper.IsValid())
+    {
+        UE_LOG(LogTemp, Error, TEXT("[SafeTextureToPNG] Failed to create ImageWrapper"));
+        return false;
+    }
+
+    // RAW 데이터 설정
+    if (!ImageWrapper->SetRaw(Pixels.GetData(), Pixels.Num() * sizeof(FColor),
+                              Width, Height, ERGBFormat::BGRA, 8))
+    {
+        UE_LOG(LogTemp, Error, TEXT("[SafeTextureToPNG] Failed to set raw data for ImageWrapper"));
+        return false;
+    }
+
+    // 압축 및 변환 (TArray64 → TArray)
+    const TArray64<uint8>& CompressedData64 = ImageWrapper->GetCompressed(100);
+    if (CompressedData64.Num() == 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[SafeTextureToPNG] Compression failed"));
+        return false;
+    }
+
+    OutData.Reset(CompressedData64.Num());
+    OutData.Append(CompressedData64.GetData(), CompressedData64.Num());
+
+    UE_LOG(LogTemp, Log, TEXT("[SafeTextureToPNG] PNG Conversion Success: %d bytes"), OutData.Num());
+    return true;
+}
 
 void UAISimilarityClient::CompareTextures(UTexture2D* Original, const TArray<UTexture2D*>& ComparisonTextures,
                                           const TArray<FString>& PlayerNames)
@@ -43,14 +123,14 @@ void UAISimilarityClient::CompareTextures(UTexture2D* Original, const TArray<UTe
 
 	// 원본 추가
 	TArray<uint8> OrigBytes;
-	if (TextureToPNGBytes(Original, OrigBytes))
+	if (SafeTextureToPNG(Original, OrigBytes))
 		AppendFile(TEXT("original"), TEXT("original.png"), OrigBytes);
 
 	// 비교 텍스처들 추가
 	for (int32 i = 0; i < ComparisonTextures.Num(); ++i)
 	{
 		TArray<uint8> Bytes;
-		if (TextureToPNGBytes(ComparisonTextures[i], Bytes))
+		if (SafeTextureToPNG(ComparisonTextures[i], Bytes))
 		{
 			FString FileName = FString::Printf(TEXT("comp_%d.png"), i);
 			AppendFile(TEXT("comparisons"), FileName, Bytes);

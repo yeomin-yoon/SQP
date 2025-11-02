@@ -2,10 +2,11 @@
 
 #include "SQP_PaintableActor.h"
 
-#include "HeadMountedDisplayTypes.h"
-#include "SQP.h"
+#include "CompetitorName.h"
 #include "SQPPaintWorldSubsystem.h"
-#include "Kismet/KismetRenderingLibrary.h"
+#include "Components/TextBlock.h"
+#include "Components/WidgetComponent.h"
+
 
 ASQP_PaintableActor::ASQP_PaintableActor()
 {
@@ -26,7 +27,7 @@ void ASQP_PaintableActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	DynMat = FindComponentByClass<UStaticMeshComponent>()->CreateAndSetMaterialInstanceDynamic(0);
+	
 }
 
 void ASQP_PaintableActor::OnConstruction(const FTransform& Transform)
@@ -49,6 +50,7 @@ void ASQP_PaintableActor::OnConstruction(const FTransform& Transform)
 void ASQP_PaintableActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
 }
 
 FGuid ASQP_PaintableActor::GetPersistantActorID()

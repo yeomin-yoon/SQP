@@ -4,10 +4,20 @@
 #include "SQP_GS_PaintRoom.h"
 
 #include "CatchMindWidget.h"
+#include "CompareActor.h"
+#include "CompetitorName.h"
+#include "IMGManager.h"
+#include "PaintGameActor.h"
+#include "ReadyActor.h"
 #include "SQPPaintWorldSubsystem.h"
+#include "SQP_GM_PaintRoom.h"
+#include "SQP_PaintableActor.h"
 #include "SQP_PC_PaintRoom.h"
 #include "SQP_SG_PaintRoom.h"
+#include "Components/TextBlock.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/PlayerState.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 ASQP_GS_PaintRoom::ASQP_GS_PaintRoom()
@@ -20,31 +30,11 @@ void ASQP_GS_PaintRoom::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Server GameState BeginPlay: Player count = %d"), PlayerArray.Num());
-	}
-	else
-	{
-		// 클라이언트는 복제 지연이 있으므로 타이머로 나중에 확인
-		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, [this]()
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Client GameState: Player count = %d"), PlayerArray.Num());
-			for (APlayerState* PlayerState : PlayerArray)
-			{
-				if (PlayerState)
-				{
-					FString PlayerName = PlayerState->GetPlayerName();
-					UE_LOG(LogTemp, Warning, TEXT("Player: %s"), *PlayerName);
-			
-					UE_LOG(LogTemp, Warning, TEXT("PlayerState: %s"), *PlayerState->GetName());
-				}
-			}
-		}, 5, false);
-	}
-	
-	//Multicast_AddPlayerTexture(, nullptr);
+	PaintGameActor = Cast<APaintGameActor>(
+	UGameplayStatics::GetActorOfClass(GetWorld(), APaintGameActor::StaticClass()));
+
+	IMGManager = GetGameInstance()->GetSubsystem<UIMGManager>();
+	if (!IMGManager) return;
 }
 
 void ASQP_GS_PaintRoom::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -87,6 +77,16 @@ void ASQP_GS_PaintRoom::OnRep_PaintExecutionDataSnapshot()
 	if (const auto Subsystem = GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>())
 	{
 		Subsystem->LoadPaintOfWorld(PEDContainer);
+	}
+}
+
+void ASQP_GS_PaintRoom::StartGame()
+{
+	if (HasAuthority())
+	{
+		Multicast_SetRandomImage(IMGManager->GetRandomImage());
+
+		auto GM = Cast<ASQP_GM_PaintRoom>(GetDefaultGameMode());
 	}
 }
 
@@ -139,4 +139,25 @@ void ASQP_GS_PaintRoom::OnRep_PaintRoomState()
 void ASQP_GS_PaintRoom::Multicast_SetRandomImage_Implementation(UTexture2D* Image)
 {
 	RandomImage = Image;
+	PaintGameActor->ShowRandomImage(RandomImage);
+}
+
+void ASQP_GS_PaintRoom::MultiCast_SetSpawnActorText_Implementation(ACompareActor* PaintableActor, const FString& Name)
+{
+	if (!PaintableActor)
+		return;
+	
+	PaintableActor->CompetitionPlayerName = Name;
+
+	if (!PaintableActor->GetComponentByClass<UWidgetComponent>())
+		return;
+	
+	UCompetitorName* NameUI = Cast<UCompetitorName>(
+		PaintableActor->GetComponentByClass<UWidgetComponent>()->GetWidget());
+	NameUI->CompetitorName->SetText(FText(FText::FromString(PaintableActor->CompetitionPlayerName)));
+	float R = FMath::FRandRange(0.3f, 1.0f);
+	float G = FMath::FRandRange(0.3f, 1.0f);
+	float B = FMath::FRandRange(0.3f, 1.0f);
+	FLinearColor RandomColor(R, G, B, 1.0f);
+	NameUI->CompetitorName->SetColorAndOpacity(FSlateColor(RandomColor));
 }

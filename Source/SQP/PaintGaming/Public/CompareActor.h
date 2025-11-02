@@ -3,48 +3,37 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "SQP_PaintableActor.h"
 #include "CompareActor.generated.h"
 
-UENUM(BlueprintType)
-enum class EPaintGamePlayer : uint8
-{
-	PlayerA,
-	PlayerB
-};
-
 UCLASS()
-class SQP_API ACompareActor : public AActor
+class SQP_API ACompareActor : public ASQP_PaintableActor
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
 	ACompareActor();
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="PaintGamePlayer")
-	EPaintGamePlayer PaintGamePlayer = EPaintGamePlayer::PlayerA;
-
-	
-
-	
-	UPROPERTY()
-	TObjectPtr<class ASQP_GS_PaintRoom> GS;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	void FinishGame();
-
-	UPROPERTY()
-	TObjectPtr<class UMaterialInstanceDynamic> DynMat;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetCompareImage(UTexture2D* Image);
+	UPROPERTY()
+	TObjectPtr<class USceneComponent> RootComp;
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UWidgetComponent> NameUIComp;
 
-	void EvaluateWinner();
+	UPROPERTY()
+	TObjectPtr<class UMaterialInstanceDynamic> DynMat;
+
+	UPROPERTY(Replicated)
+	FString CompetitionPlayerName;
+
+	void SetPlayerNameText();
 };

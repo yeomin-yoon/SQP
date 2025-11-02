@@ -23,11 +23,6 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY()
-	TObjectPtr<class UMaterialInstanceDynamic> DynMat;
-
-	FString CompetitionPlayerName;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FGuid PersistantActorID;
 

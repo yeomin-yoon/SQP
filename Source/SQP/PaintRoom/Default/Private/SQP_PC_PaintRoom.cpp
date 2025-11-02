@@ -69,6 +69,7 @@ void ASQP_PC_PaintRoom::BeginPlay()
 			}
 		}
 		TimerUI = UIManager->CreateTimerUI();
+		TimerUI->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -159,6 +160,7 @@ void ASQP_PC_PaintRoom::ReplicatedCountDown()
 		RemainingTime = FMath::CeilToInt(Remaining);
 		if (RemainingTime != LastRemainingTime)
 		{
+			TimerUI->SetVisibility(ESlateVisibility::Visible);
 			UpdateCountdownUI(RemainingTime, TimerUI);
 			LastRemainingTime = RemainingTime;
 		}
@@ -167,6 +169,7 @@ void ASQP_PC_PaintRoom::ReplicatedCountDown()
 			Remaining = 0.f;
 			GS->bOnCountdown = false;
 			LastRemainingTime = -1;
+			TimerUI->SetVisibility(ESlateVisibility::Hidden);
 			if (HasAuthority())
 			{
 				if (GM->bIsCompetition)

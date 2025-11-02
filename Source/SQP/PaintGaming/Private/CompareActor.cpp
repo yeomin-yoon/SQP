@@ -2,11 +2,13 @@
 
 
 #include "CompareActor.h"
-#include "AISimilarityClient.h"
-#include "PaintGameActor.h"
-#include "SQP_GS_PaintRoom.h"
+
+#include "CompetitorName.h"
+#include "Components/TextBlock.h"
+#include "Components/WidgetComponent.h"
 #include "Engine/Texture2D.h"
-#include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
+
 
 // Sets default values
 ACompareActor::ACompareActor()
@@ -14,11 +16,21 @@ ACompareActor::ACompareActor()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	if (Tags.Contains("0"))
+	RootComp = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComp"));
+	SetRootComponent(RootComp);
+	
+	NameUIComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameUI"));
+	NameUIComp->SetupAttachment(GetRootComponent());
+	NameUIComp->SetRelativeLocation(FVector(0.f, 0.f, 75.f));
+
+	ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassFinder(
+		TEXT("Class'/Game/Splatoon/Blueprint/PaintGaming/WBP_Name.WBP_Name_C'"));
+	if (WidgetClassFinder.Succeeded())
 	{
-		Tags.Add(FName("1"));
+		NameUIComp->SetWidgetClass(WidgetClassFinder.Class);
 	}
-	Tags.Add(FName("0"));
+
+	bReplicates = true;
 }
 
 
@@ -28,25 +40,16 @@ void ACompareActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	APaintGameActor* PaintGameActor = Cast<APaintGameActor>(
-		UGameplayStatics::GetActorOfClass(GetWorld(), APaintGameActor::StaticClass()));
-
-	PaintGameActor->OnTimerFinished.BindUObject(this, &ACompareActor::FinishGame);
-
-	if (PaintGamePlayer == EPaintGamePlayer::PlayerA)
-	{
-		Tags.AddUnique("PlayerA");
-	}
-	else if (PaintGamePlayer == EPaintGamePlayer::PlayerB)
-	{
-		Tags.AddUnique("PlayerB");
-	}
-
-	
-
-	GS = Cast<ASQP_GS_PaintRoom>(UGameplayStatics::GetGameState(GetWorld()));
-
 	DynMat = FindComponentByClass<UStaticMeshComponent>()->CreateAndSetMaterialInstanceDynamic(0);
+
+	SetPlayerNameText();
+}
+
+void ACompareActor::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACompareActor, CompetitionPlayerName)
 }
 
 // Called every frame
@@ -55,21 +58,15 @@ void ACompareActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ACompareActor::SetCompareImage(UTexture2D* Image)
+void ACompareActor::SetPlayerNameText()
 {
-	
+	UCompetitorName* NameUI = Cast<UCompetitorName>(NameUIComp->GetWidget());
+	NameUI->CompetitorName->SetText(FText(FText::FromString(CompetitionPlayerName)));
+	float R = FMath::FRandRange(0.3f, 1.0f);
+	float G = FMath::FRandRange(0.3f, 1.0f);
+	float B = FMath::FRandRange(0.3f, 1.0f);
+	FLinearColor RandomColor(R, G, B, 1.0f);
+	NameUI->CompetitorName->SetColorAndOpacity(FSlateColor(RandomColor));
 }
 
-void ACompareActor::EvaluateWinner()
-{
 
-}
-
-void ACompareActor::FinishGame()
-{
-	UTexture* ColorTexture;
-	DynMat->GetTextureParameterValue(FName("ColorRenderTarget"), ColorTexture);
-	UTexture2D* Texture2D = Cast<UTexture2D>(ColorTexture);
-	SetCompareImage(Texture2D);
-	EvaluateWinner();
-}

@@ -38,6 +38,12 @@ public:
 	bool bHasInitialPaintDataBeenApplied = false;
 
 	UPROPERTY()
+	TObjectPtr<class APaintGameActor> PaintGameActor;
+	UPROPERTY()
+	TObjectPtr<class UIMGManager> IMGManager;
+	void StartGame();
+	
+	UPROPERTY()
 	TObjectPtr<UTexture2D> RandomImage;
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SetRandomImage(UTexture2D* Image);
@@ -97,4 +103,7 @@ public:
 	//캐치 마인드 제시어
 	UPROPERTY(VisibleAnywhere)
 	FString CatchMindSuggestion;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCast_SetSpawnActorText(class ACompareActor* PaintableActor, const FString& Name);
 };
