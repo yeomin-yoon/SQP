@@ -34,7 +34,7 @@ void UUIManager::Initialize(FSubsystemCollectionBase& Collection)
 UMainUI* UUIManager::CreateMainUI()
 {
 	MainUI = CreateWidget<UMainUI>(GetWorld(), MainUIClass);
-	MainUI->AddToViewport();
+	MainUI->AddToViewport(-1);
 	MainUI->SetIsFocusable(false);
 
 	return MainUI;

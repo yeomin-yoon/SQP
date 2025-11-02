@@ -8,6 +8,7 @@
 #include "Components/Border.h"
 #include "Components/Button.h"
 #include "Components/Slider.h"
+#include "UI/Synth2DSlider.h"
 #include "Kismet/KismetMathLibrary.h"
 
 void UMainUI::NativeConstruct()

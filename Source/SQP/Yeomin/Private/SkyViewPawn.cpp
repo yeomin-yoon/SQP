@@ -1,9 +1,6 @@
 ﻿#include "SkyViewPawn.h"
 #include "EnhancedInputComponent.h"
-#include "SkyViewComponent.h"
 #include "SQP_PC_PaintRoom.h"
-#include "Camera/CameraComponent.h"
-#include "Net/UnrealNetwork.h"
 
 
 ASkyViewPawn::ASkyViewPawn()

@@ -20,7 +20,8 @@ UProjectileShooterComponent::UProjectileShooterComponent() :
 	//컴포넌트 틱 활성화
 	PrimaryComponentTick.bCanEverTick = true;
 
-	AudioComp = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComp2"));
+	AudioComp = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComp"));
+	AudioComp->SetupAttachment(this);
 	AudioComp->bAutoActivate = false;
 
 	if (static ConstructorHelpers::FObjectFinder<USoundWave> USoundWave(

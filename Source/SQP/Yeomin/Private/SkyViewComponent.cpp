@@ -2,9 +2,7 @@
 #include "InputMappingContext.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "SkyViewPawn.h"
 #include "SQP_PC_PaintRoom.h"
-#include "Camera/CameraComponent.h"
 
 USkyViewComponent::USkyViewComponent()
 {
