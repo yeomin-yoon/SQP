@@ -63,8 +63,19 @@ void UMainMenuWidget::NativeConstruct()
 	//텍스트 바인딩
 	EnterNicknameTextBox->OnTextCommitted.AddDynamic(this, &UMainMenuWidget::OnEnterNicknameTextCommitted);
 
-	//환영 판넬로 스위칭
-	WidgetSwitcher->SetActiveWidgetIndex(3);
+	if (const auto GI = Cast<USQP_GI>(GetGameInstance()))
+	{
+		if (GI->CheckNameEmpty())
+		{
+			//환영 판넬로 스위칭
+			WidgetSwitcher->SetActiveWidgetIndex(3);		
+		}
+		else
+		{
+			//메뉴 판넬로 스위칭
+			WidgetSwitcher->SetActiveWidgetIndex(0);
+		}
+	}
 }
 
 void UMainMenuWidget::NativeOnInitialized()

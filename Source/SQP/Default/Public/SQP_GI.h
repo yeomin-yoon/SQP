@@ -26,7 +26,7 @@ struct FUserInfo
 	UPROPERTY()
 	FString UserIDString;
 
-	FUserInfo() : UserNickname(TEXT("ANONYMOUS"))
+	FUserInfo() : UserNickname(TEXT(""))
 	{
 		UserID = FGuid::NewGuid();
 		UserIDString = UserID.ToString();
@@ -67,6 +67,9 @@ public:
 
 	UFUNCTION()
 	FORCEINLINE void AssignNewUser(const FString& NewNickname) { UserInfo = FUserInfo(NewNickname); }
+
+	UFUNCTION()
+	FORCEINLINE bool CheckNameEmpty() const { return UserInfo.UserNickname.IsEmpty(); }
 
 #pragma endregion
 
