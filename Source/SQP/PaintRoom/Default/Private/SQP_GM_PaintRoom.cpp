@@ -225,7 +225,7 @@ void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
 		GSPaint->PAINT_ROOM_STATE = EPaintRoomState::CatchMindStart;
 
 		//30초 동안 선택받은 플레이어는 페인트 볼을 쏠 수 있고, 나머지는 정답을 서버에 전송 가능
-		StartTimer(GSPaint, 30);
+		StartTimer(GSPaint, 120);
 	}
 }
 
