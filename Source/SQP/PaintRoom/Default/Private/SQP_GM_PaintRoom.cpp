@@ -18,6 +18,7 @@
 #include "SQP_PS_Master.h"
 #include "SQP_PS_PaintRoomComponent.h"
 #include "TankCharacter.h"
+#include "Kismet/GameplayStatics.h"
 #include "Components/TextBlock.h"
 #include "Components/WidgetComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -85,33 +86,37 @@ void ASQP_GM_PaintRoom::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//위젯을 생성한다
-	const auto Created = CreateWidget(GetWorld(), PaintRoomWidgetClass);
-	Created->AddToViewport();
-
-	//액터를 생성한다
-	const auto Spawned = GetWorld()->SpawnActor<ASQP_PaintableActor>(CatchMindCanvasActorClass);
-	Spawned->SetActorLocation(FVector(2200, 0, 700));
-	Spawned->SetActorScale3D(FVector(15, 15, 1));
-	Spawned->SetActorRotation(FRotator(90, 0, 0));
-	CatchMindCanvasActor = Spawned;
-
-	//선택된 페인트 룸 데이터를 로드에 성공했다면
-	if (const auto SaveGame = Cast<USQP_GI>(GetWorld()->GetGameInstance())->LoadSelectedPaintRoomData())
+	if (UGameplayStatics::GetCurrentLevelName(GetWorld()).Equals(TEXT("CatchMind")))
 	{
-		if (USQP_SG_PaintRoom* SG_PaintRoom = Cast<USQP_SG_PaintRoom>(SaveGame))
+		//액터를 생성한다
+		const auto Spawned = GetWorld()->SpawnActor<ASQP_PaintableActor>(CatchMindCanvasActorClass);
+		Spawned->SetActorLocation(FVector(2200, 0, 700));
+		Spawned->SetActorScale3D(FVector(15, 15, 1));
+		Spawned->SetActorRotation(FRotator(90, 0, 0));
+		CatchMindCanvasActor = Spawned;
+	}
+	else
+	{
+		//위젯을 생성한다
+		const auto Created = CreateWidget(GetWorld(), PaintRoomWidgetClass);
+		Created->AddToViewport();	
+
+		//선택된 페인트 룸 데이터를 로드에 성공했다면
+		if (const auto SaveGame = Cast<USQP_GI>(GetWorld()->GetGameInstance())->LoadSelectedPaintRoomData())
 		{
-			for (auto Pair : SG_PaintRoom->PEDContainer)
+			if (USQP_SG_PaintRoom* SG_PaintRoom = Cast<USQP_SG_PaintRoom>(SaveGame))
 			{
-				PRINTLOG(TEXT("Successfully Load %s PED... : Length %d"), *Pair.Key.ToString(),
-				         Pair.Value.PEDArray.Num());
+				for (auto Pair : SG_PaintRoom->PEDContainer)
+				{
+					PRINTLOG(TEXT("Successfully Load %s PED... : Length %d"), *Pair.Key.ToString(), Pair.Value.PEDArray.Num());
+				}
+			
+				//서버는 직접 페인트 볼 실행 데이터를 적용한다
+				GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>()->LoadPaintOfWorld(SG_PaintRoom->PEDContainer);
+
+				//클라이언트에 전송하기 위핸 PED 배열을 추출해서 할당한다
+				GetGameState<ASQP_GS_PaintRoom>()->PaintExecutionDataSnapshot = SG_PaintRoom->ConstructFullPEDArray();
 			}
-
-			//서버는 직접 페인트 볼 실행 데이터를 적용한다
-			GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>()->LoadPaintOfWorld(SG_PaintRoom->PEDContainer);
-
-			//클라이언트에 전송하기 위핸 PED 배열을 추출해서 할당한다
-			GetGameState<ASQP_GS_PaintRoom>()->PaintExecutionDataSnapshot = SG_PaintRoom->ConstructFullPEDArray();
 		}
 	}
 

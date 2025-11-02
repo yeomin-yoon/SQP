@@ -8,6 +8,7 @@
 
 class USQP_GI;
 class UPlaygroundScoreWidget;
+class UPlaygroundMenuWidget;
 class UCatchMindWidget;
 class ASQP_PS_Master;
 
@@ -65,6 +66,13 @@ public:
 	//클라이언트에 오답 사실을 보내주는 Client RPC
 	UFUNCTION(Client, Reliable)
 	void Client_NotifyAnswerIsWrong();
+
+	//플레이그라운드 메뉴 위젯 블루프린트 클래스
+	UPROPERTY(VisibleAnywhere)
+	TSubclassOf<UUserWidget> PlaygroundMenuWidgetClass;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UPlaygroundMenuWidget> PlaygroundMenuWidget;
 
 	//캐치 마인드 위젯 블루프린트 클래스
 	UPROPERTY(VisibleAnywhere)

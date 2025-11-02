@@ -55,6 +55,9 @@ private:
 	//세션 검색 성공 시 처리하기 위해서 등록하는 콜백
 	void OnFindCompleted(const TArray<FOnlineSessionSearchResult>& Results);
 
+	UFUNCTION()
+	void OnExitButtonClicked();
+
 	//검색한 세션 정보를 표시하는 위젯 블루프린트 클래스
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> SessionInfoWidgetClass;

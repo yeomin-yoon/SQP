@@ -26,7 +26,7 @@ AProjectileBase::AProjectileBase()
 
 	//네트워크 설정
 	bReplicates = true;
-	SetNetUpdateFrequency(50);
+	SetNetUpdateFrequency(25);
 	AActor::SetReplicateMovement(true);
 }
 
