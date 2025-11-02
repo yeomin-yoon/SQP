@@ -19,6 +19,8 @@ void UCatchMindWidget::HideAll() const
 {
 	PainterRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	ParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	BigPainterRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	BigParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	SuggestionTitleTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	SuggestionTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	HintTitleTextBlock->SetVisibility(ESlateVisibility::Hidden);
@@ -27,12 +29,15 @@ void UCatchMindWidget::HideAll() const
 	CorrectTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	AnswerTextBox->SetVisibility(ESlateVisibility::Hidden);
 	AnswerTextBox->SetIsEnabled(false);
+	TimeUpTextBlock->SetVisibility(ESlateVisibility::Hidden);
 }
 
-void UCatchMindWidget::ShowPainter() const
+void UCatchMindWidget::ShowPainter()
 {
 	PainterRoleTextBlock->SetVisibility(ESlateVisibility::Visible);
 	ParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	BigPainterRoleTextBlock->SetVisibility(ESlateVisibility::Visible);
+	BigParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	SuggestionTitleTextBlock->SetVisibility(ESlateVisibility::Visible);
 	SuggestionTextBlock->SetVisibility(ESlateVisibility::Visible);
 	HintTitleTextBlock->SetVisibility(ESlateVisibility::Visible);
@@ -41,12 +46,20 @@ void UCatchMindWidget::ShowPainter() const
 	CorrectTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	AnswerTextBox->SetVisibility(ESlateVisibility::Hidden);
 	AnswerTextBox->SetIsEnabled(false);
+	TimeUpTextBlock->SetVisibility(ESlateVisibility::Hidden);
+
+	GetWorld()->GetTimerManager().SetTimer(WrongMessageTimerHandle, FTimerDelegate::CreateLambda([this]()
+	{
+		BigPainterRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	}), 3, false);
 }
 
-void UCatchMindWidget::ShowParticipant() const
+void UCatchMindWidget::ShowParticipant()
 {
 	PainterRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	ParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Visible);
+	BigPainterRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	BigParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Visible);
 	SuggestionTitleTextBlock->SetVisibility(ESlateVisibility::Visible);
 	SuggestionTextBlock->SetVisibility(ESlateVisibility::Visible);
 	HintTitleTextBlock->SetVisibility(ESlateVisibility::Visible);
@@ -55,17 +68,27 @@ void UCatchMindWidget::ShowParticipant() const
 	CorrectTextBlock->SetVisibility(ESlateVisibility::Hidden);
 	AnswerTextBox->SetVisibility(ESlateVisibility::Visible);
 	AnswerTextBox->SetIsEnabled(true);
+	TimeUpTextBlock->SetVisibility(ESlateVisibility::Hidden);
+
+	GetWorld()->GetTimerManager().SetTimer(WrongMessageTimerHandle, FTimerDelegate::CreateLambda([this]()
+	{
+		BigParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	}), 3, false);
 }
 
-void UCatchMindWidget::ShowSomeoneWin(const FString& SomeoneName)
+void UCatchMindWidget::ShowSomeoneWin(const FString& SomeoneName) const
 {
+	HideAll();
+	
 	AnswerTextBox->SetIsEnabled(false);
 	CorrectTextBlock->SetVisibility(ESlateVisibility::Visible);
 	CorrectTextBlock->SetText(FText::FromString(FString::Printf(TEXT("%s님이 정답을 맞추셨습니다!"), *SomeoneName)));
 }
 
-void UCatchMindWidget::ShowWin(const FString& MyName)
+void UCatchMindWidget::ShowWin(const FString& MyName) const
 {
+	HideAll();
+	
 	AnswerTextBox->SetIsEnabled(false);
 	CorrectTextBlock->SetVisibility(ESlateVisibility::Visible);
 	CorrectTextBlock->SetText(FText::FromString(FString::Printf(TEXT("%s님 정답입니다!"), *MyName)));
@@ -75,7 +98,7 @@ void UCatchMindWidget::ShowWrong()
 {
 	if (WrongMessageTimerHandle.IsValid())
 	{
-		return;
+		WrongMessageTimerHandle.Invalidate();
 	}
 
 	WrongTextBlock->SetVisibility(ESlateVisibility::Visible);
@@ -93,6 +116,23 @@ void UCatchMindWidget::SetSuggestionText(const FString& Suggestion, const FStrin
 	HintTextBlock->SetText(FText::FromString(Hint));
 }
 
+void UCatchMindWidget::ShowTimeUp() const
+{
+	PainterRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	ParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	BigPainterRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	BigParticipantRoleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	SuggestionTitleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	SuggestionTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	HintTitleTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	HintTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	WrongTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	CorrectTextBlock->SetVisibility(ESlateVisibility::Hidden);
+	AnswerTextBox->SetVisibility(ESlateVisibility::Hidden);
+	AnswerTextBox->SetIsEnabled(false);
+	TimeUpTextBlock->SetVisibility(ESlateVisibility::Visible);
+}
+
 void UCatchMindWidget::OnAnswerTextCommitted(const FText& InText, ETextCommit::Type InCommitMethod)
 {
 	if (InCommitMethod == ETextCommit::Type::OnEnter)
@@ -101,6 +141,9 @@ void UCatchMindWidget::OnAnswerTextCommitted(const FText& InText, ETextCommit::T
 		if (const auto PCPaint = Cast<ASQP_PC_PaintRoom>(GetWorld()->GetFirstPlayerController()))
 		{
 			PCPaint->Server_ReceiveCatchMindAnswer(InText.ToString());
-		}	
+		}
+
+		//비움
+		AnswerTextBox->SetText(FText());
 	}
 }

@@ -9,10 +9,13 @@
 #include "IMGManager.h"
 #include "PaintGameActor.h"
 #include "ReadyActor.h"
+#include "PlaygroundScoreWidget.h"
+#include "SQP.h"
 #include "SQPPaintWorldSubsystem.h"
 #include "SQP_GM_PaintRoom.h"
 #include "SQP_PaintableActor.h"
 #include "SQP_PC_PaintRoom.h"
+#include "SQP_PS_Master.h"
 #include "SQP_SG_PaintRoom.h"
 #include "Components/TextBlock.h"
 #include "Components/WidgetComponent.h"
@@ -26,7 +29,7 @@ ASQP_GS_PaintRoom::ASQP_GS_PaintRoom()
 	bReplicates = true;
 }
 
-void ASQP_GS_PaintRoom::BeginPlay()
+void ASQP_GS_PaintRoom::BeginPlay() 
 {
 	Super::BeginPlay();
 
@@ -105,7 +108,7 @@ void ASQP_GS_PaintRoom::Multicast_BroadcastSomeoneWin_Implementation(APlayerStat
 	}
 }
 
-bool ASQP_GS_PaintRoom::CheckCatchMindAnswer(const FString& OtherAnswer)
+bool ASQP_GS_PaintRoom::CheckCatchMindAnswer(const FString& OtherAnswer) const
 {
 	return CatchMindSuggestion.Equals(OtherAnswer);
 }
@@ -124,8 +127,13 @@ void ASQP_GS_PaintRoom::OnRep_PaintRoomState()
 				PCPaint->CatchMindWidget->HideAll();
 				break;
 			}
-		case EPaintRoomState::CatchMind:
+		case EPaintRoomState::CatchMindStart:
 			{
+				break;
+			}
+		case EPaintRoomState::CatchMindTimeUp:
+			{
+				PCPaint->CatchMindWidget->ShowTimeUp();
 				break;
 			}
 		default:

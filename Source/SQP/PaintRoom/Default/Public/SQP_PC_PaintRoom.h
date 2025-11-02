@@ -6,6 +6,8 @@
 #include "SQPPlayerController.h"
 #include "SQP_PC_PaintRoom.generated.h"
 
+class USQP_GI;
+class UPlaygroundScoreWidget;
 class UCatchMindWidget;
 class ASQP_PS_Master;
 
@@ -18,14 +20,17 @@ protected:
 	ASQP_PC_PaintRoom();
 	
 	virtual void BeginPlay() override;
+	
 	virtual void Tick(float DeltaSeconds) override;
 
+	UPROPERTY()
+	TObjectPtr<USQP_GI> GI;
 	UPROPERTY()
 	TObjectPtr<class ASQP_GM_PaintRoom> GM;
 	UPROPERTY()
 	TObjectPtr<class ASQP_GS_PaintRoom> GS;
 	UPROPERTY()
-	TObjectPtr<class ASQP_PS_Master> PS;
+	TObjectPtr<ASQP_PS_Master> PS;
 	UPROPERTY()
 	TObjectPtr<class UUIManager> UIManager;
 \
@@ -52,7 +57,7 @@ public:
 	UFUNCTION(Client, Reliable)
 	void Client_ReceiveCatchMindSuggestion(const FString& Suggestion, const FString& Hint);
 
-	//서버에게 캐치마인드 정답을 보내주는 Server RPC
+	//서버에게 캐치마인드 정답을 제출하는 Server RPC
 	UFUNCTION(Server, Reliable)
 	void Server_ReceiveCatchMindAnswer(const FString& Answer);
 
@@ -67,6 +72,14 @@ public:
 	//캐치 마인드 위젯
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UCatchMindWidget> CatchMindWidget;
+
+	//플레이그라운드 점수 위젯 블루프린트 클래스
+	UPROPERTY(VisibleAnywhere)
+	TSubclassOf<UUserWidget> PlaygroundScoreWidgetClass;
+
+	//플레이그라운드 위젯
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UPlaygroundScoreWidget> PlaygroundScoreWidget;
 
 	UPROPERTY()
 	TObjectPtr<class UTimerUI> TimerUI;

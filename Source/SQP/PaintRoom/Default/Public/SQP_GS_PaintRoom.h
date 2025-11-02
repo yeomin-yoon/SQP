@@ -6,14 +6,16 @@
 #include "SQPGameState.h"
 #include "SQP_GS_PaintRoom.generated.h"
 
+class ASQP_PS_Master;
 struct FPaintExecutionData;
 
 UENUM(BlueprintType)
 enum class EPaintRoomState : uint8
 {
 	None = 0,
-	CatchMind = 1,
-	DrawingCompetition = 2,
+	CatchMindStart = 1,
+	CatchMindTimeUp = 2,
+	DrawingCompetition = 3,
 };
 
 UCLASS()
@@ -25,7 +27,7 @@ public:
 	ASQP_GS_PaintRoom();
 	virtual void BeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
+	
 	//서버로부터 PED 배열을 최초 1회만 전달받는다
 	UPROPERTY(ReplicatedUsing = OnRep_PaintExecutionDataSnapshot)
 	TArray<FPaintExecutionData> PaintExecutionDataSnapshot;
@@ -81,7 +83,7 @@ public:
 
 	//캐치 마인드 정답을 확인해주는 메서드
 	UFUNCTION()
-	bool CheckCatchMindAnswer(const FString& OtherAnswer);
+	bool CheckCatchMindAnswer(const FString& OtherAnswer) const;
 
 protected:
 	//페인트 룸의 상태

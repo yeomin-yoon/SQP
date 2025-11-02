@@ -3,7 +3,9 @@
 
 #include "SQP_PS_Master.h"
 
+#include "PlaygroundScoreWidget.h"
 #include "SQP.h"
+#include "SQP_PC_PaintRoom.h"
 #include "SQP_PS_LobbyRoomComponent.h"
 #include "SQP_PS_PaintRoomComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -55,6 +57,13 @@ void ASQP_PS_Master::CopyProperties(APlayerState* PlayerState)
 	Super::CopyProperties(PlayerState);
 
 	PRINTLOGNET(TEXT("Copy Properties!"));
+}
+
+void ASQP_PS_Master::OnRep_Score()
+{
+	Super::OnRep_Score();
+
+	Cast<ASQP_PC_PaintRoom>(GetWorld()->GetFirstPlayerController())->PlaygroundScoreWidget->UpdatePlaygroundScore();
 }
 
 void ASQP_PS_Master::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const

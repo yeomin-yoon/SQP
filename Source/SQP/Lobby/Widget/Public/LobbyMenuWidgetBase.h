@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "LobbyMenuWidgetBase.generated.h"
 
+enum class ELobbyState : uint8;
 class UButton;
 struct FPlayerInfo;
 class UVerticalBox;

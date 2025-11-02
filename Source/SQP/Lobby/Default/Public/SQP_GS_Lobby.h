@@ -6,6 +6,7 @@
 #include "SQPGameState.h"
 #include "SQP_GS_Lobby.generated.h"
 
+struct FPlayerInfo;
 class ASQP_PC_Lobby;
 class ASQP_GM_Lobby;
 

@@ -6,6 +6,7 @@
 #include "LobbyMenuWidgetBase.h"
 #include "HostSideLobbyMenuWidget.generated.h"
 
+class UCheckBox;
 class USelectedPRSInfoWidget;
 class UPaintRoomSaveInfoWidget;
 class UScrollBox;
@@ -29,6 +30,10 @@ public:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UActiveButton> StartButton;
 
+	//세이브 데이터 박스
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UVerticalBox> SaveDataBox;
+
 	//페인트 룸 세이브 인포 위젯이 나열되는 스크롤 박스
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UScrollBox> SaveDataScrollBox;
@@ -48,6 +53,22 @@ public:
 	//현재 선택되어 있는 페인트 룸 세이브 인포 위젯
 	UPROPERTY(VisibleAnywhere)
 	UPaintRoomSaveInfoWidget* CurrentSelectedPaintRoomSaveInfoWidget;
+
+	//호스트 모드 체크 박스
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UCheckBox> HostModeCheckBox;
+
+	//플레이그라운드 체크 박스
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UCheckBox> PlaygroundCheckBox;
+
+	//호스트 모드 체크 박스 상태가 변했을 때 콜백받는 메서드
+	UFUNCTION()
+	void OnHostModeCheckBoxStateChanged(bool bIsChecked);
+
+	//플레이그라운드 체크 박스 상태가 변했을 때 콜백받는 메서드
+	UFUNCTION()
+	void OnPlaygroundCheckBoxStateChanged(bool bIsChanged);
 
 	//취소 버튼이 클릭 되었을 때 콜백받는 메서드
 	UFUNCTION()

@@ -5,6 +5,7 @@
 #include "CatchMindWidget.h"
 #include "LikeUI.h"
 #include "MainUIComponent.h"
+#include "PlaygroundScoreWidget.h"
 #include "SQP.h"
 #include "SQP_PC_PaintRoom.h"
 #include "SQP_PS_Master.h"
@@ -95,4 +96,4 @@ void USQP_PS_PaintRoomComponent::OnRep_PaintRoomRole()
 			}
 		}	
 	}
-}
+} 

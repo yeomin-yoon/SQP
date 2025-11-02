@@ -49,7 +49,7 @@ void USQP_PS_LobbyRoomComponent::BeginPlay()
 void USQP_PS_LobbyRoomComponent::InitializeComponents()
 {
 	//월드 퍼스트 플레이어 컨트롤러와 이 플레이어 스테이트를 소유한 플레이어 컨트롤러가 일치하면 
-	LobbyState = GetWorldFirstPCLobby() == GetBindingPSMaster()->GetPlayerController() ? ELobbyState::Host : ELobbyState::UnreadyClient;
+	LobbyState = GetWorldFirstPCMaster() == GetBindingPSMaster()->GetPlayerController() ? ELobbyState::Host : ELobbyState::UnreadyClient;
 }
 
 void USQP_PS_LobbyRoomComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -104,5 +104,5 @@ void USQP_PS_LobbyRoomComponent::OnRep_LobbyState() const
 	
 	//리플리케이션된 타 플레이어 컨트롤러의 정보를 바탕으로, 현 시스템의 로비 위젯을 업데이트
 	const FString PlayerUniqueId = GetBindingPSMaster()->GetUniqueId()->ToString();
-	GetWorldFirstPCLobby()->LobbyMenuWidget->UpdatePlayerLobbyState(PlayerUniqueId, LobbyState);	
+	GetWorldFirstPCMaster()->LobbyMenuWidget->UpdatePlayerLobbyState(PlayerUniqueId, LobbyState);	
 }

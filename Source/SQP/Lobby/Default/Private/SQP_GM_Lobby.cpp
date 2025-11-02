@@ -140,7 +140,17 @@ void ASQP_GM_Lobby::MoveToGameMap()
 		if (const auto GI = Cast<USQP_GI>(GetWorld()->GetGameInstance()))
 		{
 			//적절한 페인트 룸 레벨을 선정한다
-			FString TagetLevel = GI->GetTargetPaintRoomSave().Level.Equals("") ? TEXT("ArtGallery") : GI->GetTargetPaintRoomSave().Level;
+			FString TagetLevel;
+			
+			if (GI->bPlayground)
+			{
+				TagetLevel = TEXT("CatchMind");
+			}
+			else
+			{
+				TagetLevel = GI->GetTargetPaintRoomSave().Level.Equals("") ? TEXT("ArtGallery") : GI->GetTargetPaintRoomSave().Level;
+			}
+
 			TagetLevel += TEXT("?seamless");
 			
 			//클라이언트와 함께 페인트 룸으로 이동한다

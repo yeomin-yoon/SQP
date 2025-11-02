@@ -31,6 +31,9 @@ void USQP_GI::Init()
 		Temp->OnDestroySessionCompleteDelegates.AddUObject(this, &USQP_GI::OnDestroySessionComplete);
 		Temp->OnEndSessionCompleteDelegates.AddUObject(this, &USQP_GI::OnEndSessionCompleted);
 	}
+
+	//호스트는 기본적으로 참가자를 겸한다
+	bHostAsSpectator = false;
 }
 
 void USQP_GI::CreateMySession(const FString DisplayName, const int32 PlayerCount) const

@@ -23,7 +23,7 @@ protected:
 	
 	//현 시스템의 플레이어 컨트롤러 획득
 	UFUNCTION()
-	ASQP_PC_Lobby* GetWorldFirstPCLobby() const;
+	ASQP_PC_Lobby* GetWorldFirstPCMaster() const;
 
 	//바인딩되어 있는 플레이어 스테이트 획득
 	UFUNCTION()

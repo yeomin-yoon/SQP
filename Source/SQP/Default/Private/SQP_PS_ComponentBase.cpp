@@ -11,7 +11,7 @@ USQP_GI* USQP_PS_ComponentBase::GetSQPGameInstance() const
 	return Cast<USQP_GI>(GetWorld()->GetGameInstance());
 }
 
-ASQP_PC_Lobby* USQP_PS_ComponentBase::GetWorldFirstPCLobby() const
+ASQP_PC_Lobby* USQP_PS_ComponentBase::GetWorldFirstPCMaster() const
 {
 	return Cast<ASQP_PC_Lobby>(GetWorld()->GetFirstPlayerController());
 }

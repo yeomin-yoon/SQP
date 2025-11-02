@@ -9,6 +9,7 @@
 #include "PaintRoomSaveInfoWidget.h"
 #include "SelectedPRSInfoWidget.h"
 #include "SQP_GI.h"
+#include "Components/CheckBox.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
@@ -40,6 +41,12 @@ void UHostSideLobbyMenuWidget::NativeConstruct()
 
 	//취소 버튼 바인딩
 	CancelSaveDataSelectionButton->OnClicked.AddDynamic(this, &UHostSideLobbyMenuWidget::OnCancelSaveDataSelectionButtonClicked);
+
+	//호스트 모드 체크 박스 바인딩
+	HostModeCheckBox->OnCheckStateChanged.AddDynamic(this, &UHostSideLobbyMenuWidget::OnHostModeCheckBoxStateChanged);
+
+	//플레이그라운드 체크 박스 바인딩
+	PlaygroundCheckBox->OnCheckStateChanged.AddDynamic(this, &UHostSideLobbyMenuWidget::OnPlaygroundCheckBoxStateChanged);
 
 	//메인 세이브 게임에 접근
 	if (const auto MainSaveGame = Cast<USQP_SG_Main>(USQP_GI::LoadMainSaveGame()))
@@ -82,10 +89,23 @@ void UHostSideLobbyMenuWidget::OnOtherPlayerEnter(FPlayerInfo& NewPlayerInfo)
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
+void UHostSideLobbyMenuWidget::OnHostModeCheckBoxStateChanged(const bool bIsChecked)
+{
+	Cast<USQP_GI>(GetGameInstance())->bHostAsSpectator = bIsChecked;
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
+void UHostSideLobbyMenuWidget::OnPlaygroundCheckBoxStateChanged(const bool bIsChanged)
+{
+	SaveDataBox->SetVisibility(bIsChanged ? ESlateVisibility::Hidden : ESlateVisibility::Visible);
+	Cast<USQP_GI>(GetGameInstance())->bPlayground = bIsChanged;
+}
+
+// ReSharper disable once CppMemberFunctionMayBeConst
 void UHostSideLobbyMenuWidget::OnCancelSaveDataSelectionButtonClicked()
 {
 	//게임 인스턴스에 지정된 페인트 룸 세이브 ID를 초기화한다
-	Cast<USQP_GI>(GetWorld()->GetGameInstance())->SetTargetPaintRoomSave(FSQP_PainRoomSaveFormat());
+	Cast<USQP_GI>(GetGameInstance())->SetTargetPaintRoomSave(FSQP_PainRoomSaveFormat());
 }
 
 // ReSharper disable once CppMemberFunctionMayBeConst
@@ -98,7 +118,7 @@ void UHostSideLobbyMenuWidget::OnSaveDataSlotDoubleClicked(UPaintRoomSaveInfoWid
 	}
 	
 	//게임 인스턴스에 지정된 페인트 룸 세이브 ID를 재설정한다
-	Cast<USQP_GI>(GetWorld()->GetGameInstance())->SetTargetPaintRoomSave(Target->BindingPRS);
+	Cast<USQP_GI>(GetGameInstance())->SetTargetPaintRoomSave(Target->BindingPRS);
 
 	//이전에 선택된 위젯이 있었다면
 	if (CurrentSelectedPaintRoomSaveInfoWidget)

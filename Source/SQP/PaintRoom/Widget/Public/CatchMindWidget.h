@@ -21,16 +21,16 @@ public:
 	void HideAll() const;
 
 	UFUNCTION()
-	void ShowPainter() const;
+	void ShowPainter();
 
 	UFUNCTION()
-	void ShowParticipant() const;
+	void ShowParticipant();
 
 	UFUNCTION()
-	void ShowSomeoneWin(const FString& SomeoneName);
+	void ShowSomeoneWin(const FString& SomeoneName) const;
 
 	UFUNCTION()
-	void ShowWin(const FString& MyName);
+	void ShowWin(const FString& MyName) const;
 
 	UFUNCTION()
 	void ShowWrong();
@@ -38,12 +38,21 @@ public:
 	UFUNCTION()
 	void SetSuggestionText(const FString& Suggestion, const FString& Hint) const;
 
+	UFUNCTION()
+	void ShowTimeUp() const;
+
 protected:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> PainterRoleTextBlock;
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> ParticipantRoleTextBlock;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> BigPainterRoleTextBlock;
+
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> BigParticipantRoleTextBlock;
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> SuggestionTitleTextBlock;
@@ -66,8 +75,13 @@ protected:
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<UTextBlock> CorrectTextBlock;
 
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<UTextBlock> TimeUpTextBlock;
+
 	UFUNCTION()
 	void OnAnswerTextCommitted(const FText& InText, ETextCommit::Type InCommitMethod);
 
 	FTimerHandle WrongMessageTimerHandle;
+
+	FTimerHandle RoleMessageTimerHandle;
 };

@@ -31,5 +31,10 @@ public:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USQP_PS_PaintRoomComponent> PaintRoom;
 
+	__declspec(property(get=GetScore, put=SetScoreV)) int32 SCORE;
+	UFUNCTION()
+	FORCEINLINE void SetScoreV(const int32 NewScore) { SetScore(NewScore); OnRep_Score(); }
+	virtual void OnRep_Score() override;
+
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 };
