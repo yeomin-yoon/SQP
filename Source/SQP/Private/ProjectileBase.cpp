@@ -23,10 +23,11 @@ AProjectileBase::AProjectileBase()
 	ProjectileMoveComp->InitialSpeed = 2000;
 	ProjectileMoveComp->bRotationFollowsVelocity = true;
 	ProjectileMoveComp->bInterpMovement = true;
+	ProjectileMoveComp->InterpLocationTime = 0.1;
 
 	//네트워크 설정
 	bReplicates = true;
-	SetNetUpdateFrequency(25);
+	SetNetUpdateFrequency(40);
 	AActor::SetReplicateMovement(true);
 }
 

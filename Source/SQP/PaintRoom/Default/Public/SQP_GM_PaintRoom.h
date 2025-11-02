@@ -35,6 +35,10 @@ public:
 	
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
+	//스카이 뷰
+	UPROPERTY(VisibleAnywhere)
+	TSubclassOf<APawn> SkyPawnClass;
+
 	//페인트 룸에서 사용하는 위젯 블루프린트 클래스
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> PaintRoomWidgetClass;
