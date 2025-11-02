@@ -1,8 +1,12 @@
 ﻿#include "AISimilarityClient.h"
 
+#include "CompetitionWidget.h"
 #include "HttpModule.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
+#include "SQP_GS_PaintRoom.h"
+#include "SQP_PC_PaintRoom.h"
+#include "SQP_PS_Master.h"
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 
@@ -88,8 +92,7 @@ static bool SafeTextureToPNG(UTexture2D* Texture, TArray<uint8>& OutData)
     return true;
 }
 
-void UAISimilarityClient::CompareTextures(UTexture2D* Original, const TArray<UTexture2D*>& ComparisonTextures,
-                                          const TArray<FString>& PlayerNames)
+void UAISimilarityClient::CompareTextures(UTexture2D* Original, const TArray<UTexture2D*>& ComparisonTextures, const TArray<FString>& PlayerNames)
 {
 	if (!Original || ComparisonTextures.Num() == 0)
 	{
@@ -144,8 +147,10 @@ void UAISimilarityClient::CompareTextures(UTexture2D* Original, const TArray<UTe
 
 	Request->SetContent(Payload);
 
+	const auto GS = GetWorld()->GetGameState<ASQP_GS_PaintRoom>();
+
 	Request->OnProcessRequestComplete().BindLambda(
-		[PlayerNames](FHttpRequestPtr Req, FHttpResponsePtr Res, bool bSuccess)
+		[PlayerNames, GS](FHttpRequestPtr Req, FHttpResponsePtr Res, bool bSuccess)
 		{
 			if (bSuccess && Res.IsValid())
 			{
@@ -169,6 +174,20 @@ void UAISimilarityClient::CompareTextures(UTexture2D* Original, const TArray<UTe
 					if (PlayerNames.IsValidIndex(Index))
 					{
 						UE_LOG(LogTemp, Warning, TEXT("가장 유사한 플레이어: %s (Score: %.3f)"), *PlayerNames[Index], Score);
+						const auto PSMaster = Cast<ASQP_PS_Master>(GS->PlayerArray[Index]);
+						PSMaster->SCORE += 20;
+
+						for (int32 i = 0; i < GS->PlayerArray.Num(); ++i)
+						{
+							if (i == Index)
+							{
+								Cast<ASQP_PC_PaintRoom>(GS->PlayerArray[i]->GetPlayerController())->CompetitionWidget->ShowWin(PlayerNames[Index]);
+							}
+							else
+							{
+								Cast<ASQP_PC_PaintRoom>(GS->PlayerArray[i]->GetPlayerController())->CompetitionWidget->ShowSomeoneWin(PlayerNames[Index]);
+							}
+						}
 					}
 					else
 					{

@@ -6,6 +6,7 @@
 #include "SQPPlayerController.h"
 #include "SQP_PC_PaintRoom.generated.h"
 
+class UCompetitionWidget;
 class USQP_GI;
 class UPlaygroundScoreWidget;
 class UPlaygroundMenuWidget;
@@ -71,6 +72,7 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	TSubclassOf<UUserWidget> PlaygroundMenuWidgetClass;
 
+	//플레이그라운드 메뉴 위젯
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UPlaygroundMenuWidget> PlaygroundMenuWidget;
 
@@ -81,6 +83,14 @@ public:
 	//캐치 마인드 위젯
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UCatchMindWidget> CatchMindWidget;
+
+	//컴페티션 위젯 블루프린트 클래스
+	UPROPERTY(VisibleAnywhere)
+	TSubclassOf<UUserWidget> CompetitionWidgetClass;
+
+	//컴페티션 위젯
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UCompetitionWidget> CompetitionWidget;
 
 	//플레이그라운드 점수 위젯 블루프린트 클래스
 	UPROPERTY(VisibleAnywhere)

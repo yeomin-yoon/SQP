@@ -4,6 +4,7 @@
 #include "PaintRoom/Default/Public/SQP_PC_PaintRoom.h"
 
 #include "CatchMindWidget.h"
+#include "CompetitionWidget.h"
 #include "PlaygroundScoreWidget.h"
 #include "SkyViewPawn.h"
 #include "SQP.h"
@@ -16,13 +17,10 @@
 #include "TimerUI.h"
 #include "UIManager.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/CapsuleComponent.h"
 #include "Components/Image.h"
 #include "Components/RichTextBlock.h"
-#include "Components/TextBlock.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "PaintRoom/Widget/Private/PlaygroundMenuWidget.h"
+#include "PlaygroundMenuWidget.h"
 #include "Net/UnrealNetwork.h"
 
 ASQP_PC_PaintRoom::ASQP_PC_PaintRoom()
@@ -52,6 +50,14 @@ ASQP_PC_PaintRoom::ASQP_PC_PaintRoom()
 	{
 		PlaygroundMenuWidgetClass = Finder.Class;
 	}
+
+	//컴페티션 위젯 블루프린트 클래스 획득
+	if (static ConstructorHelpers::FClassFinder<UUserWidget>
+		Finder(TEXT("/Game/Splatoon/Blueprint/PaintRoomLevel/WBP_Competition.WBP_Competition_C"));
+		Finder.Succeeded())
+	{
+		CompetitionWidgetClass = Finder.Class;
+	}
 }
 
 void ASQP_PC_PaintRoom::BeginPlay()
@@ -74,6 +80,17 @@ void ASQP_PC_PaintRoom::BeginPlay()
 				CatchMindWidget = Casted;
 				CatchMindWidget->HideAll();
 				CatchMindWidget->AddToViewport();
+			}
+		}
+
+		//컴페티션 위젯 블루프린트 생성
+		if (const auto Created = CreateWidget(this, CompetitionWidgetClass))
+		{
+			if (const auto Casted = Cast<UCompetitionWidget>(Created))
+			{
+				CompetitionWidget = Casted;
+				CompetitionWidget->HideAll();
+				CompetitionWidget->AddToViewport();
 			}
 		}
 

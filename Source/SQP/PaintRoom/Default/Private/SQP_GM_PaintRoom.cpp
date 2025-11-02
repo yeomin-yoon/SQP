@@ -365,6 +365,8 @@ void ASQP_GM_PaintRoom::EndCompetitionMiniGame()
 
 	SimilarityClient->CompareTextures(GSPaint->RandomImage, CompareTextures, PlayerNames);
 
+	PRINTLOGNET(TEXT("EndCompetitionMiniGame"));
+
 	InitCompetition();
 }
 

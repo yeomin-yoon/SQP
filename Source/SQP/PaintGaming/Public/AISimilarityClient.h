@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "HttpFwd.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "AISimilarityClient.generated.h"
 
