@@ -5,7 +5,6 @@
 
 #include "CatchMindWidget.h"
 #include "PlaygroundScoreWidget.h"
-#include "SkyViewPawn.h"
 #include "SQP.h"
 #include "SQP_GI.h"
 #include "SQP_GM_PaintRoom.h"
@@ -16,14 +15,10 @@
 #include "TimerUI.h"
 #include "UIManager.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/CapsuleComponent.h"
 #include "Components/Image.h"
 #include "Components/RichTextBlock.h"
-#include "Components/TextBlock.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PaintRoom/Widget/Private/PlaygroundMenuWidget.h"
-#include "Net/UnrealNetwork.h"
 
 ASQP_PC_PaintRoom::ASQP_PC_PaintRoom()
 {
@@ -102,13 +97,6 @@ void ASQP_PC_PaintRoom::BeginPlay()
 		TimerUI->SetVisibility(ESlateVisibility::Hidden);
 		TimerUI->ReferImage->SetVisibility(ESlateVisibility::Hidden);
 	}
-}
-
-void ASQP_PC_PaintRoom::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ASQP_PC_PaintRoom, bIsCompetition)
 }
 
 void ASQP_PC_PaintRoom::Tick(float DeltaSeconds)
@@ -219,19 +207,18 @@ void ASQP_PC_PaintRoom::ReplicatedCountDown()
 		RemainingTime = FMath::CeilToInt(Remaining);
 		if (RemainingTime != LastRemainingTime)
 		{
-			TimerUI->SetVisibility(ESlateVisibility::Visible);
+			if (IsLocalController())
+			{
+				TimerUI->SetVisibility(ESlateVisibility::Visible);
+			}
 			if (HasAuthority())
 			{
 				if (GM->bIsCompetition)
 				{
-					bIsCompetition = true;
+					Multicast_ShowReferIMG();
 				}
 			}
-			if (bIsCompetition)
-			{
-				TimerUI->ReferImage->SetVisibility(ESlateVisibility::Visible);
-				TimerUI->ReferImage->SetBrushFromTexture(GS->RandomImage);
-			}
+			
 			UpdateCountdownUI(RemainingTime, TimerUI);
 			LastRemainingTime = RemainingTime;
 		}
@@ -240,9 +227,11 @@ void ASQP_PC_PaintRoom::ReplicatedCountDown()
 			Remaining = 0.f;
 			GS->bOnCountdown = false;
 			LastRemainingTime = -1;
-			TimerUI->SetVisibility(ESlateVisibility::Hidden);
-			TimerUI->ReferImage->SetVisibility(ESlateVisibility::Hidden);
-			bIsCompetition = false;
+			if (IsLocalController())
+			{
+				TimerUI->SetVisibility(ESlateVisibility::Hidden);
+				TimerUI->ReferImage->SetVisibility(ESlateVisibility::Hidden);
+			}
 			if (HasAuthority())
 			{
 				if (GM->bIsCompetition)
@@ -266,4 +255,10 @@ void ASQP_PC_PaintRoom::UpdateCountdownUI(int RemainingSeconds, UTimerUI* UI)
 	{
 		UI->TimerRichTextBlock->SetText(FText::FromString(RichText));
 	}
+}
+
+void ASQP_PC_PaintRoom::Multicast_ShowReferIMG_Implementation()
+{
+	TimerUI->ReferImage->SetVisibility(ESlateVisibility::Visible);
+	TimerUI->ReferImage->SetBrushFromTexture(GS->RandomImage);
 }

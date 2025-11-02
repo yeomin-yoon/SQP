@@ -29,12 +29,12 @@ ASQP_GS_PaintRoom::ASQP_GS_PaintRoom()
 	bReplicates = true;
 }
 
-void ASQP_GS_PaintRoom::BeginPlay() 
+void ASQP_GS_PaintRoom::BeginPlay()
 {
 	Super::BeginPlay();
 
 	PaintGameActor = Cast<APaintGameActor>(
-	UGameplayStatics::GetActorOfClass(GetWorld(), APaintGameActor::StaticClass()));
+		UGameplayStatics::GetActorOfClass(GetWorld(), APaintGameActor::StaticClass()));
 
 	IMGManager = GetGameInstance()->GetSubsystem<UIMGManager>();
 	if (!IMGManager) return;
@@ -59,13 +59,13 @@ void ASQP_GS_PaintRoom::OnRep_PaintExecutionDataSnapshot()
 	{
 		return;
 	}
-	
+
 	//최초 리플리케이션 이후에는 적용 거부
 	if (bHasInitialPaintDataBeenApplied)
 	{
 		return;
 	}
-	
+
 	//스냅샷 이후에는 리플리케이션 비활성화
 	bHasInitialPaintDataBeenApplied = true;
 
@@ -85,12 +85,8 @@ void ASQP_GS_PaintRoom::OnRep_PaintExecutionDataSnapshot()
 
 void ASQP_GS_PaintRoom::StartGame()
 {
-	if (HasAuthority())
-	{
-		Multicast_SetRandomImage(IMGManager->GetRandomImage());
-
-		auto GM = Cast<ASQP_GM_PaintRoom>(GetDefaultGameMode());
-	}
+	UE_LOG(LogTemp, Warning, TEXT("ASQP_GS_PaintRoom::StartGame"));
+	Multicast_SetRandomImage(IMGManager->GetRandomImage());
 }
 
 void ASQP_GS_PaintRoom::Multicast_BroadcastSomeoneWin_Implementation(APlayerState* WinnerPS)
@@ -112,7 +108,6 @@ bool ASQP_GS_PaintRoom::CheckCatchMindAnswer(const FString& OtherAnswer) const
 {
 	return CatchMindSuggestion.Equals(OtherAnswer);
 }
-
 
 
 void ASQP_GS_PaintRoom::OnRep_PaintRoomState()
@@ -140,26 +135,26 @@ void ASQP_GS_PaintRoom::OnRep_PaintRoomState()
 			{
 				break;
 			};
-		}	
+		}
 	}
 }
 
 void ASQP_GS_PaintRoom::Multicast_SetRandomImage_Implementation(UTexture2D* Image)
 {
 	RandomImage = Image;
-	PaintGameActor->ShowRandomImage(RandomImage);
+	PaintGameActor->ShowRandomImage(Image);
 }
 
 void ASQP_GS_PaintRoom::MultiCast_SetSpawnActorText_Implementation(ACompareActor* PaintableActor, const FString& Name)
 {
 	if (!PaintableActor)
 		return;
-	
+
 	PaintableActor->CompetitionPlayerName = Name;
 
 	if (!PaintableActor->GetComponentByClass<UWidgetComponent>())
 		return;
-	
+
 	UCompetitorName* NameUI = Cast<UCompetitorName>(
 		PaintableActor->GetComponentByClass<UWidgetComponent>()->GetWidget());
 	NameUI->CompetitorName->SetText(FText(FText::FromString(PaintableActor->CompetitionPlayerName)));
