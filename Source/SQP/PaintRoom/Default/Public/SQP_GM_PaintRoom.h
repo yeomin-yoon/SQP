@@ -103,4 +103,7 @@ public:
 	void InitCompetition();
 	
 	UTexture2D* ConvertRenderTargetToTexture2D(UTextureRenderTarget2D* RenderTarget);
+
+	UPROPERTY(EditDefaultsOnly, Category="Spectator")
+	TSubclassOf<APawn> SpectatorPawnClass;
 };

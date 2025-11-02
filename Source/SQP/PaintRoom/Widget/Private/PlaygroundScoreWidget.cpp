@@ -41,7 +41,7 @@ void UPlaygroundScoreWidget::UpdatePlaygroundScore()
 		{
 			(*MappingWidget)->SetScore(PSMaster->SCORE);
 			
-			PRINTLOG(TEXT("Successfully U %s Score Widget"), *PSMaster->GetPlayerName());	
+			// PRINTLOG(TEXT("Successfully U %s Score Widget"), *PSMaster->GetPlayerName());	
 		}
 		else
 		{

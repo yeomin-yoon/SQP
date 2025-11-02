@@ -81,7 +81,7 @@ ASQP_GM_PaintRoom::ASQP_GM_PaintRoom()
 void ASQP_GM_PaintRoom::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (UGameplayStatics::GetCurrentLevelName(GetWorld()).Equals(TEXT("CatchMind")))
 	{
 		//액터를 생성한다
@@ -95,7 +95,7 @@ void ASQP_GM_PaintRoom::BeginPlay()
 	{
 		//위젯을 생성한다
 		const auto Created = CreateWidget(GetWorld(), PaintRoomWidgetClass);
-		Created->AddToViewport();	
+		Created->AddToViewport();
 
 		//선택된 페인트 룸 데이터를 로드에 성공했다면
 		if (const auto SaveGame = Cast<USQP_GI>(GetWorld()->GetGameInstance())->LoadSelectedPaintRoomData())
@@ -104,9 +104,10 @@ void ASQP_GM_PaintRoom::BeginPlay()
 			{
 				for (auto Pair : SG_PaintRoom->PEDContainer)
 				{
-					PRINTLOG(TEXT("Successfully Load %s PED... : Length %d"), *Pair.Key.ToString(), Pair.Value.PEDArray.Num());
+					PRINTLOG(TEXT("Successfully Load %s PED... : Length %d"), *Pair.Key.ToString(),
+					         Pair.Value.PEDArray.Num());
 				}
-			
+
 				//서버는 직접 페인트 볼 실행 데이터를 적용한다
 				GetWorld()->GetSubsystem<USQPPaintWorldSubsystem>()->LoadPaintOfWorld(SG_PaintRoom->PEDContainer);
 
@@ -116,41 +117,62 @@ void ASQP_GM_PaintRoom::BeginPlay()
 		}
 	}
 
-
-
 	SimilarityClient = GetGameInstance()->GetSubsystem<UAISimilarityClient>();
-}
 
-void ASQP_GM_PaintRoom::PostLogin(APlayerController* NewPlayer)
-{
-	Super::PostLogin(NewPlayer);
-
-
-	const auto PCPaint = Cast<ASQP_PC_PaintRoom>(NewPlayer);
-	const auto GSPaint = GetGameState<ASQP_GS_PaintRoom>();
-	
-	if (HasAuthority() && NewPlayer->IsLocalController())
+	if (HasAuthority())
 	{
-		if (const auto GI = GetGameInstance<USQP_GI>(); GI->bHostAsSpectator)
+		if (const auto GI = GetGameInstance<USQP_GI>(); GI && GI->bHostAsSpectator)
 		{
-			if (APawn* OldPawn = NewPlayer->GetPawn())
+			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 			{
-				OldPawn->Destroy();
-			}
-		
-			ASkyViewPawn* SpectatorPawn = GetWorld()->SpawnActor<ASkyViewPawn>(ASkyViewPawn::StaticClass(), FVector(0.f, 0.f, 200.f), FRotator(0, 0, 0));
-			if (SpectatorPawn)
-			{
-				NewPlayer->Possess(SpectatorPawn);
+				APlayerController* PC = It->Get();
+				if (!IsValid(PC)) continue;
+				
+				if (PC->IsLocalController())
+				{
+					// 기존 Pawn 제거
+					if (APawn* OldPawn = PC->GetPawn())
+					{
+						OldPawn->Destroy();
+					}
+
+					if (SpectatorPawnClass)
+					{
+						FActorSpawnParameters Params;
+						Params.Owner = PC;
+						Params.Instigator = nullptr;
+
+						ASkyViewPawn* SpectatorPawn = GetWorld()->SpawnActor<ASkyViewPawn>(
+							SpectatorPawnClass, FVector(0.f, 0.f, 200.f), FRotator::ZeroRotator, Params);
+
+						if (SpectatorPawn)
+						{
+							PC->Possess(SpectatorPawn);
+							UE_LOG(LogTemp, Warning, TEXT("SpectatorPawn spawned and possessed."));
+						}
+						else
+						{
+							UE_LOG(LogTemp, Error, TEXT("Failed to spawn SpectatorPawn."));
+						}
+					}
+					else
+					{
+						UE_LOG(LogTemp, Error, TEXT("SpectatorPawnClass is null!"));
+					}
+				}
 			}
 		}
 	}
 }
 
+void ASQP_GM_PaintRoom::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+}
+
 void ASQP_GM_PaintRoom::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
 }
 
 void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
@@ -232,9 +254,9 @@ void ASQP_GM_PaintRoom::StartCatchMindMiniGame()
 void ASQP_GM_PaintRoom::TimeUpCatchMindMiniGame()
 {
 	GetWorldTimerManager().ClearTimer(CatchMindMiniGameTimerHandle);
-	
+
 	PRINTLOGNET(TEXT("GM_PaintRoom::EndCatchMindMiniGame"));
-	
+
 	if (const auto GSPaint = GetGameState<ASQP_GS_PaintRoom>())
 	{
 		//GS의 PS를 PS_Master로 변환해서 임시 저장
@@ -272,7 +294,7 @@ void ASQP_GM_PaintRoom::TimeUpCatchMindMiniGame()
 void ASQP_GM_PaintRoom::EndCatchMindMiniGame()
 {
 	GetWorldTimerManager().ClearTimer(CatchMindMiniGameTimerHandle);
-	
+
 	PRINTLOGNET(TEXT("GM_PaintRoom::EndCatchMindMiniGame"));
 
 	if (const auto GSPaint = GetGameState<ASQP_GS_PaintRoom>())
@@ -333,8 +355,8 @@ void ASQP_GM_PaintRoom::StartCompetitionMiniGame()
 		{
 			continue;
 		}
-			
-		
+
+
 		PlayerNames.Add(PS->GetPlayerName());
 	}
 
@@ -359,18 +381,20 @@ void ASQP_GM_PaintRoom::EndCompetitionMiniGame()
 	{
 		PlayerNames[i] = PaintableCompareActors[i]->CompetitionPlayerName;
 		UTexture* CompareImage;
-		PaintableCompareActors[i]->FindComponentByClass<UStaticMeshComponent>()->GetMaterial(0)->GetTextureParameterValue(TEXT("ColorRenderTarget"), CompareImage);
+		PaintableCompareActors[i]->FindComponentByClass<UStaticMeshComponent>()->GetMaterial(0)->
+		                           GetTextureParameterValue(TEXT("ColorRenderTarget"), CompareImage);
 		UTextureRenderTarget2D* RT = Cast<UTextureRenderTarget2D>(CompareImage);
 		CompareTextures[i] = ConvertRenderTargetToTexture2D(RT);
 		if (!CompareTextures[i])
 		{
-			CompareTextures[i] = LoadObject<UTexture2D>(nullptr, TEXT("/Engine/EngineResources/WhiteSquareTexture.WhiteSquareTexture"));
+			CompareTextures[i] = LoadObject<UTexture2D>(
+				nullptr, TEXT("/Engine/EngineResources/WhiteSquareTexture.WhiteSquareTexture"));
 		}
 		if (CompareTextures[i])
 		{
 			UE_LOG(LogTemp, Warning, TEXT("CompareImage: %s (%s)"),
-				*CompareTextures[i]->GetName(),
-				*CompareTextures[i]->GetPathName());
+			       *CompareTextures[i]->GetName(),
+			       *CompareTextures[i]->GetPathName());
 		}
 		else
 		{
@@ -379,7 +403,7 @@ void ASQP_GM_PaintRoom::EndCompetitionMiniGame()
 	}
 	UE_LOG(LogTemp, Warning, TEXT("%d"), PlayerNames.Num());
 	UE_LOG(LogTemp, Warning, TEXT("%d"), CompareTextures.Num());
-	
+
 	SimilarityClient->CompareTextures(GSPaint->RandomImage, CompareTextures, PlayerNames);
 
 	PRINTLOGNET(TEXT("EndCompetitionMiniGame"));
@@ -388,7 +412,8 @@ void ASQP_GM_PaintRoom::EndCompetitionMiniGame()
 }
 
 
-void ASQP_GM_PaintRoom::SpawnActorsInCircle(const TSubclassOf<ACompareActor> ActorClass, const int32 NumActors, const float Radius, const FVector& Center)
+void ASQP_GM_PaintRoom::SpawnActorsInCircle(const TSubclassOf<ACompareActor> ActorClass, const int32 NumActors,
+                                            const float Radius, const FVector& Center)
 {
 	if (!ActorClass || NumActors <= 0)
 		return;
@@ -401,7 +426,7 @@ void ASQP_GM_PaintRoom::SpawnActorsInCircle(const TSubclassOf<ACompareActor> Act
 	const float GapRadians = FMath::DegreesToRadians(GapDegrees);
 	const float StartAngle = PI / 2 + (GapRadians / 2);
 	const float FillRadians = 2 * PI - GapRadians;
-	
+
 	for (int32 i = 0; i < NumActors; ++i)
 	{
 		const float Angle = StartAngle + FillRadians / (NumActors - 1) * i;
@@ -418,7 +443,6 @@ void ASQP_GM_PaintRoom::SpawnActorsInCircle(const TSubclassOf<ACompareActor> Act
 		PaintableCompareActors.Add(PaintableActor);
 	}
 }
-
 
 
 void ASQP_GM_PaintRoom::InitCompetition()

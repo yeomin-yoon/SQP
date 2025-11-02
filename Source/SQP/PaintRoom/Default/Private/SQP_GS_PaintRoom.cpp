@@ -8,11 +8,9 @@
 #include "CompetitorName.h"
 #include "IMGManager.h"
 #include "PaintGameActor.h"
-#include "SFXManager.h"
 #include "SQPPaintWorldSubsystem.h"
 #include "SQP_PC_PaintRoom.h"
 #include "SQP_SG_PaintRoom.h"
-#include "Components/AudioComponent.h"
 #include "Components/TextBlock.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/PlayerState.h"
@@ -81,8 +79,11 @@ void ASQP_GS_PaintRoom::OnRep_PaintExecutionDataSnapshot()
 
 void ASQP_GS_PaintRoom::StartGame()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ASQP_GS_PaintRoom::StartGame"));
-	Multicast_SetRandomImage(IMGManager->GetRandomImage());
+	UE_LOG(LogTemp, Warning, TEXT("ASQP_GS_PaintRoom::StartCompetitionGame"));
+	if (HasAuthority())
+	{
+		Multicast_SetRandomImage(IMGManager->GetRandomImage());
+	}
 }
 
 void ASQP_GS_PaintRoom::Multicast_BroadcastSomeoneWin_Implementation(APlayerState* WinnerPS)
