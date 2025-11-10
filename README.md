@@ -58,16 +58,6 @@ SQP는 언리얼 엔진 5.6을 사용하여 개발한 스플래툰 스타일 3�
 2.  `SQP.uproject` 파일을 우클릭하여 **"Generate Visual Studio project files"**를 실행합니다.
 3.  생성된 `SQP.sln` 파일을 열어 **Development Editor** 또는 **Development** 구성으로 빌드합니다.
 
-#### 명령행 빌드 (Windows)
-
-```bat
-REM 에디터 빌드
-"<UE_ROOT>\Engine\Build\BatchFiles\Build.bat" SQPEditor Win64 Development -Project="<PROJECT_PATH>\SQP.uproject" -WaitMutex
-
-REM 게임 빌드
-"<UE_ROOT>\Engine\Build\BatchFiles\Build.bat" SQP Win64 Development -Project="<PROJECT_PATH>\SQP.uproject" -WaitMutex
-```
-
 ## 6. 주요 레벨
 
 에디터에서 다음 레벨을 열어 각 게임 모드를 테스트할 수 있습니다.
