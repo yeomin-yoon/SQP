@@ -1,3 +1,15 @@
+> 팀 프로젝트 포크입니다. 원본 저장소 — [doppleddiggong/DragonBallSZ](https://github.com/doppleddiggong/DragonBallSZ)<br>
+> 아래 담당 구현은 이 저장소 소유자(윤여민)의 작업 범위이며, 그 아래 문서는 팀 공용 README입니다.
+
+## 담당 구현 — 윤여민
+
+- 상황 가중치 기반 FSM 적 AI 행동 로직 (`UEnemyFSM`)
+- 에너지탄 · 에너지파 등 투사체 · 필살기 이동 · 판정 · 전투 연출
+- Niagara 기반 오라 · 대시 · 폭발 · 필살기 VFX 연동
+- 콤보 · 대미지 UI, 사운드, 임팩트 프레임 등 전투 피드백
+
+---
+
 # SQP (Splatoon-inspired Gameplay Project)
 
 ## 1. 프로젝트 개요
