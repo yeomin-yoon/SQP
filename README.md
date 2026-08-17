@@ -1,12 +1,12 @@
-> 팀 프로젝트 포크입니다. 원본 저장소 — [doppleddiggong/DragonBallSZ](https://github.com/doppleddiggong/DragonBallSZ)<br>
+> 팀 프로젝트 포크입니다. 원본 저장소 — [prayslaks/SQP](https://github.com/prayslaks/SQP)<br>
 > 아래 담당 구현은 이 저장소 소유자(윤여민)의 작업 범위이며, 그 아래 문서는 팀 공용 README입니다.
 
 ## 담당 구현 — 윤여민
 
-- 상황 가중치 기반 FSM 적 AI 행동 로직 (`UEnemyFSM`)
-- 에너지탄 · 에너지파 등 투사체 · 필살기 이동 · 판정 · 전투 연출
-- Niagara 기반 오라 · 대시 · 폭발 · 필살기 VFX 연동
-- 콤보 · 대미지 UI, 사운드, 임팩트 프레임 등 전투 피드백
+- 이동 · 사격 · UI · 상호작용 · 자유 시점을 Actor Component로 분리해 탱크 캐릭터에 조합
+- Render Target 픽셀 판정 기반 페인트 이동과 Server RPC 이동 파라미터 반영
+- Spline Mesh 세그먼트 분할 · UV 보정 기반 페인팅 벽면 제작 자동화
+- UE Texture PNG 직렬화 · Multipart HTTP · FastAPI MSE 비교 기반 그림 경쟁 자동 판정
 
 ---
 
